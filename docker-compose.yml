@@ -1,0 +1,31 @@
+services:
+  postgres:
+    image: postgres:16.2-alpine3.19
+    restart: unless-stopped
+    container_name: postgres-hbt
+    environment:
+      POSTGRES_USER: username
+      POSTGRES_PASSWORD: password
+      PGDATA: /var/lib/postgresql/data
+      POSTGRES_DB: home_budget_tracker
+    volumes:
+      - postgres:/data/postgres
+    ports:
+      - 5432:5432
+    networks:
+      - hbt-network
+  mail-dev:
+    container_name: mail-dev-hbt
+    image: maildev/maildev
+    ports:
+      - 1080:1080
+      - 1025:1025
+
+
+networks:
+  hbt-network:
+    driver: bridge
+
+volumes:
+    postgres:
+      driver: local
