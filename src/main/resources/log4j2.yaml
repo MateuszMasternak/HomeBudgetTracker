@@ -1,0 +1,45 @@
+Configuration:
+  status: WARN
+  name: dev
+  properties:
+    property:
+      name: filename
+      value: logs/hbt.log
+  appenders:
+    Console:
+      name: STDOUT
+      target: SYSTEM_OUT
+      PatternLayout:
+        Pattern: "%highlight{%d{HH:mm:ss.SSS} [%t] %-level %c{1} - %msg%n}"
+      Filters:
+        ThresholdFilter:
+          level: ERROR
+    RollingFile:
+      name: RollingFile
+      fileName: logs/hbt-rolling.log
+      filePattern: logs/hbt-%d{yyy-MM-dd}-%i.log
+      PatternLayout:
+          Pattern: "%highlight{[%-level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n}"
+      Filters:
+        ThresholdFilter:
+          level: DEBUG
+      Policies:
+          TimeBasedTriggeringPolicy:
+            interval: 1
+            modulate: true
+          SizeBasedTriggeringPolicy:
+            size: 10 MB
+      DefaultRolloverStrategy:
+          max: 60
+  Loggers:
+    logger:
+      -
+        name: com.rainy.homebudgettracker
+        additivity: false
+        level: DEBUG
+        AppenderRef:
+          ref: RollingFile
+    Root:
+      level: DEBUG
+      AppenderRef:
+        ref: STDOUT
