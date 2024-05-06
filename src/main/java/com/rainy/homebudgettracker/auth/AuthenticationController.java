@@ -1,5 +1,6 @@
 package com.rainy.homebudgettracker.auth;
 
+import com.rainy.homebudgettracker.handler.exception.EmailAlreadyExistsException;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,8 +17,13 @@ public class AuthenticationController {
     public ResponseEntity<?> register(
             @RequestBody @Valid RegisterRequest registerRequest
     ) throws MessagingException {
-        authenticationService.register(registerRequest);
-        return ResponseEntity.accepted().build();
+        String message = "You will receive an email with activation code soon";
+        try {
+            authenticationService.register(registerRequest);
+            return ResponseEntity.accepted().body(message);
+        } catch (EmailAlreadyExistsException e) {
+            return ResponseEntity.accepted().body(message);
+        }
     }
 
     @PostMapping("/authenticate")

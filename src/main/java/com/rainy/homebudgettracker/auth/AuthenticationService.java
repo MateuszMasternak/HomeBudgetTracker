@@ -2,6 +2,7 @@ package com.rainy.homebudgettracker.auth;
 
 import com.rainy.homebudgettracker.email.EmailService;
 import com.rainy.homebudgettracker.email.EmailTemplateName;
+import com.rainy.homebudgettracker.handler.exception.EmailAlreadyExistsException;
 import com.rainy.homebudgettracker.user.*;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +31,11 @@ public class AuthenticationService {
     @Value("${application.mailing.frontend.activation-url}")
     private String activationUrl;
 
-    public void register(RegisterRequest registerRequest) throws MessagingException {
+    public void register(RegisterRequest registerRequest) throws MessagingException, EmailAlreadyExistsException {
+        if (userRepository.existsByEmail(registerRequest.getEmail())) {
+            throw new EmailAlreadyExistsException("Email already exists");
+        }
+
         var user = User.builder()
                 .firstName(registerRequest.getFirstName())
                 .lastName(registerRequest.getLastName())
