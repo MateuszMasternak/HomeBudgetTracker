@@ -44,8 +44,3 @@ spring:
     activate:
       on-profile: dev
     import: optional:file:.env[.properties]
-
-logging:
-  file:
-    path: ${LOG_FILE_PATH}
-    name: ${logging.file.path}${LOG_FILE_NAME}
