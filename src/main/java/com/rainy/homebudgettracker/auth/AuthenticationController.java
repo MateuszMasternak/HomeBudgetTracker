@@ -1,6 +1,8 @@
 package com.rainy.homebudgettracker.auth;
 
 import com.rainy.homebudgettracker.handler.exception.EmailAlreadyExistsException;
+import com.rainy.homebudgettracker.handler.exception.ExpiredConfirmationTokenException;
+import com.rainy.homebudgettracker.handler.exception.InvalidConfirmationTokenException;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +38,7 @@ public class AuthenticationController {
     @GetMapping("/activate-account")
     public ResponseEntity<?> activateAccount(
             @RequestParam String token
-    ) throws MessagingException {
+    ) throws MessagingException, InvalidConfirmationTokenException, ExpiredConfirmationTokenException {
         authenticationService.activateAccount(token);
         return ResponseEntity.accepted().build();
     }

@@ -3,6 +3,8 @@ package com.rainy.homebudgettracker.auth;
 import com.rainy.homebudgettracker.email.EmailService;
 import com.rainy.homebudgettracker.email.EmailTemplateName;
 import com.rainy.homebudgettracker.handler.exception.EmailAlreadyExistsException;
+import com.rainy.homebudgettracker.handler.exception.ExpiredConfirmationTokenException;
+import com.rainy.homebudgettracker.handler.exception.InvalidConfirmationTokenException;
 import com.rainy.homebudgettracker.user.*;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
@@ -101,12 +103,15 @@ public class AuthenticationService {
     }
 
     @Transactional
-    public void activateAccount(String token) throws MessagingException {
+    public void activateAccount(String token)
+            throws MessagingException, InvalidConfirmationTokenException, ExpiredConfirmationTokenException
+    {
         Token savedToken = tokenRepository.findByToken(token)
-                .orElseThrow(() -> new RuntimeException("Invalid token"));
+                .orElseThrow(() -> new InvalidConfirmationTokenException("Invalid token"));
         if (LocalDateTime.now().isAfter(savedToken.getExpiresAt())) {
             sendValidationEmail(savedToken.getUser());
-            throw new RuntimeException("Token expired. New token has been sent to the same email address");
+            throw new ExpiredConfirmationTokenException(
+                    "Token expired. New token has been sent to the same email address");
         }
         var user = userRepository.findById(Math.toIntExact(savedToken.getUser().getId()))
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));

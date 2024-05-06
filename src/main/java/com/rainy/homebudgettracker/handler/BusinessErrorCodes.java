@@ -13,6 +13,11 @@ public enum BusinessErrorCodes {
     BAD_CREDENTIALS(301, UNAUTHORIZED, "Bad credentials"),
     ACCOUNT_DISABLED(302, FORBIDDEN, "Account disabled"),
     ACCOUNT_LOCKED(303, FORBIDDEN, "Account locked"),
+    INVALID_CONFIRMATION_TOKEN(304, UNAUTHORIZED, "Invalid confirmation token"),
+    EXPIRED_CONFIRMATION_TOKEN(305, UNAUTHORIZED, "Expired confirmation token"),
+    MISSING_OR_INVALID_REQUEST_BODY_ELEMENT(306, BAD_REQUEST, "Missing or invalid request body element"),
+    MISSING_REQUEST_PARAMETER(400, BAD_REQUEST, "Missing request parameter"),
+    MISSING_REQUEST_BODY(401, BAD_REQUEST, "Missing request body"),
     ;
 
     private final int code;
