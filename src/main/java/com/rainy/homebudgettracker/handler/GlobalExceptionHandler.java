@@ -1,6 +1,5 @@
 package com.rainy.homebudgettracker.handler;
 
-import com.rainy.homebudgettracker.handler.exception.EmailAlreadyExistsException;
 import com.rainy.homebudgettracker.handler.exception.ExpiredConfirmationTokenException;
 import com.rainy.homebudgettracker.handler.exception.InvalidConfirmationTokenException;
 import jakarta.mail.MessagingException;
