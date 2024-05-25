@@ -2,6 +2,8 @@ package com.rainy.homebudgettracker.handler;
 
 import com.rainy.homebudgettracker.handler.exception.ExpiredConfirmationTokenException;
 import com.rainy.homebudgettracker.handler.exception.InvalidConfirmationTokenException;
+import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
+import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import jakarta.mail.MessagingException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
@@ -146,6 +148,30 @@ public class GlobalExceptionHandler {
                                 .businessErrorCode(EXPIRED_CONFIRMATION_TOKEN.getCode())
                                 .businessErrorDescription(EXPIRED_CONFIRMATION_TOKEN.getDescription())
                                 .error(e.getMessage())
+                                .build()
+                );
+    }
+
+    @ExceptionHandler(RecordDoesNotExistException.class)
+    public ResponseEntity<ExceptionResponse> handleException(RecordDoesNotExistException e) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(
+                        ExceptionResponse.builder()
+                                .businessErrorCode(INVALID_DELETE_REQUEST.getCode())
+                                .businessErrorDescription(INVALID_DELETE_REQUEST.getDescription())
+                                .build()
+                );
+    }
+
+    @ExceptionHandler(UserIsNotOwnerException.class)
+    public ResponseEntity<ExceptionResponse> handleException(UserIsNotOwnerException e) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(
+                        ExceptionResponse.builder()
+                                .businessErrorCode(INVALID_DELETE_REQUEST.getCode())
+                                .businessErrorDescription(INVALID_DELETE_REQUEST.getDescription())
                                 .build()
                 );
     }
