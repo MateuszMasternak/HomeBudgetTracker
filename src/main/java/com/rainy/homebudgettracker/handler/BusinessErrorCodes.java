@@ -19,6 +19,7 @@ public enum BusinessErrorCodes {
     MISSING_REQUEST_PARAMETER(400, BAD_REQUEST, "Missing request parameter"),
     MISSING_REQUEST_BODY(401, BAD_REQUEST, "Missing request body"),
     INVALID_DELETE_REQUEST(402, NOT_FOUND, "Record does not exist or is not accessible"),
+    INVALID_POST_REQUEST(403, BAD_REQUEST, "Record already exists"),
     ;
 
     private final int code;

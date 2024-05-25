@@ -1,9 +1,6 @@
 package com.rainy.homebudgettracker.handler;
 
-import com.rainy.homebudgettracker.handler.exception.ExpiredConfirmationTokenException;
-import com.rainy.homebudgettracker.handler.exception.InvalidConfirmationTokenException;
-import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
-import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
+import com.rainy.homebudgettracker.handler.exception.*;
 import jakarta.mail.MessagingException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
@@ -172,6 +169,19 @@ public class GlobalExceptionHandler {
                         ExceptionResponse.builder()
                                 .businessErrorCode(INVALID_DELETE_REQUEST.getCode())
                                 .businessErrorDescription(INVALID_DELETE_REQUEST.getDescription())
+                                .build()
+                );
+    }
+
+    @ExceptionHandler(RecordAlreadyExistsException.class)
+    public ResponseEntity<ExceptionResponse> handleException(RecordAlreadyExistsException e) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(
+                        ExceptionResponse.builder()
+                                .businessErrorCode(INVALID_POST_REQUEST.getCode())
+                                .businessErrorDescription(INVALID_POST_REQUEST.getDescription())
+                                .error(e.getMessage())
                                 .build()
                 );
     }
