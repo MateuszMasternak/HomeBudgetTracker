@@ -1,12 +1,12 @@
 package com.rainy.homebudgettracker.transaction;
 
+import com.rainy.homebudgettracker.category.Category;
+import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
+import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.time.LocalDate;
@@ -56,5 +56,22 @@ public class TransactionController {
                 LocalDate.parse(startDate),
                 LocalDate.parse(endDate)
         ));
+    }
+
+    @PostMapping
+    public ResponseEntity<Transaction> createTransaction(
+            Principal principal,
+            @RequestBody TransactionRequest transactionRequest
+    ) {
+        return ResponseEntity.ok(transactionService.createTransaction((User) principal, transactionRequest));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTransaction(
+            Principal principal,
+            @PathVariable Long id
+    ) throws RecordDoesNotExistException, UserIsNotOwnerException {
+        transactionService.deleteTransaction((User) principal, id);
+        return ResponseEntity.noContent().build();
     }
 }

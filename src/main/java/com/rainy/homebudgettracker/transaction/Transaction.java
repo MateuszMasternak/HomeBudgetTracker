@@ -1,5 +1,6 @@
 package com.rainy.homebudgettracker.transaction;
 
+import com.rainy.homebudgettracker.category.Category;
 import com.rainy.homebudgettracker.user.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -18,6 +19,7 @@ public class Transaction {
     @GeneratedValue
     private Long id;
     private BigDecimal amount;
+    @OneToOne
     private Category category;
     private LocalDate date;
     @OneToOne

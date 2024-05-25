@@ -1,5 +1,6 @@
 package com.rainy.homebudgettracker.transaction;
 
+import com.rainy.homebudgettracker.category.Category;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Builder;

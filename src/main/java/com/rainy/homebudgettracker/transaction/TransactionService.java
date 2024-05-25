@@ -1,5 +1,8 @@
 package com.rainy.homebudgettracker.transaction;
 
+import com.rainy.homebudgettracker.category.Category;
+import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
+import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,5 +33,29 @@ public class TransactionService {
             LocalDate endDate
     ) {
         return transactionRepository.findAllByUserAndCategoryAndDateBetween(user, category, startDate, endDate);
+    }
+
+    public Transaction createTransaction(User user, TransactionRequest transactionRequest) {
+        Transaction transaction = Transaction.builder()
+                .category(transactionRequest.getCategory())
+                .amount(transactionRequest.getAmount())
+                .date(transactionRequest.getDate())
+                .user(user)
+                .build();
+
+        return transactionRepository.save(transaction);
+    }
+
+    public void deleteTransaction(User user, Long transactionId) throws
+            RecordDoesNotExistException,
+            UserIsNotOwnerException
+    {
+        if (!transactionRepository.existsById(transactionId)) {
+            throw new RecordDoesNotExistException("Transaction with id " + transactionId + " does not exist.");
+        } else if (!transactionRepository.findById(transactionId).get().getUser().equals(user)) {
+            throw new UserIsNotOwnerException("Transaction with id " + transactionId + " does not belong to user.");
+        } else {
+            transactionRepository.deleteById(transactionId);
+        }
     }
 }

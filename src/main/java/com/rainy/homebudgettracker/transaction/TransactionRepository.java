@@ -1,5 +1,6 @@
 package com.rainy.homebudgettracker.transaction;
 
+import com.rainy.homebudgettracker.category.Category;
 import com.rainy.homebudgettracker.user.User;
 import org.springframework.data.repository.CrudRepository;
 
