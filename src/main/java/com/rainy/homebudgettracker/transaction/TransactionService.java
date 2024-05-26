@@ -1,6 +1,8 @@
 package com.rainy.homebudgettracker.transaction;
 
 import com.rainy.homebudgettracker.category.Category;
+import com.rainy.homebudgettracker.category.CategoryResponse;
+import com.rainy.homebudgettracker.category.CategoryService;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.user.User;
@@ -8,42 +10,121 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class TransactionService {
     private final TransactionRepository transactionRepository;
+    private final CategoryService categoryService;
 
-    public Iterable<Transaction> findAllByUser(User user) {
-        return transactionRepository.findAllByUser(user);
+    public Iterable<TransactionResponse> findAllByUser(User user) {
+        Iterable<Transaction> transactions = transactionRepository.findAllByUser(user);
+        return getTransactionResponses(transactions);
     }
 
-    public Iterable<Transaction> findAllByUserAndCategory(User user, Category category) {
-        return transactionRepository.findAllByUserAndCategory(user, category);
+    public Iterable<TransactionResponse> findAllByUserAndCategory(User user, String categoryName)
+            throws RecordDoesNotExistException
+    {
+        CategoryResponse categoryResponse = categoryService.findByUserAndName(user, categoryName);
+        Category category = Category.builder()
+                .id(categoryResponse.getId())
+                .name(categoryResponse.getName())
+                .user(user)
+                .build();
+
+
+        Iterable<Transaction> transactions = transactionRepository.findAllByUserAndCategory(user, category);
+        return getTransactionResponses(transactions);
     }
 
-    public Iterable<Transaction> findAllByUserAndDateBetween(User user, LocalDate startDate, LocalDate endDate) {
-        return transactionRepository.findAllByUserAndDateBetween(user, startDate, endDate);
+    private Iterable<TransactionResponse> getTransactionResponses(Iterable<Transaction> transactions) {
+        List<TransactionResponse> transactionResponses = new ArrayList<>();
+        transactions.forEach(transaction -> {
+            Category category = transaction.getCategory();
+            transactionResponses.add(TransactionResponse.builder()
+                    .id(transaction.getId())
+                    .amount(transaction.getAmount().toString())
+                    .category(CategoryResponse.builder()
+                            .id(category.getId())
+                            .name(category.getName())
+                            .build())
+                    .date(transaction.getDate().toString())
+                    .build()
+            );
+        });
+
+        return transactionResponses;
     }
 
-    public Iterable<Transaction> findAllByUserAndCategoryAndDateBetween(
+    public Iterable<TransactionResponse> findAllByUserAndDateBetween(User user, LocalDate startDate, LocalDate endDate) {
+        Iterable<Transaction> transactions = transactionRepository.findAllByUserAndDateBetween(user, startDate, endDate);
+        return getTransactionResponses(transactions);
+    }
+
+    public Iterable<TransactionResponse> findAllByUserAndCategoryAndDateBetween(
             User user,
-            Category category,
-            LocalDate startDate,
-            LocalDate endDate
-    ) {
-        return transactionRepository.findAllByUserAndCategoryAndDateBetween(user, category, startDate, endDate);
+            String categoryName,
+            String startDate,
+            String endDate
+    ) throws RecordDoesNotExistException {
+        CategoryResponse categoryResponse = categoryService.findByUserAndName(user, categoryName);
+        Category category = Category.builder()
+                .id(categoryResponse.getId())
+                .name(categoryResponse.getName())
+                .user(user)
+                .build();
+
+        Iterable<Transaction> transactions = transactionRepository.findAllByUserAndCategoryAndDateBetween(
+                user,
+                category,
+                LocalDate.parse(startDate),
+                LocalDate.parse(endDate)
+        );
+
+        List<TransactionResponse> transactionResponses = new ArrayList<>();
+        transactions.forEach(transaction -> transactionResponses.add(TransactionResponse.builder()
+                .id(transaction.getId())
+                .amount(transaction.getAmount().toString())
+                .category(
+                        CategoryResponse.builder()
+                                .id(transaction.getCategory().getId())
+                                .name(transaction.getCategory().getName())
+                                .build())
+                .date(transaction.getDate().toString())
+                .build()
+        ));
+
+        return transactionResponses;
     }
 
-    public Transaction createTransaction(User user, TransactionRequest transactionRequest) {
+    public TransactionResponse createTransaction(User user, TransactionRequest transactionRequest) throws RecordDoesNotExistException {
+        CategoryResponse categoryResponse = categoryService.findByUserAndName(user, transactionRequest.getCategory().getName());
+        Category category = Category.builder()
+                .id(categoryResponse.getId())
+                .name(categoryResponse.getName())
+                .user(user)
+                .build();
+
         Transaction transaction = Transaction.builder()
-                .category(transactionRequest.getCategory())
+                .category(category)
                 .amount(transactionRequest.getAmount())
                 .date(transactionRequest.getDate())
                 .user(user)
                 .build();
 
-        return transactionRepository.save(transaction);
+        transaction = transactionRepository.save(transaction);
+
+        return TransactionResponse.builder()
+                .id(transaction.getId())
+                .amount(transaction.getAmount().toString())
+                .category(CategoryResponse.builder()
+                        .id(transaction.getCategory().getId())
+                        .name(transaction.getCategory().getName())
+                        .build())
+                .date(transaction.getDate().toString())
+                .build();
     }
 
     public void deleteTransaction(User user, Long transactionId) throws

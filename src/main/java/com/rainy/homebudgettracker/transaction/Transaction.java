@@ -19,9 +19,9 @@ public class Transaction {
     @GeneratedValue
     private Long id;
     private BigDecimal amount;
-    @OneToOne
+    @ManyToOne
     private Category category;
     private LocalDate date;
-    @OneToOne
+    @ManyToOne
     private User user;
 }

@@ -10,15 +10,14 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "category",
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"name", "user_id"})
-        })
+@Table(uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"name", "user_id"})
+})
 public class Category {
     @Id
     @GeneratedValue
     private Long id;
     private String name;
-    @OneToOne
+    @ManyToOne
     private User user;
 }

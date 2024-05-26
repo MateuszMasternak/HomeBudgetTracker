@@ -1,6 +1,7 @@
 package com.rainy.homebudgettracker.transaction;
 
 import com.rainy.homebudgettracker.category.Category;
+import com.rainy.homebudgettracker.category.CategoryRequest;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Builder;
@@ -19,7 +20,7 @@ public class TransactionRequest {
     BigDecimal amount;
     @NotEmpty(message = "Category is required")
     @NotBlank(message = "Category is required")
-    Category category;
+    CategoryRequest category;
     @NotEmpty(message = "Date is required")
     @NotBlank(message = "Date is required")
     LocalDate date;

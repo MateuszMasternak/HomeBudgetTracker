@@ -4,13 +4,12 @@ import com.rainy.homebudgettracker.handler.exception.RecordAlreadyExistsExceptio
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.user.User;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/api/category")
@@ -19,22 +18,27 @@ public class CategoryController {
     private final CategoryService categoryService;
 
    @GetMapping
-    public ResponseEntity<Iterable<Category>> getAllCategoriesByUser(User user) {
-        return ResponseEntity.ok(categoryService.findAllByUser(user));
+    public ResponseEntity<Iterable<CategoryResponse>> getAllCategoriesByUser() {
+       User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+       return ResponseEntity.ok(categoryService.findAllByUser(user));
     }
 
     @PostMapping
-    public ResponseEntity<Category> createCategory(User user, CategoryRequest categoryRequest)
+    public ResponseEntity<CategoryResponse> createCategory(
+            @RequestBody @Valid CategoryRequest categoryRequest
+    )
             throws RecordAlreadyExistsException
     {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity.ok(categoryService.createCategory(user, categoryRequest));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCategory(User user, Long categoryId)
+    public ResponseEntity<Void> deleteCategory(@PathVariable Long id)
             throws RecordDoesNotExistException, UserIsNotOwnerException
     {
-        categoryService.deleteCategory(user, categoryId);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        categoryService.deleteCategory(user, id);
         return ResponseEntity.noContent().build();
     }
 }
