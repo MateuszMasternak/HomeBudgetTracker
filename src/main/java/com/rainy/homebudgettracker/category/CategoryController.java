@@ -7,6 +7,8 @@ import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.user.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -19,9 +21,13 @@ public class CategoryController {
     private final CategoryService categoryService;
 
    @GetMapping
-    public ResponseEntity<Iterable<CategoryResponse>> getAllCategoriesByUser() {
+    public ResponseEntity<Page<CategoryResponse>> getAllCategoriesByUser(
+           @RequestParam(defaultValue = "0") int page,
+           @RequestParam(defaultValue = "10") int size
+   ) {
        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-       return ResponseEntity.ok(categoryService.findAllByUser(user));
+       Pageable pageable = Pageable.ofSize(size).withPage(page);
+       return ResponseEntity.ok(categoryService.findAllByUser(user, pageable));
     }
 
     @PostMapping

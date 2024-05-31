@@ -8,6 +8,8 @@ import com.rainy.homebudgettracker.transaction.TransactionRepository;
 import com.rainy.homebudgettracker.transaction.TransactionService;
 import com.rainy.homebudgettracker.user.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -20,15 +22,12 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final TransactionRepository transactionRepository;
 
-    public Iterable<CategoryResponse> findAllByUser(User user) {
-        Iterable<Category> categoryIterable = categoryRepository.findAllByUser(user);
-        List<CategoryResponse> categoryResponseIterable = new ArrayList<>();
-        categoryIterable.forEach(category -> categoryResponseIterable.add(CategoryResponse.builder()
+    public Page<CategoryResponse> findAllByUser(User user, Pageable pageable) {
+        Page<Category> categories = categoryRepository.findAllByUser(user, pageable);
+        return categories.map(category -> CategoryResponse.builder()
                 .id(category.getId())
                 .name(category.getName())
-                .build()));
-
-        return categoryResponseIterable;
+                .build());
     }
 
     public CategoryResponse findByUserAndName(User user, String name) throws RecordDoesNotExistException {

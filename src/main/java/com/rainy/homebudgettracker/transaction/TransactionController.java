@@ -4,6 +4,8 @@ import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.user.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -17,30 +19,43 @@ public class TransactionController {
     private final TransactionService transactionService;
 
     @GetMapping
-    public ResponseEntity<Iterable<TransactionResponse>> getAllTransactionsByUser() {
+    public ResponseEntity<Page<TransactionResponse>> getAllTransactionsByUser(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseEntity.ok(transactionService.findAllByUser(user));
+        Pageable pageable = Pageable.ofSize(size).withPage(page);
+        return ResponseEntity.ok(transactionService.findAllByUser(user, pageable));
     }
 
     @GetMapping("/category/{categoryName}")
     public ResponseEntity<Iterable<TransactionResponse>> getAllTransactionsByUserAndCategory(
-            @PathVariable String categoryName)
+            @PathVariable String categoryName,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    )
             throws RecordDoesNotExistException
     {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseEntity.ok(transactionService.findAllByUserAndCategory(user, categoryName.toUpperCase()));
+        Pageable pageable = Pageable.ofSize(size).withPage(page);
+        return ResponseEntity.ok(transactionService.findAllByUserAndCategory(
+                user, categoryName.toUpperCase(), pageable));
     }
 
     @GetMapping("/date/{startDate}/{endDate}")
     public ResponseEntity<Iterable<TransactionResponse>> getAllTransactionsByUserAndDateBetween(
             @PathVariable String startDate,
-            @PathVariable String endDate
+            @PathVariable String endDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
     ) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Pageable pageable = Pageable.ofSize(size).withPage(page);
         return ResponseEntity.ok(transactionService.findAllByUserAndDateBetween(
                 user,
                 LocalDate.parse(startDate),
-                LocalDate.parse(endDate)
+                LocalDate.parse(endDate),
+                pageable
         ));
     }
 
@@ -48,15 +63,20 @@ public class TransactionController {
     public ResponseEntity<Iterable<TransactionResponse>> getAllTransactionsByUserAndCategoryAndDateBetween(
             @PathVariable String categoryName,
             @PathVariable String startDate,
-            @PathVariable String endDate)
+            @PathVariable String endDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    )
             throws RecordDoesNotExistException
     {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Pageable pageable = Pageable.ofSize(size).withPage(page);
         return ResponseEntity.ok(transactionService.findAllByUserAndCategoryAndDateBetween(
                 user,
                 categoryName.toUpperCase(),
                 startDate,
-                endDate
+                endDate,
+                pageable
         ));
     }
 
