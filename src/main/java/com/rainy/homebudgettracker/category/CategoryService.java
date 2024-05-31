@@ -1,8 +1,11 @@
 package com.rainy.homebudgettracker.category;
 
+import com.rainy.homebudgettracker.handler.exception.CategoryAssociatedWithTransactionException;
 import com.rainy.homebudgettracker.handler.exception.RecordAlreadyExistsException;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
+import com.rainy.homebudgettracker.transaction.TransactionRepository;
+import com.rainy.homebudgettracker.transaction.TransactionService;
 import com.rainy.homebudgettracker.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,6 +18,7 @@ import java.util.NoSuchElementException;
 @RequiredArgsConstructor
 public class CategoryService {
     private final CategoryRepository categoryRepository;
+    private final TransactionRepository transactionRepository;
 
     public Iterable<CategoryResponse> findAllByUser(User user) {
         Iterable<Category> categoryIterable = categoryRepository.findAllByUser(user);
@@ -61,12 +65,15 @@ public class CategoryService {
 
     public void deleteCategory(User user, Long categoryId) throws
             RecordDoesNotExistException,
-            UserIsNotOwnerException
+            UserIsNotOwnerException,
+            CategoryAssociatedWithTransactionException
     {
         if (!categoryRepository.existsById(categoryId)) {
             throw new RecordDoesNotExistException("Category with id " + categoryId + " does not exist.");
-        } else if (!categoryRepository.findById(categoryId).get().getUser().equals(user)) {
+        } else if (!categoryRepository.findById(categoryId).get().getUser().getEmail().equals(user.getEmail())) {
             throw new UserIsNotOwnerException("Category with id " + categoryId + " does not belong to user.");
+        } else if (transactionRepository.existsByCategory(categoryRepository.findById(categoryId).get())) {
+            throw new CategoryAssociatedWithTransactionException("Category with id " + categoryId + " is associated with transactions.");
         } else {
             categoryRepository.deleteById(categoryId);
         }

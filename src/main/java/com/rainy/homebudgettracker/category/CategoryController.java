@@ -1,5 +1,6 @@
 package com.rainy.homebudgettracker.category;
 
+import com.rainy.homebudgettracker.handler.exception.CategoryAssociatedWithTransactionException;
 import com.rainy.homebudgettracker.handler.exception.RecordAlreadyExistsException;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
@@ -35,7 +36,7 @@ public class CategoryController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCategory(@PathVariable Long id)
-            throws RecordDoesNotExistException, UserIsNotOwnerException
+            throws RecordDoesNotExistException, UserIsNotOwnerException, CategoryAssociatedWithTransactionException
     {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         categoryService.deleteCategory(user, id);

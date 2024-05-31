@@ -185,4 +185,17 @@ public class GlobalExceptionHandler {
                                 .build()
                 );
     }
+
+    @ExceptionHandler(CategoryAssociatedWithTransactionException.class)
+    public ResponseEntity<ExceptionResponse> handleException(CategoryAssociatedWithTransactionException e) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(
+                        ExceptionResponse.builder()
+                                .businessErrorCode(RECORD_ASSOCIATED_WITH_ANOTHER_RECORD.getCode())
+                                .businessErrorDescription(RECORD_ASSOCIATED_WITH_ANOTHER_RECORD.getDescription())
+                                .error(e.getMessage())
+                                .build()
+                );
+    }
 }

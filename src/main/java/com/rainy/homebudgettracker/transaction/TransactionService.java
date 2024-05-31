@@ -100,7 +100,8 @@ public class TransactionService {
     }
 
     public TransactionResponse createTransaction(User user, TransactionRequest transactionRequest) throws RecordDoesNotExistException {
-        CategoryResponse categoryResponse = categoryService.findByUserAndName(user, transactionRequest.getCategory().getName());
+        CategoryResponse categoryResponse = categoryService.findByUserAndName(user,
+                transactionRequest.getCategory().getName().toUpperCase());
         Category category = Category.builder()
                 .id(categoryResponse.getId())
                 .name(categoryResponse.getName())
@@ -133,10 +134,14 @@ public class TransactionService {
     {
         if (!transactionRepository.existsById(transactionId)) {
             throw new RecordDoesNotExistException("Transaction with id " + transactionId + " does not exist.");
-        } else if (!transactionRepository.findById(transactionId).get().getUser().equals(user)) {
+        } else if (!transactionRepository.findById(transactionId).get().getUser().getEmail().equals(user.getEmail())) {
             throw new UserIsNotOwnerException("Transaction with id " + transactionId + " does not belong to user.");
         } else {
             transactionRepository.deleteById(transactionId);
         }
+    }
+
+    public boolean existsByCategory(Category category) {
+        return transactionRepository.existsByCategory(category);
     }
 }

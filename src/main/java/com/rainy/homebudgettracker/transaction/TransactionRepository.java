@@ -13,4 +13,5 @@ public interface TransactionRepository extends CrudRepository<Transaction, Long>
     Iterable<Transaction> findAllByUserAndCategoryAndDateBetween(
             User user, Category category, LocalDate startDate, LocalDate endDate
     );
+    boolean existsByCategory(Category category);
 }
