@@ -30,9 +30,9 @@ public class TransactionController {
         return ResponseEntity.ok(transactionService.findAllByUser(user, pageable));
     }
 
-    @GetMapping("/category/{categoryName}")
+    @GetMapping("/category")
     public ResponseEntity<Iterable<TransactionResponse>> getAllTransactionsByUserAndCategory(
-            @PathVariable String categoryName,
+            @RequestParam String categoryName,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     )
@@ -44,10 +44,10 @@ public class TransactionController {
                 user, categoryName.toUpperCase(), pageable));
     }
 
-    @GetMapping("/date/{startDate}/{endDate}")
+    @GetMapping("/date")
     public ResponseEntity<Iterable<TransactionResponse>> getAllTransactionsByUserAndDateBetween(
-            @PathVariable String startDate,
-            @PathVariable String endDate,
+            @RequestParam String startDate,
+            @RequestParam String endDate,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
@@ -61,11 +61,11 @@ public class TransactionController {
         ));
     }
 
-    @GetMapping("/category-date/{categoryName}/{startDate}/{endDate}")
+    @GetMapping("/category-date")
     public ResponseEntity<Iterable<TransactionResponse>> getAllTransactionsByUserAndCategoryAndDateBetween(
-            @PathVariable String categoryName,
-            @PathVariable String startDate,
-            @PathVariable String endDate,
+            @RequestParam String categoryName,
+            @RequestParam String startDate,
+            @RequestParam String endDate,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     )
