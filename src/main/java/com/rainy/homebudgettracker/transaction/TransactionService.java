@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Service
@@ -130,14 +131,17 @@ public class TransactionService {
     }
 
     public String sumPositiveAmountByUser(User user) {
-        return transactionRepository.sumPositiveAmountByUser(user).toString();
+        BigDecimal sum = transactionRepository.sumPositiveAmountByUser(user);
+        return sum == null ? "0" : sum.toString();
     }
 
     public String sumNegativeAmountByUser(User user) {
-        return transactionRepository.sumNegativeAmountByUser(user).toString();
+        BigDecimal sum = transactionRepository.sumNegativeAmountByUser(user);
+        return sum == null ? "0" : sum.toString();
     }
 
     public String sumAmountByUser(User user) {
-        return transactionRepository.sumAmountByUser(user).toString();
+        BigDecimal sum = transactionRepository.sumAmountByUser(user);
+        return sum == null ? "0" : sum.toString();
     }
 }
