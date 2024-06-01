@@ -5,7 +5,9 @@ import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +26,7 @@ public class TransactionController {
             @RequestParam(defaultValue = "10") int size
     ) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Pageable pageable = Pageable.ofSize(size).withPage(page);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
         return ResponseEntity.ok(transactionService.findAllByUser(user, pageable));
     }
 
@@ -37,7 +39,7 @@ public class TransactionController {
             throws RecordDoesNotExistException
     {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Pageable pageable = Pageable.ofSize(size).withPage(page);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
         return ResponseEntity.ok(transactionService.findAllByUserAndCategory(
                 user, categoryName.toUpperCase(), pageable));
     }
@@ -50,7 +52,7 @@ public class TransactionController {
             @RequestParam(defaultValue = "10") int size
     ) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Pageable pageable = Pageable.ofSize(size).withPage(page);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
         return ResponseEntity.ok(transactionService.findAllByUserAndDateBetween(
                 user,
                 LocalDate.parse(startDate),
@@ -70,7 +72,7 @@ public class TransactionController {
             throws RecordDoesNotExistException
     {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Pageable pageable = Pageable.ofSize(size).withPage(page);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
         return ResponseEntity.ok(transactionService.findAllByUserAndCategoryAndDateBetween(
                 user,
                 categoryName.toUpperCase(),
@@ -95,5 +97,23 @@ public class TransactionController {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         transactionService.deleteTransaction(user, id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/sum-positive")
+    public ResponseEntity<String> sumPositiveAmountByUser() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(transactionService.sumPositiveAmountByUser(user));
+    }
+
+    @GetMapping("/sum-negative")
+    public ResponseEntity<String> sumNegativeAmountByUser() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(transactionService.sumNegativeAmountByUser(user));
+    }
+
+    @GetMapping("/sum")
+    public ResponseEntity<String> sumAmountByUser() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(transactionService.sumAmountByUser(user));
     }
 }

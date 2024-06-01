@@ -128,4 +128,16 @@ public class TransactionService {
     public boolean existsByCategory(Category category) {
         return transactionRepository.existsByCategory(category);
     }
+
+    public String sumPositiveAmountByUser(User user) {
+        return transactionRepository.sumPositiveAmountByUser(user).toString();
+    }
+
+    public String sumNegativeAmountByUser(User user) {
+        return transactionRepository.sumNegativeAmountByUser(user).toString();
+    }
+
+    public String sumAmountByUser(User user) {
+        return transactionRepository.sumAmountByUser(user).toString();
+    }
 }
