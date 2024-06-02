@@ -2,7 +2,7 @@ application:
   security:
     jwt:
       secret-key: ${JWT_SECRET_KEY}
-      expiration-time: 86400000
+      expiration-time: 604800
   mailing:
     frontend:
       activation-url: http://localhost:5173/activate-account

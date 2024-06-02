@@ -1,6 +1,7 @@
 package com.rainy.homebudgettracker.handler;
 
 import com.rainy.homebudgettracker.handler.exception.*;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.mail.MessagingException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
@@ -194,6 +195,19 @@ public class GlobalExceptionHandler {
                         ExceptionResponse.builder()
                                 .businessErrorCode(RECORD_ASSOCIATED_WITH_ANOTHER_RECORD.getCode())
                                 .businessErrorDescription(RECORD_ASSOCIATED_WITH_ANOTHER_RECORD.getDescription())
+                                .error(e.getMessage())
+                                .build()
+                );
+    }
+
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<ExceptionResponse> handleException(ExpiredJwtException e) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(
+                        ExceptionResponse.builder()
+                                .businessErrorCode(EXPIRED_JWT_TOKEN.getCode())
+                                .businessErrorDescription(EXPIRED_JWT_TOKEN.getDescription())
                                 .error(e.getMessage())
                                 .build()
                 );
