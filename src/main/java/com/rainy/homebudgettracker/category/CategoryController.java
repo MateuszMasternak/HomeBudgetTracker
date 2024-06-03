@@ -15,7 +15,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
-@RequestMapping("/api/category")
+@RequestMapping("/api/v1/category")
 @RequiredArgsConstructor
 public class CategoryController {
     private final CategoryService categoryService;

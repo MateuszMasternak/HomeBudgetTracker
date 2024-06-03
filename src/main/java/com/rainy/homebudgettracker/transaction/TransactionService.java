@@ -35,7 +35,6 @@ public class TransactionService {
                 .user(user)
                 .build();
 
-
         Page<Transaction> transactions = transactionRepository.findAllByUserAndCategory(user, category, pageable);
         return getTransactionResponses(transactions);
     }
