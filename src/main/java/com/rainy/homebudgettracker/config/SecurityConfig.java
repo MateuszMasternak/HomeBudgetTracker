@@ -43,7 +43,7 @@ public class SecurityConfig {
     @Value("${spring.mail.port}")
     private int port;
     private static final String[] WHITE_LIST = {
-            "/api/auth/**"
+            "/api/v1/auth/**",
     };
 
     @Bean
