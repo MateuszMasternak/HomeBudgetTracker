@@ -32,9 +32,9 @@ public class EmailService {
     ) throws MessagingException {
         String templateName;
         if (emailTemplateName == null) {
-            templateName = "confirm-email";
+            templateName = "activate_account_message";
         } else {
-            templateName = emailTemplateName.name();
+            templateName = emailTemplateName.getName();
         }
 
         var mimeMessage = mailSender.createMimeMessage();
