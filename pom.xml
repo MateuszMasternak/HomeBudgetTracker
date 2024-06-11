@@ -11,6 +11,7 @@
     <groupId>com.rainy</groupId>
     <artifactId>HomeBudgetTracker</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+    <packaging>war</packaging>
     <name>HomeBudgetTracker</name>
     <description>HomeBudgetTracker</description>
     <properties>
@@ -129,6 +130,11 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>com.heroku.sdk</groupId>
+                <artifactId>heroku-maven-plugin</artifactId>
+                <version>3.0.7</version>
+            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
