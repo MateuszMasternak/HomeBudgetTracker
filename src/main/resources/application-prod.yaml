@@ -1,21 +1,21 @@
 application:
   security:
     jwt:
-      secret-key: ${JWT_SECRET_KEY_DEV}
+      secret-key: ${JWT_SECRET_KEY}
       expiration-time: 604800
   mailing:
     frontend:
-      activation-url: http://localhost:5173/activate-account
+      activation-url: https://home-budget-tracker.vercel.app/activate-account
 
 server:
-  port: 8081
+  port: ${PORT}
 
 spring:
   datasource:
-    url: jdbc:postgresql://${DB_HOST_DEV}:${DB_PORT_DEV}/${DB_NAME_DEV}
+    url: ${JDBC_DATABASE_URL}
     driver-class-name: org.postgresql.Driver
-    username: ${DB_USERNAME_DEV}
-    password: ${DB_PASSWORD_DEV}
+    username: ${JDBC_DATABASE_USERNAME}
+    password: ${JDBC_DATABASE_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: update
@@ -25,22 +25,21 @@ spring:
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   mail:
-    host: localhost
-    port: 1025
-    username: username
-    password: password
+    host: smtp.gmail.com
+    port: 587
+    username: ${EMAIL_USERNAME}
+    password: ${EMAIL_PASSWORD}
     properties:
       mail:
         smtp:
-          trust: "*"
-        auth: true
-        starttls:
-          enable: true
+          auth: true
+          starttls:
+            enable: true
         connectiontimeout: 5000
         timeout: 3000
         writetimeout: 5000
-    test-connection: true
+    test-connection: false
   config:
     activate:
-      on-profile: dev
+      on-profile: prod
     import: optional:file:.env[.properties]
