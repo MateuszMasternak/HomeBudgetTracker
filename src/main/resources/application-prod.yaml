@@ -32,6 +32,7 @@ spring:
     properties:
       mail:
         smtp:
+          trust: smtp.gmail.com
           auth: true
           starttls:
             enable: true
