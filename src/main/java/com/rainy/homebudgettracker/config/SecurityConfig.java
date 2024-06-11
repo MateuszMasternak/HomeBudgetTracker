@@ -75,7 +75,7 @@ public class SecurityConfig {
         config.setAllowedOrigins(Arrays.asList(
                 "http://localhost:8080",
                 "http://localhost:5173",
-                "https://home-budget-tracker.vercel.app/"
+                "https://home-budget-tracker.vercel.app"
         ));
         config.setAllowedHeaders(Arrays.asList(
                 ORIGIN,
