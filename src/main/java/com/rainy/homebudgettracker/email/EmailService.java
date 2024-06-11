@@ -2,6 +2,7 @@ package com.rainy.homebudgettracker.email;
 
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -17,7 +18,8 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private final SpringTemplateEngine templateEngine;
 
-    private final String emailFrom = "confirmation@hbt.com";
+    @Value("${spring.mail.username}")
+    private String emailFrom;
 
     @Async
     public void sendEmail(
