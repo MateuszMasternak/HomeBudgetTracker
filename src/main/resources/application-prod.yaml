@@ -29,16 +29,7 @@ spring:
     port: 587
     username: ${EMAIL_USERNAME}
     password: ${EMAIL_PASSWORD}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-        connectiontimeout: 5000
-        timeout: 3000
-        writetimeout: 5000
-    test-connection: false
+    default-encoding: UTF-8
   config:
     activate:
       on-profile: prod
