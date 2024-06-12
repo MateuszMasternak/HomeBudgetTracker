@@ -43,6 +43,10 @@ public class EmailService {
                 MimeMessageHelper.MULTIPART_MODE_MIXED,
                 "UTF-8"
         );
+        helper.setPriority(1);
+        helper.setFrom(emailFrom);
+        helper.setTo(to);
+        helper.setSubject(subject);
 
         Map<String, Object> properties = Map.of(
                 "username", username,
@@ -52,10 +56,6 @@ public class EmailService {
 
         Context context = new Context();
         context.setVariables(properties);
-
-        helper.setFrom(emailFrom);
-        helper.setTo(to);
-        helper.setSubject(subject);
 
         String template = templateEngine.process(templateName, context);
 
