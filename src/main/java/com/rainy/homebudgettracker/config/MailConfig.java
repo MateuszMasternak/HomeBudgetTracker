@@ -18,6 +18,8 @@ public class MailConfig {
     private String emailUsername;
     @Value("${spring.mail.password}")
     private String emailPassword;
+    @Value("${spring.config.activate.on-profile}")
+    private String activeProfile;
 
     @Bean
     public JavaMailSender getJavaMailSender() {
@@ -28,15 +30,28 @@ public class MailConfig {
         mailSender.setUsername(emailUsername);
         mailSender.setPassword(emailPassword);
 
+        // Doesn't work from yml file
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.starttls.required", "true");
         props.put("mail.mime.charset", "UTF-8");
-        props.put("mail.smtp.connectiontimeout", "10000");
-        props.put("mail.smtp.timeout", "10000");
-        props.put("mail.smtp.writetimeout", "10000");
+
+        if (activeProfile.equals("prod")) {
+            props.put("mail.smtp.starttls.required", "true");
+            props.put("mail.smtp.connectiontimeout", "10000");
+            props.put("mail.smtp.timeout", "10000");
+            props.put("mail.smtp.writetimeout", "10000");
+            props.put("mail.smtp.trust", "smtp.gmail.com");
+        } else if (activeProfile.equals("dev") || activeProfile.equals("test")) {
+            props.put("mail.smtp.connectiontimeout", "5000");
+            props.put("mail.smtp.timeout", "3000");
+            props.put("mail.smtp.writetimeout", "5000");
+            props.put("mail.smtp.trust", "*");
+        } else {
+            throw new RuntimeException("Invalid profile");
+        }
+
 
         return mailSender;
     }
