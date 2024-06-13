@@ -2,6 +2,7 @@ package com.rainy.homebudgettracker.email;
 
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -17,7 +18,8 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private final SpringTemplateEngine templateEngine;
 
-    private final String emailFrom = "confirmation@hbt.com";
+    @Value("${spring.mail.username}")
+    private String emailFrom;
 
     @Async
     public void sendEmail(
@@ -30,9 +32,9 @@ public class EmailService {
     ) throws MessagingException {
         String templateName;
         if (emailTemplateName == null) {
-            templateName = "confirm-email";
+            templateName = "activate_account_message";
         } else {
-            templateName = emailTemplateName.name();
+            templateName = emailTemplateName.getName();
         }
 
         var mimeMessage = mailSender.createMimeMessage();
@@ -41,6 +43,10 @@ public class EmailService {
                 MimeMessageHelper.MULTIPART_MODE_MIXED,
                 "UTF-8"
         );
+        helper.setPriority(1);
+        helper.setFrom(emailFrom);
+        helper.setTo(to);
+        helper.setSubject(subject);
 
         Map<String, Object> properties = Map.of(
                 "username", username,
@@ -50,10 +56,6 @@ public class EmailService {
 
         Context context = new Context();
         context.setVariables(properties);
-
-        helper.setFrom(emailFrom);
-        helper.setTo(to);
-        helper.setSubject(subject);
 
         String template = templateEngine.process(templateName, context);
 
