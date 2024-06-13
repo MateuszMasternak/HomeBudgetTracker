@@ -1,7 +1,7 @@
 application:
   security:
     jwt:
-      secret-key: ${JWT_SECRET_KEY}
+      secret-key: ${JWT_SECRET_KEY_DEV}
       expiration-time: 604800
   mailing:
     frontend:
@@ -12,10 +12,10 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    url: jdbc:postgresql://${DB_HOST_DEV}:${DB_PORT_DEV}/${DB_NAME_DEV}
     driver-class-name: org.postgresql.Driver
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    username: ${DB_USERNAME_DEV}
+    password: ${DB_PASSWORD_DEV}
   jpa:
     hibernate:
       ddl-auto: update
@@ -27,19 +27,16 @@ spring:
   mail:
     host: localhost
     port: 1025
-    username: username
+    username: username@test.com
     password: password
-    properties:
-      mail:
-        smtp:
-          trust: "*"
-        auth: true
-        starttls:
-          enable: true
-        connectiontimeout: 5000
-        timeout: 3000
-        writetimeout: 5000
+    default-encoding: UTF-8
     test-connection: true
+#  mail:
+#    host: smtp.gmail.com
+#    port: 587
+#    username: ${EMAIL_USERNAME}
+#    password: ${EMAIL_PASSWORD}
+#    default-encoding: UTF-8
   config:
     activate:
       on-profile: dev

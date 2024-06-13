@@ -43,7 +43,7 @@ public class SecurityConfig {
     @Value("${spring.mail.port}")
     private int port;
     private static final String[] WHITE_LIST = {
-            "/api/auth/**"
+            "/api/v1/auth/**",
     };
 
     @Bean
@@ -72,7 +72,12 @@ public class SecurityConfig {
         final var source = new UrlBasedCorsConfigurationSource();
         final var config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(Arrays.asList("http://localhost:8080", "http://localhost:5173"));
+        config.setAllowedOrigins(Arrays.asList(
+                "http://localhost:8081",
+                "http://localhost:5173",
+                "https://home-budget-tracker.vercel.app",
+                "https://home-budget-tracker-6d3b2b68aff0.herokuapp.com"
+        ));
         config.setAllowedHeaders(Arrays.asList(
                 ORIGIN,
                 CONTENT_TYPE,
@@ -104,13 +109,5 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public JavaMailSender javaMailSender() {
-        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        mailSender.setHost(host);
-        mailSender.setPort(port);
-        return mailSender;
     }
 }
