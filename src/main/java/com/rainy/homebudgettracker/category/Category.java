@@ -9,6 +9,7 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode
 @Entity
 @Table(uniqueConstraints = {
         @UniqueConstraint(columnNames = {"name", "user_id"})

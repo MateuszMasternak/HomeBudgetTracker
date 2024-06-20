@@ -199,17 +199,4 @@ public class GlobalExceptionHandler {
                                 .build()
                 );
     }
-
-    @ExceptionHandler(ExpiredJwtException.class)
-    public ResponseEntity<ExceptionResponse> handleException(ExpiredJwtException e) {
-        return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(
-                        ExceptionResponse.builder()
-                                .businessErrorCode(EXPIRED_JWT_TOKEN.getCode())
-                                .businessErrorDescription(EXPIRED_JWT_TOKEN.getDescription())
-                                .error(e.getMessage())
-                                .build()
-                );
-    }
 }

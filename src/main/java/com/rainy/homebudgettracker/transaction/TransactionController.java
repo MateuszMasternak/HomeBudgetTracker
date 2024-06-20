@@ -76,8 +76,8 @@ public class TransactionController {
         return ResponseEntity.ok(transactionService.findAllByUserAndCategoryAndDateBetween(
                 user,
                 categoryName.toUpperCase(),
-                startDate,
-                endDate,
+                LocalDate.parse(startDate),
+                LocalDate.parse(endDate),
                 pageable
         ));
     }
