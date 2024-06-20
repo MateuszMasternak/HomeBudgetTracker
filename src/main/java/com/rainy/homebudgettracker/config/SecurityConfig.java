@@ -37,11 +37,6 @@ import static org.springframework.http.HttpHeaders.*;
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailsService userDetailsService;
-
-    @Value("${spring.mail.host}")
-    private String host;
-    @Value("${spring.mail.port}")
-    private int port;
     private static final String[] WHITE_LIST = {
             "/api/v1/auth/**",
     };
@@ -74,7 +69,7 @@ public class SecurityConfig {
         config.setAllowCredentials(true);
         config.setAllowedOrigins(Arrays.asList(
                 "http://localhost:8081",
-                "http://localhost:5173",
+                "http://localhost:5174/",
                 "https://home-budget-tracker.vercel.app",
                 "https://home-budget-tracker-6d3b2b68aff0.herokuapp.com"
         ));
