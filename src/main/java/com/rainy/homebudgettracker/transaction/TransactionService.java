@@ -62,8 +62,8 @@ public class TransactionService {
     public Page<TransactionResponse> findAllByUserAndCategoryAndDateBetween(
             User user,
             String categoryName,
-            String startDate,
-            String endDate,
+            LocalDate startDate,
+            LocalDate endDate,
             Pageable pageable
     ) throws RecordDoesNotExistException {
         CategoryResponse categoryResponse = categoryService.findByUserAndName(user, categoryName);
@@ -76,8 +76,8 @@ public class TransactionService {
         Page<Transaction> transactions = transactionRepository.findAllByUserAndCategoryAndDateBetween(
                 user,
                 category,
-                LocalDate.parse(startDate),
-                LocalDate.parse(endDate),
+                startDate,
+                endDate,
                 pageable
         );
         return getTransactionResponses(transactions);
