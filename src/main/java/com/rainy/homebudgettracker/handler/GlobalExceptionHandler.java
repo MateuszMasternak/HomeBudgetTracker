@@ -1,7 +1,6 @@
 package com.rainy.homebudgettracker.handler;
 
 import com.rainy.homebudgettracker.handler.exception.*;
-import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.mail.MessagingException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
