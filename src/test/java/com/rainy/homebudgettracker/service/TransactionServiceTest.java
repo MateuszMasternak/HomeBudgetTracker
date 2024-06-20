@@ -339,24 +339,24 @@ public class TransactionServiceTest {
         Page<TransactionResponse> page1 = transactionService.findAllByUserAndCategoryAndDateBetween(
                 user1,
                 "CATEGORY",
-                "2024-01-01",
-                "2024-06-01",
+                LocalDate.of(2024, 1, 1),
+                LocalDate.of(2024, 6, 1),
                 Pageable.ofSize(10).withPage(0));
         assert page1.getTotalElements() == 2;
 
         Page<TransactionResponse> page2 = transactionService.findAllByUserAndCategoryAndDateBetween(
                 user1,
                 "CATEGORY2",
-                "2024-01-01",
-                "2024-06-01",
+                LocalDate.of(2024, 1, 1),
+                LocalDate.of(2024, 6, 1),
                 Pageable.ofSize(10).withPage(0));
         assert page2.getTotalElements() == 1;
 
         Page<TransactionResponse> page3 = transactionService.findAllByUserAndCategoryAndDateBetween(
                 user2,
                 "CATEGORY",
-                "2024-01-01",
-                "2024-06-01",
+                LocalDate.of(2024, 1, 1),
+                LocalDate.of(2024, 6, 1),
                 Pageable.ofSize(10).withPage(0));
         assert page3.getTotalElements() == 0;
 
@@ -364,8 +364,8 @@ public class TransactionServiceTest {
                 transactionService.findAllByUserAndCategoryAndDateBetween(
                         user1,
                         "CATEGORY3",
-                        "2024-01-01",
-                        "2024-06-01",
+                        LocalDate.of(2024, 1, 1),
+                        LocalDate.of(2024, 6, 1),
                         Pageable.ofSize(10).withPage(0)));
     }
 
