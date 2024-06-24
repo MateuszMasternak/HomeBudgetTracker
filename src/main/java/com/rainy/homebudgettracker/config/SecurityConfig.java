@@ -2,12 +2,9 @@ package com.rainy.homebudgettracker.config;
 
 import com.rainy.homebudgettracker.auth.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -69,7 +66,7 @@ public class SecurityConfig {
         config.setAllowCredentials(true);
         config.setAllowedOrigins(Arrays.asList(
                 "http://localhost:8081",
-                "http://localhost:5174/",
+                "http://localhost:5173/",
                 "https://home-budget-tracker.vercel.app",
                 "https://home-budget-tracker-6d3b2b68aff0.herokuapp.com"
         ));
