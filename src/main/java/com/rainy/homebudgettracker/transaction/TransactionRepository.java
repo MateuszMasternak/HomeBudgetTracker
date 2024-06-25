@@ -26,4 +26,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     BigDecimal sumNegativeAmountByUser(User user);
     @Query("SELECT SUM(t.amount) FROM Transaction t WHERE t.user = :user")
     BigDecimal sumAmountByUser(User user);
+    @Query("SELECT SUM(t.amount) FROM Transaction t WHERE t.user = :user AND t.date BETWEEN :startDate AND :endDate")
+    BigDecimal sumAmountByUserAndDateBetween(User user, LocalDate startDate, LocalDate endDate);
 }

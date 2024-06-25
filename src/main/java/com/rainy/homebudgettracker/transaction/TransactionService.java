@@ -143,4 +143,9 @@ public class TransactionService {
         BigDecimal sum = transactionRepository.sumAmountByUser(user);
         return sum == null ? "0" : sum.toString();
     }
+
+    public String sumAmountByUserAndDateBetween(User user, LocalDate startDate, LocalDate endDate) {
+        BigDecimal sum = transactionRepository.sumAmountByUserAndDateBetween(user, startDate, endDate);
+        return sum == null ? "0" : sum.toString();
+    }
 }

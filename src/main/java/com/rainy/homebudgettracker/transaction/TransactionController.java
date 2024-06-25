@@ -116,4 +116,17 @@ public class TransactionController {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity.ok(transactionService.sumAmountByUser(user));
     }
+
+    @GetMapping("/sum-date")
+    public ResponseEntity<String> sumAmountByUserAndDateBetween(
+            @RequestParam String startDate,
+            @RequestParam String endDate
+    ) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(transactionService.sumAmountByUserAndDateBetween(
+                user,
+                LocalDate.parse(startDate),
+                LocalDate.parse(endDate)
+        ));
+    }
 }
