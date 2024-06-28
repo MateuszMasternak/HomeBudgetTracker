@@ -31,8 +31,8 @@ public class CategoryController {
        return ResponseEntity.ok(categoryService.findAllByUser(user, pageable));
     }
 
-    @GetMapping
-    public ResponseEntity<List<CategoryResponse>> getAllCategoriesByUser() {
+    @GetMapping("/without-pagination")
+    public ResponseEntity<List<CategoryResponse>> getAllCategoriesByUserWithoutPagination() {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity.ok(categoryService.findAllByUser(user));
     }
