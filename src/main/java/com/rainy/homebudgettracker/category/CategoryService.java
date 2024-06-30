@@ -11,6 +11,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
@@ -25,6 +27,23 @@ public class CategoryService {
                 .id(category.getId())
                 .name(category.getName())
                 .build());
+    }
+
+    public List<CategoryResponse> findAllByUser(User user) {
+        Iterable<Category> categories = categoryRepository.findAllByUser(user);
+        return mapIterableCategoryToResponseCategoryList(categories);
+    }
+
+    private List<CategoryResponse> mapIterableCategoryToResponseCategoryList(Iterable<Category> categories) {
+        List<CategoryResponse> responseCategoryList = new ArrayList<>();
+        categories.forEach(c -> {
+            responseCategoryList.add(CategoryResponse.builder()
+                    .id(c.getId())
+                    .name(c.getName())
+                    .build()
+            );
+        });
+        return responseCategoryList;
     }
 
     public CategoryResponse findByUserAndName(User user, String name) throws RecordDoesNotExistException {

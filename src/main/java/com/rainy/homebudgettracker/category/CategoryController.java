@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/category")
 @RequiredArgsConstructor
@@ -27,6 +29,12 @@ public class CategoryController {
        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
        Pageable pageable = Pageable.ofSize(size).withPage(page);
        return ResponseEntity.ok(categoryService.findAllByUser(user, pageable));
+    }
+
+    @GetMapping("/without-pagination")
+    public ResponseEntity<List<CategoryResponse>> getAllCategoriesByUserWithoutPagination() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(categoryService.findAllByUser(user));
     }
 
     @PostMapping
