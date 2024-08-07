@@ -19,7 +19,7 @@ public class AuthenticationController {
     public ResponseEntity<?> register(
             @RequestBody @Valid RegisterRequest registerRequest
     ) throws MessagingException {
-        String message = "You will receive an email with activation code soon";
+        String message = "You will receive an email with an activation code soon";
         try {
             authenticationService.register(registerRequest);
             return ResponseEntity.accepted().body(message);
