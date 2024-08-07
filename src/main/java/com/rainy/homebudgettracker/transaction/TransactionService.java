@@ -11,8 +11,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -49,6 +56,24 @@ public class TransactionService {
                         .build())
                 .date(transaction.getDate().toString())
                 .build());
+    }
+
+    private List<TransactionResponse> getTransactionResponses(Iterable<Transaction> transactions) {
+        List<TransactionResponse> transactionResponses = new ArrayList<>();
+        transactions.forEach(transaction -> {
+            TransactionResponse transactionResponse = TransactionResponse.builder()
+                    .id(transaction.getId())
+                    .amount(transaction.getAmount().toString())
+                    .category(CategoryResponse.builder()
+                            .id(transaction.getCategory().getId())
+                            .name(transaction.getCategory().getName())
+                            .build())
+                    .date(transaction.getDate().toString())
+                    .build();
+            transactionResponses.add(transactionResponse);
+        });
+
+        return transactionResponses;
     }
 
     public Page<TransactionResponse> findAllByUserAndDateBetween(
@@ -147,5 +172,32 @@ public class TransactionService {
     public String sumAmountByUserAndDateBetween(User user, LocalDate startDate, LocalDate endDate) {
         BigDecimal sum = transactionRepository.sumAmountByUserAndDateBetween(user, startDate, endDate);
         return sum == null ? "0" : sum.toString();
+    }
+
+    public byte[] generateCsvFileForUserTransactions(User user) throws IOException {
+        Iterable<Transaction> transactions = transactionRepository.findAllByUser(user);
+        List<TransactionResponse> transactionResponses = getTransactionResponses(transactions);
+
+        Path csvFilePath = Paths.get("temp_transactions_" + user.getId() + "_" + LocalDate.now() + ".csv");
+
+        try (FileWriter writer = new FileWriter(csvFilePath.toString())) {
+            writer.append("sep=,\n"); // separator for microsoft excel
+            writer.append("ID,Amount,Category,Date\n");
+            for (TransactionResponse transactionResponse : transactionResponses) {
+                writer.append(transactionResponse.getId().toString())
+                        .append(",")
+                        .append(transactionResponse.getAmount())
+                        .append(",")
+                        .append(transactionResponse.getCategory().getName())
+                        .append(",")
+                        .append(transactionResponse.getDate())
+                        .append("\n");
+            }
+        }
+
+        byte[] fileContent = Files.readAllBytes(csvFilePath);
+        Files.delete(csvFilePath);
+
+        return fileContent;
     }
 }
