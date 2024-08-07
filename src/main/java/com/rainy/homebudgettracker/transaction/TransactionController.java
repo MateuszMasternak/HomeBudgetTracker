@@ -4,14 +4,20 @@ import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.user.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 
 @RestController
@@ -128,5 +134,21 @@ public class TransactionController {
                 LocalDate.parse(startDate),
                 LocalDate.parse(endDate)
         ));
+    }
+
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> exportTransactionsToCsv() throws IOException {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        byte[] csvFileContent = transactionService.generateCsvFileForUserTransactions(user);
+
+        HttpHeaders headers = new HttpHeaders();
+        String fileName = "transactions_" + user.getId() + "_" + LocalDate.now() + ".csv";
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName);
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentLength(csvFileContent.length)
+                .contentType(MediaType.parseMediaType("application/csv"))
+                .body(csvFileContent);
     }
 }

@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
+    Iterable<Transaction> findAllByUser(User user);
     Page<Transaction> findAllByUser(User user, Pageable pageable);
     Page<Transaction> findAllByUserAndCategory(User user, Category category, Pageable pageable);
     Page<Transaction> findAllByUserAndDateBetween(
