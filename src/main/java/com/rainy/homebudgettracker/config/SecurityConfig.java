@@ -65,8 +65,8 @@ public class SecurityConfig {
         final var config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.setAllowedOrigins(Arrays.asList(
-                "http://localhost:8081",
-                "http://localhost:5173/",
+                "http://localhost:8080",
+                "http://localhost:5173",
                 "https://home-budget-tracker.vercel.app",
                 "https://home-budget-tracker-6d3b2b68aff0.herokuapp.com"
         ));
