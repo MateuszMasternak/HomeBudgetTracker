@@ -13,4 +13,5 @@ public class TransactionResponse {
     private String amount;
     private CategoryResponse category;
     private String date;
+    private String currencyCode;
 }

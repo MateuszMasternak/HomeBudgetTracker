@@ -4,7 +4,6 @@ import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.user.User;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,8 +15,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.LocalDate;
 
 @RestController
@@ -29,25 +26,41 @@ public class TransactionController {
     @GetMapping
     public ResponseEntity<Page<TransactionResponse>> getAllTransactionsByUser(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String code
     ) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
-        return ResponseEntity.ok(transactionService.findAllByUser(user, pageable));
+        if (code == null) {
+            return ResponseEntity.ok(transactionService.findAllByUser(user, pageable));
+        } else {
+            CurrencyCode currencyCode = CurrencyCode.valueOf(code.toUpperCase());
+            return ResponseEntity.ok(transactionService.findAllByUserAndCurrencyCode(user, currencyCode, pageable));
+        }
     }
 
     @GetMapping("/category")
     public ResponseEntity<Iterable<TransactionResponse>> getAllTransactionsByUserAndCategory(
             @RequestParam String categoryName,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String code
     )
             throws RecordDoesNotExistException
     {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
-        return ResponseEntity.ok(transactionService.findAllByUserAndCategory(
-                user, categoryName.toUpperCase(), pageable));
+        if (code == null) {
+            return ResponseEntity.ok(transactionService.findAllByUserAndCategory(user, categoryName.toUpperCase(), pageable));
+        } else {
+            CurrencyCode currencyCode = CurrencyCode.valueOf(code.toUpperCase());
+            return ResponseEntity.ok(transactionService.findAllByUserAndCurrencyCodeAndCategory(
+                    user,
+                    currencyCode,
+                    categoryName.toUpperCase(),
+                    pageable
+            ));
+        }
     }
 
     @GetMapping("/date")
@@ -55,16 +68,28 @@ public class TransactionController {
             @RequestParam String startDate,
             @RequestParam String endDate,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String code
     ) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
-        return ResponseEntity.ok(transactionService.findAllByUserAndDateBetween(
-                user,
-                LocalDate.parse(startDate),
-                LocalDate.parse(endDate),
-                pageable
-        ));
+        if (code == null) {
+            return ResponseEntity.ok(transactionService.findAllByUserAndDateBetween(
+                    user,
+                    LocalDate.parse(startDate),
+                    LocalDate.parse(endDate),
+                    pageable
+            ));
+        } else {
+            CurrencyCode currencyCode = CurrencyCode.valueOf(code.toUpperCase());
+            return ResponseEntity.ok(transactionService.findAllByUserAndCurrencyCodeAndDateBetween(
+                    user,
+                    currencyCode,
+                    LocalDate.parse(startDate),
+                    LocalDate.parse(endDate),
+                    pageable
+            ));
+        }
     }
 
     @GetMapping("/category-date")
@@ -73,19 +98,32 @@ public class TransactionController {
             @RequestParam String startDate,
             @RequestParam String endDate,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String code
     )
             throws RecordDoesNotExistException
     {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
-        return ResponseEntity.ok(transactionService.findAllByUserAndCategoryAndDateBetween(
-                user,
-                categoryName.toUpperCase(),
-                LocalDate.parse(startDate),
-                LocalDate.parse(endDate),
-                pageable
-        ));
+        if (code == null) {
+            return ResponseEntity.ok(transactionService.findAllByUserAndCategoryAndDateBetween(
+                    user,
+                    categoryName.toUpperCase(),
+                    LocalDate.parse(startDate),
+                    LocalDate.parse(endDate),
+                    pageable
+            ));
+        } else {
+            CurrencyCode currencyCode = CurrencyCode.valueOf(code.toUpperCase());
+            return ResponseEntity.ok(transactionService.findAllByUserAndCurrencyCodeAndCategoryAndDateBetween(
+                    user,
+                    currencyCode,
+                    categoryName.toUpperCase(),
+                    LocalDate.parse(startDate),
+                    LocalDate.parse(endDate),
+                    pageable
+            ));
+        }
     }
 
     @PostMapping
@@ -106,31 +144,37 @@ public class TransactionController {
     }
 
     @GetMapping("/sum-positive")
-    public ResponseEntity<String> sumPositiveAmountByUser() {
+    public ResponseEntity<String> sumPositiveAmountByUser(@RequestParam String code) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseEntity.ok(transactionService.sumPositiveAmountByUser(user));
+        CurrencyCode currencyCode = CurrencyCode.valueOf(code.toUpperCase());
+        return ResponseEntity.ok(transactionService.sumPositiveAmountByUser(user, currencyCode));
     }
 
     @GetMapping("/sum-negative")
-    public ResponseEntity<String> sumNegativeAmountByUser() {
+    public ResponseEntity<String> sumNegativeAmountByUser(@RequestParam String code) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseEntity.ok(transactionService.sumNegativeAmountByUser(user));
+        CurrencyCode currencyCode = CurrencyCode.valueOf(code.toUpperCase());
+        return ResponseEntity.ok(transactionService.sumNegativeAmountByUser(user, currencyCode));
     }
 
     @GetMapping("/sum")
-    public ResponseEntity<String> sumAmountByUser() {
+    public ResponseEntity<String> sumAmountByUser(@RequestParam String code) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseEntity.ok(transactionService.sumAmountByUser(user));
+        CurrencyCode currencyCode = CurrencyCode.valueOf(code.toUpperCase());
+        return ResponseEntity.ok(transactionService.sumAmountByUser(user, currencyCode));
     }
 
     @GetMapping("/sum-date")
     public ResponseEntity<String> sumAmountByUserAndDateBetween(
             @RequestParam String startDate,
-            @RequestParam String endDate
+            @RequestParam String endDate,
+            @RequestParam String code
     ) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        CurrencyCode currencyCode = CurrencyCode.valueOf(code.toUpperCase());
         return ResponseEntity.ok(transactionService.sumAmountByUserAndDateBetween(
                 user,
+                currencyCode,
                 LocalDate.parse(startDate),
                 LocalDate.parse(endDate)
         ));
