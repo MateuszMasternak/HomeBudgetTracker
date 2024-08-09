@@ -1,6 +1,5 @@
 package com.rainy.homebudgettracker.transaction;
 
-import com.rainy.homebudgettracker.category.Category;
 import com.rainy.homebudgettracker.category.CategoryRequest;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -24,4 +23,7 @@ public class TransactionRequest {
     @NotEmpty(message = "Date is required")
     @NotBlank(message = "Date is required")
     LocalDate date;
+    @NotEmpty(message = "Currency code is required")
+    @NotBlank(message = "Currency code is required")
+    String currencyCode;
 }

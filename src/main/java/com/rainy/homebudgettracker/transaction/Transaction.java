@@ -25,4 +25,5 @@ public class Transaction {
     private LocalDate date;
     @ManyToOne
     private User user;
+    private CurrencyCode currencyCode;
 }

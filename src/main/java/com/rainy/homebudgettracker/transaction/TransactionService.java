@@ -32,6 +32,11 @@ public class TransactionService {
         return getTransactionResponses(transactionResponses);
     }
 
+    public Page<TransactionResponse> findAllByUserAndCurrencyCode(User user, CurrencyCode currencyCode, Pageable pageable) {
+        Page<Transaction> transactions = transactionRepository.findAllByUserAndCurrencyCode(user, currencyCode, pageable);
+        return getTransactionResponses(transactions);
+    }
+
     public Page<TransactionResponse> findAllByUserAndCategory(User user, String categoryName, Pageable pageable)
             throws RecordDoesNotExistException
     {
@@ -46,6 +51,22 @@ public class TransactionService {
         return getTransactionResponses(transactions);
     }
 
+    public Page<TransactionResponse> findAllByUserAndCurrencyCodeAndCategory(
+            User user, CurrencyCode currencyCode, String categoryName, Pageable pageable
+    ) throws RecordDoesNotExistException {
+        CategoryResponse categoryResponse = categoryService.findByUserAndName(user, categoryName);
+        Category category = Category.builder()
+                .id(categoryResponse.getId())
+                .name(categoryResponse.getName())
+                .user(user)
+                .build();
+
+        Page<Transaction> transactions = transactionRepository.findAllByUserAndCurrencyCodeAndCategory(
+                user, currencyCode, category, pageable
+        );
+        return getTransactionResponses(transactions);
+    }
+
     private Page<TransactionResponse> getTransactionResponses(Page<Transaction> transactions) {
         return transactions.map(transaction -> TransactionResponse.builder()
                 .id(transaction.getId())
@@ -55,6 +76,7 @@ public class TransactionService {
                         .name(transaction.getCategory().getName())
                         .build())
                 .date(transaction.getDate().toString())
+                .currencyCode(transaction.getCurrencyCode().toString())
                 .build());
     }
 
@@ -69,6 +91,7 @@ public class TransactionService {
                             .name(transaction.getCategory().getName())
                             .build())
                     .date(transaction.getDate().toString())
+                    .currencyCode(transaction.getCurrencyCode().toString())
                     .build();
             transactionResponses.add(transactionResponse);
         });
@@ -81,6 +104,23 @@ public class TransactionService {
     ) {
         Page<Transaction> transactions = transactionRepository.findAllByUserAndDateBetween(
                 user, startDate, endDate, pageable);
+        return getTransactionResponses(transactions);
+    }
+
+    public Page<TransactionResponse> findAllByUserAndCurrencyCodeAndDateBetween(
+            User user,
+            CurrencyCode currencyCode,
+            LocalDate startDate,
+            LocalDate endDate,
+            Pageable pageable
+    ) {
+        Page<Transaction> transactions = transactionRepository.findAllByUserAndCurrencyCodeAndDateBetween(
+                user,
+                currencyCode,
+                startDate,
+                endDate,
+                pageable
+        );
         return getTransactionResponses(transactions);
     }
 
@@ -108,7 +148,35 @@ public class TransactionService {
         return getTransactionResponses(transactions);
     }
 
-    public TransactionResponse createTransaction(User user, TransactionRequest transactionRequest) throws RecordDoesNotExistException {
+    public Page<TransactionResponse> findAllByUserAndCurrencyCodeAndCategoryAndDateBetween(
+            User user,
+            CurrencyCode currencyCode,
+            String categoryName,
+            LocalDate startDate,
+            LocalDate endDate,
+            Pageable pageable
+    ) throws RecordDoesNotExistException {
+        CategoryResponse categoryResponse = categoryService.findByUserAndName(user, categoryName);
+        Category category = Category.builder()
+                .id(categoryResponse.getId())
+                .name(categoryResponse.getName())
+                .user(user)
+                .build();
+
+        Page<Transaction> transactions = transactionRepository.findAllByUserAndCurrencyCodeAndCategoryAndDateBetween(
+                user,
+                currencyCode,
+                category,
+                startDate,
+                endDate,
+                pageable
+        );
+        return getTransactionResponses(transactions);
+    }
+
+    public TransactionResponse createTransaction(User user, TransactionRequest transactionRequest)
+            throws RecordDoesNotExistException
+    {
         CategoryResponse categoryResponse = categoryService.findByUserAndName(user,
                 transactionRequest.getCategory().getName().toUpperCase());
         Category category = Category.builder()
@@ -122,6 +190,7 @@ public class TransactionService {
                 .amount(transactionRequest.getAmount())
                 .date(transactionRequest.getDate())
                 .user(user)
+                .currencyCode(CurrencyCode.valueOf(transactionRequest.getCurrencyCode()))
                 .build();
 
         transaction = transactionRepository.save(transaction);
@@ -134,6 +203,7 @@ public class TransactionService {
                         .name(transaction.getCategory().getName())
                         .build())
                 .date(transaction.getDate().toString())
+                .currencyCode(transaction.getCurrencyCode().toString())
                 .build();
     }
 
@@ -154,23 +224,25 @@ public class TransactionService {
         return transactionRepository.existsByCategory(category);
     }
 
-    public String sumPositiveAmountByUser(User user) {
-        BigDecimal sum = transactionRepository.sumPositiveAmountByUser(user);
+    public String sumPositiveAmountByUser(User user, CurrencyCode currencyCode) {
+        BigDecimal sum = transactionRepository.sumPositiveAmountByUser(user, currencyCode);
         return sum == null ? "0" : sum.toString();
     }
 
-    public String sumNegativeAmountByUser(User user) {
-        BigDecimal sum = transactionRepository.sumNegativeAmountByUser(user);
+    public String sumNegativeAmountByUser(User user, CurrencyCode currencyCode) {
+        BigDecimal sum = transactionRepository.sumNegativeAmountByUser(user, currencyCode);
         return sum == null ? "0" : sum.toString();
     }
 
-    public String sumAmountByUser(User user) {
-        BigDecimal sum = transactionRepository.sumAmountByUser(user);
+    public String sumAmountByUser(User user, CurrencyCode currencyCode) {
+        BigDecimal sum = transactionRepository.sumAmountByUser(user, currencyCode);
         return sum == null ? "0" : sum.toString();
     }
 
-    public String sumAmountByUserAndDateBetween(User user, LocalDate startDate, LocalDate endDate) {
-        BigDecimal sum = transactionRepository.sumAmountByUserAndDateBetween(user, startDate, endDate);
+    public String sumAmountByUserAndDateBetween(
+            User user, CurrencyCode currencyCode, LocalDate startDate, LocalDate endDate)
+    {
+        BigDecimal sum = transactionRepository.sumAmountByUserAndDateBetween(user, currencyCode, startDate, endDate);
         return sum == null ? "0" : sum.toString();
     }
 
@@ -191,6 +263,8 @@ public class TransactionService {
                         .append(transactionResponse.getCategory().getName())
                         .append(",")
                         .append(transactionResponse.getDate())
+                        .append(",")
+                        .append(transactionResponse.getCurrencyCode())
                         .append("\n");
             }
         }
