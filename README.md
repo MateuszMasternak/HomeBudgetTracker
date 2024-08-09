@@ -30,7 +30,10 @@ DB_NAME_DEV=yourdatabasename
 DB_USERNAME_DEV=yourusername  
 DB_PASSWORD_DEV=yourpassword  
 DB_HOST_DEV=db // don't change  
-DB_PORT_DEV=5432 // don't change
+DB_PORT_DEV=5432 // don't change  
+MAILDEV_HOST_DEV=mail-dev-hbt // don't change  
+EMAIL_USERNAME_DEV=username@test.com  
+EMAIL_PASSWORD_DEV=password  
 
 ***Docker Setup***
 1. Build and run the Docker containers:  

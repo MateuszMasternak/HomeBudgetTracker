@@ -25,10 +25,10 @@ spring:
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   mail:
-    host: localhost
+    host: ${EMAIL_HOST_DEV}
     port: 1025
-    username: username@test.com
-    password: password
+    username: ${EMAIL_USERNAME_DEV}
+    password: ${EMAIL_PASSWORD_DEV}
     default-encoding: UTF-8
     test-connection: true
 #  mail:
