@@ -8,7 +8,7 @@ application:
       activation-url: http://localhost:5173/activate-account
 
 server:
-  port: 8081
+  port: 8080
 
 spring:
   datasource:
