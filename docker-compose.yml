@@ -1,26 +1,45 @@
 services:
-  postgres:
+  db:
     image: postgres:16.2-alpine3.19
     restart: unless-stopped
     container_name: postgres-hbt
     environment:
-      POSTGRES_USER: username
-      POSTGRES_PASSWORD: password
+      POSTGRES_USER: ${DB_USERNAME_DEV}
+      POSTGRES_PASSWORD: ${DB_PASSWORD_DEV}
       PGDATA: /var/lib/postgresql/data
-      POSTGRES_DB: home_budget_tracker
+      POSTGRES_DB: ${DB_NAME_DEV}
     volumes:
       - postgres:/data/postgres
     ports:
       - 5432:5432
     networks:
       - hbt-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USERNAME_DEV} -d ${DB_NAME_DEV}" ]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
   mail-dev:
     container_name: mail-dev-hbt
     image: maildev/maildev
     ports:
       - 1080:1080
       - 1025:1025
-
+  webapp:
+    build:
+      context: ../Nowy folder
+      dockerfile: ../../../../Nowy folder/Dockerfile
+    container_name: spring-app-hbt
+    env_file: "../Nowy folder/.env"
+    ports:
+      - 8080:8080
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+    networks:
+      - hbt-network
 
 networks:
   hbt-network:

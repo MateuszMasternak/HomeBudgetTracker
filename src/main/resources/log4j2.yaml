@@ -13,7 +13,7 @@ Configuration:
         Pattern: "%highlight{%d{HH:mm:ss.SSS} [%t] %-level %c{1} - %msg%n}"
       Filters:
         ThresholdFilter:
-          level: ERROR
+          level: INFO
     RollingFile:
       name: RollingFile
       fileName: logs/hbt-rolling.log
