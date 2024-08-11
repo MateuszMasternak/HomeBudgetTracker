@@ -1,6 +1,7 @@
 package com.rainy.homebudgettracker.config;
 
 import com.rainy.homebudgettracker.auth.JwtAuthenticationFilter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,11 +32,15 @@ import static org.springframework.http.HttpHeaders.*;
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailsService userDetailsService;
     private static final String[] WHITE_LIST = {
             "/api/v1/auth/**",
+            "/v3/api-docs/**",
+            "/swagger-ui.html",
+            "/swagger-ui/**",
     };
 
     @Bean

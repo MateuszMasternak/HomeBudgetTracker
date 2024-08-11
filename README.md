@@ -42,28 +42,4 @@ EMAIL_PASSWORD_DEV=password
 3. Access the MailDev interface at http://localhost:1080 to view sent emails.
 
 ## API Endpoints
-***Authentication Endpoints***  
-* POST **/api/v1/auth/register**: Register a new user.
-* POST **/api/v1/auth/authenticate**: Authenticate a user.
-* GET **/api/v1/auth/activate-account**: Activate a user account with a token.
-  
-***Category Endpoints***
-* GET **/api/v1/category**: Get all categories with pagination.
-* GET **/api/v1/category/without-pagination**: Get all categories without pagination.
-* POST **/api/v1/category**: Create a new category.
-* DELETE **/api/v1/category/{id}**: Delete a category by ID.
-  
-***Transaction Endpoints***
-* GET **/api/v1/transaction**: Get all transactions with pagination.
-* GET **/api/v1/transaction/category**: Get transactions by category with pagination.
-* GET **/api/v1/transaction/date**: Get transactions by date range with pagination.
-* GET **/api/v1/transaction/category-date**: Get transactions by category and date range with pagination.
-* POST **/api/v1/transaction**: Create a new transaction.
-* DELETE **/api/v1/transaction/{id}**: Delete a transaction by ID.
-* GET **/api/v1/transaction/sum-positiv**e: Get the sum of positive transactions.
-* GET **/api/v1/transaction/sum-negative**: Get the sum of negative transactions.
-* GET **/api/v1/transaction/sum**: Get the sum of all transactions.
-* GET **/api/v1/transaction/sum-date**: Get the sum of transactions within a date range.
-* GET **/api/v1/transaction/export**: Export transactions to a CSV file.
-
-For more details, see controller classes.
+http://localhost:8080/swagger-ui/index.html
