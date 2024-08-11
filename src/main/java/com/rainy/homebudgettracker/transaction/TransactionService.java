@@ -224,26 +224,30 @@ public class TransactionService {
         return transactionRepository.existsByCategory(category);
     }
 
-    public String sumPositiveAmountByUser(User user, CurrencyCode currencyCode) {
+    public SumResponse sumPositiveAmountByUser(User user, CurrencyCode currencyCode) {
         BigDecimal sum = transactionRepository.sumPositiveAmountByUser(user, currencyCode);
-        return sum == null ? "0" : sum.toString();
+        String amount = sum == null ? "0" : sum.toString();
+        return SumResponse.builder().amount(amount).build();
     }
 
-    public String sumNegativeAmountByUser(User user, CurrencyCode currencyCode) {
+    public SumResponse sumNegativeAmountByUser(User user, CurrencyCode currencyCode) {
         BigDecimal sum = transactionRepository.sumNegativeAmountByUser(user, currencyCode);
-        return sum == null ? "0" : sum.toString();
+        String amount = sum == null ? "0" : sum.toString();
+        return SumResponse.builder().amount(amount).build();
     }
 
-    public String sumAmountByUser(User user, CurrencyCode currencyCode) {
+    public SumResponse sumAmountByUser(User user, CurrencyCode currencyCode) {
         BigDecimal sum = transactionRepository.sumAmountByUser(user, currencyCode);
-        return sum == null ? "0" : sum.toString();
+        String amount = sum == null ? "0" : sum.toString();
+        return SumResponse.builder().amount(amount).build();
     }
 
-    public String sumAmountByUserAndDateBetween(
+    public SumResponse sumAmountByUserAndDateBetween(
             User user, CurrencyCode currencyCode, LocalDate startDate, LocalDate endDate)
     {
         BigDecimal sum = transactionRepository.sumAmountByUserAndDateBetween(user, currencyCode, startDate, endDate);
-        return sum == null ? "0" : sum.toString();
+        String amount = sum == null ? "0" : sum.toString();
+        return SumResponse.builder().amount(amount).build();
     }
 
     public byte[] generateCsvFileForUserTransactions(User user) throws IOException {
