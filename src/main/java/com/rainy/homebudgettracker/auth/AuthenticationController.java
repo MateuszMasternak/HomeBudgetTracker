@@ -174,4 +174,13 @@ public class AuthenticationController {
         authenticationService.activateAccount(token);
         return ResponseEntity.accepted().build();
     }
+
+    @GetMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(
+            @RequestParam String email
+    ) throws MessagingException {
+        String message = "You will receive an email with a password reset link soon";
+        authenticationService.resetPassword(email);
+        return ResponseEntity.accepted().body(message);
+    }
 }
