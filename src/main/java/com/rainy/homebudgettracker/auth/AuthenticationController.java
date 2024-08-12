@@ -3,6 +3,7 @@ package com.rainy.homebudgettracker.auth;
 import com.rainy.homebudgettracker.handler.exception.EmailAlreadyExistsException;
 import com.rainy.homebudgettracker.handler.exception.ExpiredConfirmationTokenException;
 import com.rainy.homebudgettracker.handler.exception.InvalidConfirmationTokenException;
+import com.rainy.homebudgettracker.user.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -12,6 +13,7 @@ import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -235,6 +237,47 @@ public class AuthenticationController {
             @RequestBody @Valid ChangePasswordRequest password
     ) throws InvalidConfirmationTokenException {
         authenticationService.changePassword(token, password);
+        return ResponseEntity.accepted().build();
+    }
+
+    @Operation(
+            summary = "Change password",
+            description = "Change password for authenticated user",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "202",
+                            description = "Accepted",
+                            content = @Content(
+                                    schema = @Schema(),
+                                    mediaType = "application/json"
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Bad Request",
+                            content = @Content(
+                                    schema = @Schema(
+                                            example = """
+                                                    {
+                                                        "businessErrorCode": 306,
+                                                        "businessErrorDescription": "Missing or invalid request body element",
+                                                        "validationErrors": [
+                                                            "Password is not valid"
+                                                        ]
+                                                    }"""
+                                    ),
+                                    mediaType = "application/json"
+
+                            )
+                    )
+            }
+    )
+    @PutMapping("/change-password")
+    public ResponseEntity<?> changePassword(
+            @RequestBody @Valid ChangePasswordRequest password
+    ) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        authenticationService.changePassword(password, user);
         return ResponseEntity.accepted().build();
     }
 }
