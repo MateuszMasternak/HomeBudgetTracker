@@ -14,6 +14,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -196,10 +197,14 @@ public class AuthenticationController {
     @GetMapping("/password-reset-link")
     public ResponseEntity<?> resetPassword(
             @RequestParam String email
-    ) throws MessagingException {
+    ) throws MessagingException, UsernameNotFoundException {
         String message = "You will receive an email with a password reset link soon";
-        authenticationService.sendPasswordResetEmail(email);
-        return ResponseEntity.accepted().body(message);
+        try {
+            authenticationService.sendPasswordResetEmail(email);
+            return ResponseEntity.accepted().body(message);
+        } catch (UsernameNotFoundException e) {
+            return ResponseEntity.accepted().body(message);
+        }
     }
 
     @Operation(

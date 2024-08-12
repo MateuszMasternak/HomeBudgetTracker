@@ -32,6 +32,8 @@ public class AuthenticationService {
 
     @Value("${application.mailing.frontend.activation-url}")
     private String activationUrl;
+    @Value("${application.mailing.frontend.reset-url}")
+    private String resetUrl;
 
     public void register(RegisterRequest registerRequest) throws MessagingException, EmailAlreadyExistsException {
         if (userRepository.existsByEmail(registerRequest.getEmail())) {
@@ -52,8 +54,8 @@ public class AuthenticationService {
     }
 
     private void sendValidationEmail(User user) throws MessagingException {
-        var newToken = generateAndSaveActivationToken(user);
-        emailService.sendEmail(
+        var newToken = generateAndSaveToken(user);
+        emailService.sendConfirmationEmail(
                 user.getEmail(),
                 user.getFullName(),
                 EmailTemplateName.ACTIVATE_ACCOUNT,
@@ -63,7 +65,20 @@ public class AuthenticationService {
         );
     }
 
-    private String generateAndSaveActivationToken(User user) {
+    public void sendPasswordResetEmail(String email) throws MessagingException, UsernameNotFoundException {
+        var user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        var newToken = generateAndSaveToken(user);
+        emailService.sendPasswordResetEmail(
+                user.getEmail(),
+                user.getFullName(),
+                EmailTemplateName.PASSWORD_RESET,
+                resetUrl + "?token=" + newToken,
+                "Password reset"
+        );
+    }
+
+    private String generateAndSaveToken(User user) {
         var generatedToken = generateActivationToken(6);
         var token = Token.builder()
                 .token(generatedToken)
