@@ -191,12 +191,50 @@ public class AuthenticationController {
                     )
             }
     )
-    @GetMapping("/reset-password")
+    @GetMapping("/password-reset-link")
     public ResponseEntity<?> resetPassword(
             @RequestParam String email
     ) throws MessagingException {
         String message = "You will receive an email with a password reset link soon";
-        authenticationService.resetPassword(email);
+        authenticationService.sendPasswordResetEmail(email);
         return ResponseEntity.accepted().body(message);
+    }
+
+    @Operation(
+            summary = "Change password",
+            description = "Change password using a token from an email",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "202",
+                            description = "Accepted",
+                            content = @Content(
+                                    schema = @Schema(),
+                                    mediaType = "application/json"
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Unauthorized",
+                            content = @Content(
+                                    schema = @Schema(
+                                            example = """
+                                                    {
+                                                        "businessErrorCode": 304,
+                                                        "businessErrorDescription": "Invalid confirmation token"
+                                                    }"""
+                                    ),
+                                    mediaType = "application/json"
+
+                            )
+                    )
+            }
+    )
+    @PostMapping("/password-reset")
+    public ResponseEntity<?> changePassword(
+            @RequestParam String token,
+            @RequestBody @Valid ChangePasswordRequest password
+    ) throws InvalidConfirmationTokenException {
+        authenticationService.changePassword(token, password);
+        return ResponseEntity.accepted().build();
     }
 }
