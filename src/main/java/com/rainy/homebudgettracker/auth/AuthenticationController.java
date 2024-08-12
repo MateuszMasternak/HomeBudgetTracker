@@ -175,6 +175,22 @@ public class AuthenticationController {
         return ResponseEntity.accepted().build();
     }
 
+    @Operation(
+            summary = "Reset password",
+            description = "Reset password and send an email with a reset link",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "202",
+                            description = "Accepted",
+                            content = @Content(
+                                    schema = @Schema(
+                                            example = "You will receive an email with a password reset link soon"
+                                    ),
+                                    mediaType = "text/plain"
+                            )
+                    )
+            }
+    )
     @GetMapping("/reset-password")
     public ResponseEntity<?> resetPassword(
             @RequestParam String email
