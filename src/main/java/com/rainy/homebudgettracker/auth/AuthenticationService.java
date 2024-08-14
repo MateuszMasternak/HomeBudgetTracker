@@ -125,6 +125,9 @@ public class AuthenticationService {
     {
         Token savedToken = tokenRepository.findByToken(token)
                 .orElseThrow(() -> new InvalidConfirmationTokenException("Invalid token"));
+        if (savedToken.getConfirmedAt() != null) {
+            return;
+        }
         if (LocalDateTime.now().isAfter(savedToken.getExpiresAt())) {
             sendValidationEmail(savedToken.getUser());
             throw new ExpiredConfirmationTokenException(
@@ -144,6 +147,9 @@ public class AuthenticationService {
     {
         Token savedToken = tokenRepository.findByToken(token)
                 .orElseThrow(() -> new InvalidConfirmationTokenException("Invalid token"));
+        if (savedToken.getConfirmedAt() != null) {
+            return;
+        }
         if (LocalDateTime.now().isAfter(savedToken.getExpiresAt())) {
             throw new ExpiredConfirmationTokenException(
                     "Token expired. New token has been sent to the same email address");
