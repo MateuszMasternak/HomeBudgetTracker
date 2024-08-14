@@ -196,7 +196,7 @@ public class AuthenticationController {
     )
     @GetMapping("/password-reset-link")
     public ResponseEntity<?> resetPassword(
-            @RequestParam String email
+            @RequestBody @Valid PasswordResetLinkRequest email
     ) throws MessagingException, UsernameNotFoundException {
         String message = "You will receive an email with a password reset link soon";
         try {
@@ -240,7 +240,7 @@ public class AuthenticationController {
     public ResponseEntity<?> changePassword(
             @RequestParam String token,
             @RequestBody @Valid ChangePasswordRequest password
-    ) throws InvalidConfirmationTokenException {
+    ) throws InvalidConfirmationTokenException, ExpiredConfirmationTokenException {
         authenticationService.changePassword(token, password);
         return ResponseEntity.accepted().build();
     }
@@ -282,7 +282,7 @@ public class AuthenticationController {
             @RequestBody @Valid ChangePasswordRequest password
     ) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        authenticationService.changePassword(password, user);
+        authenticationService.changePassword(user, password);
         return ResponseEntity.accepted().build();
     }
 }
