@@ -136,7 +136,7 @@ public class AuthenticationController {
                             description = "Accepted",
                             content = @Content(
                                     schema = @Schema(),
-                                    mediaType = "application/json"
+                                    mediaType = ""
                             )
                     ),
                     @ApiResponse(
@@ -147,7 +147,8 @@ public class AuthenticationController {
                                             example = """
                                                     {
                                                         "businessErrorCode": 304,
-                                                        "businessErrorDescription": "Invalid confirmation token"
+                                                        "businessErrorDescription": "Invalid confirmation token",
+                                                        "error": "Invalid token"
                                                     }"""
                                     ),
                                     mediaType = "application/json"
@@ -191,6 +192,21 @@ public class AuthenticationController {
                                     ),
                                     mediaType = "text/plain"
                             )
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Unauthorized",
+                            content = @Content(
+                                    schema = @Schema(
+                                            example = """
+                                                    {
+                                                        "businessErrorCode": 304,
+                                                        "businessErrorDescription": "Invalid confirmation token"
+                                                    }"""
+                                    ),
+                                    mediaType = "application/json"
+
+                            )
                     )
             }
     )
@@ -216,7 +232,7 @@ public class AuthenticationController {
                             description = "Accepted",
                             content = @Content(
                                     schema = @Schema(),
-                                    mediaType = "application/json"
+                                    mediaType = ""
                             )
                     ),
                     @ApiResponse(

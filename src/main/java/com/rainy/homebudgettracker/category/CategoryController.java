@@ -45,7 +45,7 @@ public class CategoryController {
                             responseCode = "401",
                             description = "Unauthorized",
                             content = @Content(
-                                    mediaType = "application/json",
+                                    mediaType = "",
                                     schema = @Schema()
                             )
                     )
@@ -77,7 +77,7 @@ public class CategoryController {
                             responseCode = "401",
                             description = "Unauthorized",
                             content = @Content(
-                                    mediaType = "application/json",
+                                    mediaType = "",
                                     schema = @Schema()
                             )
                     )
@@ -122,14 +122,8 @@ public class CategoryController {
                             responseCode = "401",
                             description = "Unauthorized",
                             content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(
-                                            example = """
-                                                    {
-                                                        "businessErrorCode": 301,
-                                                        "businessErrorDescription": "Bad credentials"
-                                                    }"""
-                                    )
+                                    mediaType = "",
+                                    schema = @Schema()
                             )
                     ),
                     @ApiResponse(
@@ -170,14 +164,8 @@ public class CategoryController {
                             responseCode = "401",
                             description = "Unauthorized",
                             content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(
-                                            example = """
-                                                    {
-                                                        "businessErrorCode": 301,
-                                                        "businessErrorDescription": "Bad credentials"
-                                                    }"""
-                                    )
+                                    mediaType = "",
+                                    schema = @Schema()
                             )
                     ),
                     @ApiResponse(

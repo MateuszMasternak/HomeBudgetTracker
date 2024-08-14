@@ -37,6 +37,7 @@ public class TransactionController {
                             responseCode = "200",
                             description = "OK",
                             content = @Content(
+                                    mediaType = "application/json",
                                     schema = @Schema(implementation = Page.class)
                             )
                     ),
@@ -44,14 +45,8 @@ public class TransactionController {
                             responseCode = "401",
                             description = "Unauthorized",
                             content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(
-                                            example = """
-                                                    {
-                                                        "businessErrorCode": 301,
-                                                        "businessErrorDescription": "Bad credentials"
-                                                    }"""
-                                    )
+                                    mediaType = "",
+                                    schema = @Schema()
                             )
                     )
             }
@@ -80,6 +75,7 @@ public class TransactionController {
                             responseCode = "200",
                             description = "OK",
                             content = @Content(
+                                    mediaType = "application/json",
                                     schema = @Schema(implementation = Page.class)
                             )
                     ),
@@ -87,14 +83,8 @@ public class TransactionController {
                             responseCode = "401",
                             description = "Unauthorized",
                             content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(
-                                            example = """
-                                                    {
-                                                        "businessErrorCode": 301,
-                                                        "businessErrorDescription": "Bad credentials"
-                                                    }"""
-                                    )
+                                    mediaType = "",
+                                    schema = @Schema()
                             )
                     ),
                     @ApiResponse(
@@ -145,6 +135,7 @@ public class TransactionController {
                             responseCode = "200",
                             description = "OK",
                             content = @Content(
+                                    mediaType = "application/json",
                                     schema = @Schema(implementation = Page.class)
                             )
                     ),
@@ -152,14 +143,8 @@ public class TransactionController {
                             responseCode = "401",
                             description = "Unauthorized",
                             content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(
-                                            example = """
-                                                    {
-                                                        "businessErrorCode": 301,
-                                                        "businessErrorDescription": "Bad credentials"
-                                                    }"""
-                                    )
+                                    mediaType = "",
+                                    schema = @Schema()
                             )
                     ),
                     @ApiResponse(
@@ -215,6 +200,7 @@ public class TransactionController {
                             responseCode = "200",
                             description = "OK",
                             content = @Content(
+                                    mediaType = "application/json",
                                     schema = @Schema(implementation = Page.class)
                             )
                     ),
@@ -222,14 +208,8 @@ public class TransactionController {
                             responseCode = "401",
                             description = "Unauthorized",
                             content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(
-                                            example = """
-                                                    {
-                                                        "businessErrorCode": 301,
-                                                        "businessErrorDescription": "Bad credentials"
-                                                    }"""
-                                    )
+                                    mediaType = "",
+                                    schema = @Schema()
                             )
                     ),
                     @ApiResponse(
@@ -290,6 +270,7 @@ public class TransactionController {
                             responseCode = "200",
                             description = "OK",
                             content = @Content(
+                                    mediaType = "application/json",
                                     schema = @Schema(implementation = TransactionResponse.class)
                             )
                     ),
@@ -315,13 +296,7 @@ public class TransactionController {
                             description = "Unauthorized",
                             content = @Content(
                                     mediaType = "application/json",
-                                    schema = @Schema(
-                                            example = """
-                                                    {
-                                                        "businessErrorCode": 301,
-                                                        "businessErrorDescription": "Bad credentials"
-                                                    }"""
-                                    )
+                                    schema = @Schema()
                             )
                     )
             }
@@ -340,20 +315,18 @@ public class TransactionController {
             responses = {
                     @ApiResponse(
                             responseCode = "204",
-                            description = "No Content"
+                            description = "No Content",
+                            content = @Content(
+                                    mediaType = "",
+                                    schema = @Schema()
+                            )
                     ),
                     @ApiResponse(
                             responseCode = "401",
                             description = "Unauthorized",
                             content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(
-                                            example = """
-                                                    {
-                                                        "businessErrorCode": 301,
-                                                        "businessErrorDescription": "Bad credentials"
-                                                    }"""
-                                    )
+                                    mediaType = "",
+                                    schema = @Schema()
                             )
                     ),
                     @ApiResponse(
@@ -411,14 +384,8 @@ public class TransactionController {
                             responseCode = "401",
                             description = "Unauthorized",
                             content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(
-                                            example = """
-                                                    {
-                                                        "businessErrorCode": 301,
-                                                        "businessErrorDescription": "Bad credentials"
-                                                    }"""
-                                    )
+                                    mediaType = "",
+                                    schema = @Schema()
                             )
                     )
             }
@@ -460,14 +427,8 @@ public class TransactionController {
                             responseCode = "401",
                             description = "Unauthorized",
                             content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(
-                                            example = """
-                                                    {
-                                                        "businessErrorCode": 301,
-                                                        "businessErrorDescription": "Bad credentials"
-                                                    }"""
-                                    )
+                                    mediaType = "",
+                                    schema = @Schema()
                             )
                     )
             }
@@ -509,14 +470,8 @@ public class TransactionController {
                             responseCode = "401",
                             description = "Unauthorized",
                             content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(
-                                            example = """
-                                                    {
-                                                        "businessErrorCode": 301,
-                                                        "businessErrorDescription": "Bad credentials"
-                                                    }"""
-                                    )
+                                    mediaType = "",
+                                    schema = @Schema()
                             )
                     )
             }
@@ -558,14 +513,8 @@ public class TransactionController {
                             responseCode = "401",
                             description = "Unauthorized",
                             content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(
-                                            example = """
-                                                    {
-                                                        "businessErrorCode": 301,
-                                                        "businessErrorDescription": "Bad credentials"
-                                                    }"""
-                                    )
+                                    mediaType = "",
+                                    schema = @Schema()
                             )
                     )
             }
@@ -594,6 +543,11 @@ public class TransactionController {
                             responseCode = "200",
                             description = "OK",
                             content = @Content(
+                                    schema = @Schema(
+                                            type = "string",
+                                            format = "binary",
+                                            description = "CSV file"
+                                    ),
                                     mediaType = "application/csv"
                             )
                     ),
@@ -601,14 +555,8 @@ public class TransactionController {
                             responseCode = "401",
                             description = "Unauthorized",
                             content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(
-                                            example = """
-                                                    {
-                                                        "businessErrorCode": 301,
-                                                        "businessErrorDescription": "Bad credentials"
-                                                    }"""
-                                    )
+                                    mediaType = "",
+                                    schema = @Schema()
                             )
                     )
             }
