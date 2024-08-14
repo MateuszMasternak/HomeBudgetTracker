@@ -1,6 +1,7 @@
 package com.rainy.homebudgettracker.email;
 
 import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -22,7 +23,7 @@ public class EmailService {
     private String emailFrom;
 
     @Async
-    public void sendEmail(
+    public void sendConfirmationEmail(
             String to,
             String username,
             EmailTemplateName emailTemplateName,
@@ -38,15 +39,7 @@ public class EmailService {
         }
 
         var mimeMessage = mailSender.createMimeMessage();
-        var helper = new MimeMessageHelper(
-                mimeMessage,
-                MimeMessageHelper.MULTIPART_MODE_MIXED,
-                "UTF-8"
-        );
-        helper.setPriority(1);
-        helper.setFrom(emailFrom);
-        helper.setTo(to);
-        helper.setSubject(subject);
+        var helper = createMimeMessageHelper(mimeMessage, to, subject);
 
         Map<String, Object> properties = Map.of(
                 "username", username,
@@ -62,5 +55,52 @@ public class EmailService {
         helper.setText(template, true);
 
         mailSender.send(mimeMessage);
+    }
+
+    @Async
+    public void sendPasswordResetEmail(
+            String to,
+            String username,
+            EmailTemplateName emailTemplateName,
+            String resetUrl,
+            String subject
+    ) throws MessagingException {
+        String templateName;
+        if (emailTemplateName == null) {
+            templateName = "password_reset_message";
+        } else {
+            templateName = emailTemplateName.getName();
+        }
+
+        Map<String, Object> properties = Map.of(
+                "username", username,
+                "resetUrl", resetUrl
+        );
+
+        var mimeMessage = mailSender.createMimeMessage();
+        var helper = createMimeMessageHelper(mimeMessage, to, subject);
+
+        Context context = new Context();
+        context.setVariables(properties);
+
+        String template = templateEngine.process(templateName, context);
+
+        helper.setText(template, true);
+
+        mailSender.send(mimeMessage);
+    }
+
+    private MimeMessageHelper createMimeMessageHelper(MimeMessage mimeMessage, String to, String subject) throws MessagingException {
+        var helper = new MimeMessageHelper(
+                mimeMessage,
+                MimeMessageHelper.MULTIPART_MODE_MIXED,
+                "UTF-8"
+        );
+        helper.setPriority(1);
+        helper.setFrom(emailFrom);
+        helper.setTo(to);
+        helper.setSubject(subject);
+
+        return helper;
     }
 }

@@ -258,7 +258,7 @@ public class TransactionService {
 
         try (FileWriter writer = new FileWriter(csvFilePath.toString())) {
             writer.append("sep=,\n"); // separator for microsoft excel
-            writer.append("ID,Amount,Category,Date\n");
+            writer.append("ID,Amount,Category,Date,Currency code\n");
             for (TransactionResponse transactionResponse : transactionResponses) {
                 writer.append(transactionResponse.getId().toString())
                         .append(",")

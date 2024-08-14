@@ -32,6 +32,8 @@ public class AuthenticationService {
 
     @Value("${application.mailing.frontend.activation-url}")
     private String activationUrl;
+    @Value("${application.mailing.frontend.reset-url}")
+    private String resetUrl;
 
     public void register(RegisterRequest registerRequest) throws MessagingException, EmailAlreadyExistsException {
         if (userRepository.existsByEmail(registerRequest.getEmail())) {
@@ -52,8 +54,8 @@ public class AuthenticationService {
     }
 
     private void sendValidationEmail(User user) throws MessagingException {
-        var newToken = generateAndSaveActivationToken(user);
-        emailService.sendEmail(
+        var newToken = generateAndSaveToken(user);
+        emailService.sendConfirmationEmail(
                 user.getEmail(),
                 user.getFullName(),
                 EmailTemplateName.ACTIVATE_ACCOUNT,
@@ -63,7 +65,22 @@ public class AuthenticationService {
         );
     }
 
-    private String generateAndSaveActivationToken(User user) {
+    public void sendPasswordResetEmail(PasswordResetLinkRequest email)
+            throws MessagingException, UsernameNotFoundException
+    {
+        var user = userRepository.findByEmail(email.getEmail())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        var newToken = generateAndSaveToken(user);
+        emailService.sendPasswordResetEmail(
+                user.getEmail(),
+                user.getFullName(),
+                EmailTemplateName.PASSWORD_RESET,
+                resetUrl + "?token=" + newToken,
+                "Password reset"
+        );
+    }
+
+    private String generateAndSaveToken(User user) {
         var generatedToken = generateActivationToken(6);
         var token = Token.builder()
                 .token(generatedToken)
@@ -119,5 +136,28 @@ public class AuthenticationService {
         userRepository.save(user);
         savedToken.setConfirmedAt(LocalDateTime.now());
         tokenRepository.save(savedToken);
+    }
+
+    @Transactional
+    public void changePassword(String token, ChangePasswordRequest changePasswordRequest)
+            throws InvalidConfirmationTokenException, ExpiredConfirmationTokenException
+    {
+        Token savedToken = tokenRepository.findByToken(token)
+                .orElseThrow(() -> new InvalidConfirmationTokenException("Invalid token"));
+        if (LocalDateTime.now().isAfter(savedToken.getExpiresAt())) {
+            throw new ExpiredConfirmationTokenException(
+                    "Token expired. New token has been sent to the same email address");
+        }
+        var user = userRepository.findById(Math.toIntExact(savedToken.getUser().getId()))
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        user.setPassword(passwordEncoder.encode(changePasswordRequest.getPassword()));
+        userRepository.save(user);
+        savedToken.setConfirmedAt(LocalDateTime.now());
+        tokenRepository.save(savedToken);
+    }
+
+    public void changePassword(User user, ChangePasswordRequest changePasswordRequest) {
+        user.setPassword(passwordEncoder.encode(changePasswordRequest.getPassword()));
+        userRepository.save(user);
     }
 }

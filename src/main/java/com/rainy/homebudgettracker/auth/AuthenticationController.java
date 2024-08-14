@@ -3,6 +3,7 @@ package com.rainy.homebudgettracker.auth;
 import com.rainy.homebudgettracker.handler.exception.EmailAlreadyExistsException;
 import com.rainy.homebudgettracker.handler.exception.ExpiredConfirmationTokenException;
 import com.rainy.homebudgettracker.handler.exception.InvalidConfirmationTokenException;
+import com.rainy.homebudgettracker.user.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -12,6 +13,8 @@ import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -172,6 +175,114 @@ public class AuthenticationController {
             @RequestParam String token
     ) throws MessagingException, InvalidConfirmationTokenException, ExpiredConfirmationTokenException {
         authenticationService.activateAccount(token);
+        return ResponseEntity.accepted().build();
+    }
+
+    @Operation(
+            summary = "Reset password",
+            description = "Reset password and send an email with a reset link",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "202",
+                            description = "Accepted",
+                            content = @Content(
+                                    schema = @Schema(
+                                            example = "You will receive an email with a password reset link soon"
+                                    ),
+                                    mediaType = "text/plain"
+                            )
+                    )
+            }
+    )
+    @GetMapping("/password-reset-link")
+    public ResponseEntity<?> resetPassword(
+            @RequestBody @Valid PasswordResetLinkRequest email
+    ) throws MessagingException, UsernameNotFoundException {
+        String message = "You will receive an email with a password reset link soon";
+        try {
+            authenticationService.sendPasswordResetEmail(email);
+            return ResponseEntity.accepted().body(message);
+        } catch (UsernameNotFoundException e) {
+            return ResponseEntity.accepted().body(message);
+        }
+    }
+
+    @Operation(
+            summary = "Change password",
+            description = "Change password using a token from an email",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "202",
+                            description = "Accepted",
+                            content = @Content(
+                                    schema = @Schema(),
+                                    mediaType = "application/json"
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Unauthorized",
+                            content = @Content(
+                                    schema = @Schema(
+                                            example = """
+                                                    {
+                                                        "businessErrorCode": 304,
+                                                        "businessErrorDescription": "Invalid confirmation token"
+                                                    }"""
+                                    ),
+                                    mediaType = "application/json"
+
+                            )
+                    )
+            }
+    )
+    @PostMapping("/password-reset")
+    public ResponseEntity<?> changePassword(
+            @RequestParam String token,
+            @RequestBody @Valid ChangePasswordRequest password
+    ) throws InvalidConfirmationTokenException, ExpiredConfirmationTokenException {
+        authenticationService.changePassword(token, password);
+        return ResponseEntity.accepted().build();
+    }
+
+    @Operation(
+            summary = "Change password",
+            description = "Change password for authenticated user",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "202",
+                            description = "Accepted",
+                            content = @Content(
+                                    schema = @Schema(),
+                                    mediaType = "application/json"
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Bad Request",
+                            content = @Content(
+                                    schema = @Schema(
+                                            example = """
+                                                    {
+                                                        "businessErrorCode": 306,
+                                                        "businessErrorDescription": "Missing or invalid request body element",
+                                                        "validationErrors": [
+                                                            "Password is not valid"
+                                                        ]
+                                                    }"""
+                                    ),
+                                    mediaType = "application/json"
+
+                            )
+                    )
+            }
+    )
+    @PutMapping("/change-password")
+    public ResponseEntity<?> changePassword(
+            @RequestBody @Valid ChangePasswordRequest password
+    ) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        authenticationService.changePassword(user, password);
         return ResponseEntity.accepted().build();
     }
 }
