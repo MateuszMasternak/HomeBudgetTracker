@@ -3,11 +3,6 @@ package com.rainy.homebudgettracker.transaction;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.user.User;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,32 +20,9 @@ import java.time.LocalDate;
 @RestController
 @RequestMapping("/api/v1/transaction")
 @RequiredArgsConstructor
-@Tag(name = "Transaction")
 public class TransactionController {
     private final TransactionService transactionService;
 
-    @Operation(
-            summary = "Get all transactions by user",
-            description = "Get all transactions by user with pagination, optionally filtered by currency code",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "OK",
-                            content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(implementation = Page.class)
-                            )
-                    ),
-                    @ApiResponse(
-                            responseCode = "401",
-                            description = "Unauthorized",
-                            content = @Content(
-                                    mediaType = "",
-                                    schema = @Schema()
-                            )
-                    )
-            }
-    )
     @GetMapping
     public ResponseEntity<Page<TransactionResponse>> getAllTransactionsByUser(
             @RequestParam(defaultValue = "0") int page,
@@ -67,42 +39,6 @@ public class TransactionController {
         }
     }
 
-    @Operation(
-            summary = "Get all transactions by user and category",
-            description = "Get all transactions by user and category with pagination, optionally filtered by currency code",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "OK",
-                            content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(implementation = Page.class)
-                            )
-                    ),
-                    @ApiResponse(
-                            responseCode = "401",
-                            description = "Unauthorized",
-                            content = @Content(
-                                    mediaType = "",
-                                    schema = @Schema()
-                            )
-                    ),
-                    @ApiResponse(
-                            responseCode = "404",
-                            description = "Not Found",
-                            content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(
-                                            example = """
-                                                    {
-                                                        "businessErrorCode": 402,
-                                                        "businessErrorDescription": "Record does not exist or is not accessible"
-                                                    }"""
-                                    )
-                            )
-                    ),
-            }
-    )
     @GetMapping("/category")
     public ResponseEntity<Iterable<TransactionResponse>> getAllTransactionsByUserAndCategory(
             @RequestParam String categoryName,
@@ -127,42 +63,6 @@ public class TransactionController {
         }
     }
 
-    @Operation(
-            summary = "Get all transactions by user and date between",
-            description = "Get all transactions by user and date between with pagination, optionally filtered by currency code",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "OK",
-                            content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(implementation = Page.class)
-                            )
-                    ),
-                    @ApiResponse(
-                            responseCode = "401",
-                            description = "Unauthorized",
-                            content = @Content(
-                                    mediaType = "",
-                                    schema = @Schema()
-                            )
-                    ),
-                    @ApiResponse(
-                            responseCode = "404",
-                            description = "Not Found",
-                            content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(
-                                            example = """
-                                                    {
-                                                        "businessErrorCode": 402,
-                                                        "businessErrorDescription": "Record does not exist or is not accessible"
-                                                    }"""
-                                    )
-                            )
-                    ),
-            }
-    )
     @GetMapping("/date")
     public ResponseEntity<Iterable<TransactionResponse>> getAllTransactionsByUserAndDateBetween(
             @RequestParam String startDate,
@@ -192,42 +92,6 @@ public class TransactionController {
         }
     }
 
-    @Operation(
-            summary = "Get all transactions by user, category, and date between",
-            description = "Get all transactions by user, category, and date between with pagination, optionally filtered by currency code",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "OK",
-                            content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(implementation = Page.class)
-                            )
-                    ),
-                    @ApiResponse(
-                            responseCode = "401",
-                            description = "Unauthorized",
-                            content = @Content(
-                                    mediaType = "",
-                                    schema = @Schema()
-                            )
-                    ),
-                    @ApiResponse(
-                            responseCode = "404",
-                            description = "Not Found",
-                            content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(
-                                            example = """
-                                                    {
-                                                        "businessErrorCode": 402,
-                                                        "businessErrorDescription": "Record does not exist or is not accessible"
-                                                    }"""
-                                    )
-                            )
-                    )
-            }
-    )
     @GetMapping("/category-date")
     public ResponseEntity<Iterable<TransactionResponse>> getAllTransactionsByUserAndCategoryAndDateBetween(
             @RequestParam String categoryName,
@@ -262,45 +126,6 @@ public class TransactionController {
         }
     }
 
-    @Operation(
-            summary = "Create a new transaction",
-            description = "Create a new transaction",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "OK",
-                            content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(implementation = TransactionResponse.class)
-                            )
-                    ),
-                    @ApiResponse(
-                            responseCode = "400",
-                            description = "Bad Request",
-                            content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(
-                                            example = """
-                                                    {
-                                                        "businessErrorCode": 306,
-                                                        "businessErrorDescription": "Missing or invalid request body element",
-                                                        "validationErrors": [
-                                                            "Date is required"
-                                                        ]
-                                                    }"""
-                                    )
-                            )
-                    ),
-                    @ApiResponse(
-                            responseCode = "401",
-                            description = "Unauthorized",
-                            content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema()
-                            )
-                    )
-            }
-    )
     @PostMapping
     public ResponseEntity<TransactionResponse> createTransaction(@RequestBody TransactionRequest transactionRequest)
             throws RecordDoesNotExistException
@@ -309,42 +134,6 @@ public class TransactionController {
         return ResponseEntity.ok(transactionService.createTransaction(user, transactionRequest));
     }
 
-    @Operation(
-            summary = "Delete a transaction",
-            description = "Delete a transaction",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "204",
-                            description = "No Content",
-                            content = @Content(
-                                    mediaType = "",
-                                    schema = @Schema()
-                            )
-                    ),
-                    @ApiResponse(
-                            responseCode = "401",
-                            description = "Unauthorized",
-                            content = @Content(
-                                    mediaType = "",
-                                    schema = @Schema()
-                            )
-                    ),
-                    @ApiResponse(
-                            responseCode = "404",
-                            description = "Not Found",
-                            content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(
-                                            example = """
-                                                    {
-                                                        "businessErrorCode": 402,
-                                                        "businessErrorDescription": "Record does not exist or is not accessible"
-                                                    }"""
-                                    )
-                            )
-                    ),
-            }
-    )
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTransaction(@PathVariable Long id)
             throws RecordDoesNotExistException, UserIsNotOwnerException
@@ -354,42 +143,6 @@ public class TransactionController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(
-            summary = "Sum positive amounts",
-            description = "Sum positive amounts filtered by currency code",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "OK",
-                            content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(implementation = SumResponse.class)
-                            )
-                    ),
-                    @ApiResponse(
-                            responseCode = "400",
-                            description = "Bad Request",
-                            content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(
-                                            example = """
-                                                    {
-                                                        "businessErrorCode": 400,
-                                                        "businessErrorDescription": "Missing request parameter: code"
-                                                    }"""
-                                    )
-                            )
-                    ),
-                    @ApiResponse(
-                            responseCode = "401",
-                            description = "Unauthorized",
-                            content = @Content(
-                                    mediaType = "",
-                                    schema = @Schema()
-                            )
-                    )
-            }
-    )
     @GetMapping("/sum-positive")
     public ResponseEntity<SumResponse> sumPositiveAmountByUser(@RequestParam String code) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -397,42 +150,6 @@ public class TransactionController {
         return ResponseEntity.ok(transactionService.sumPositiveAmountByUser(user, currencyCode));
     }
 
-    @Operation(
-            summary = "Sum negative amounts",
-            description = "Sum negative amounts filtered by currency code",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "OK",
-                            content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(implementation = SumResponse.class)
-                            )
-                    ),
-                    @ApiResponse(
-                            responseCode = "400",
-                            description = "Bad Request",
-                            content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(
-                                            example = """
-                                                    {
-                                                        "businessErrorCode": 400,
-                                                        "businessErrorDescription": "Missing request parameter: code"
-                                                    }"""
-                                    )
-                            )
-                    ),
-                    @ApiResponse(
-                            responseCode = "401",
-                            description = "Unauthorized",
-                            content = @Content(
-                                    mediaType = "",
-                                    schema = @Schema()
-                            )
-                    )
-            }
-    )
     @GetMapping("/sum-negative")
     public ResponseEntity<SumResponse> sumNegativeAmountByUser(@RequestParam String code) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -440,42 +157,6 @@ public class TransactionController {
         return ResponseEntity.ok(transactionService.sumNegativeAmountByUser(user, currencyCode));
     }
 
-    @Operation(
-            summary = "Sum amounts",
-            description = "Sum amounts filtered by currency code",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "OK",
-                            content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(implementation = SumResponse.class)
-                            )
-                    ),
-                    @ApiResponse(
-                            responseCode = "400",
-                            description = "Bad Request",
-                            content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(
-                                            example = """
-                                                    {
-                                                        "businessErrorCode": 400,
-                                                        "businessErrorDescription": "Missing request parameter: code"
-                                                    }"""
-                                    )
-                            )
-                    ),
-                    @ApiResponse(
-                            responseCode = "401",
-                            description = "Unauthorized",
-                            content = @Content(
-                                    mediaType = "",
-                                    schema = @Schema()
-                            )
-                    )
-            }
-    )
     @GetMapping("/sum")
     public ResponseEntity<SumResponse> sumAmountByUser(@RequestParam String code) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -483,42 +164,6 @@ public class TransactionController {
         return ResponseEntity.ok(transactionService.sumAmountByUser(user, currencyCode));
     }
 
-    @Operation(
-            summary = "Sum amounts by date between",
-            description = "Sum amounts by date between filtered by currency code",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "OK",
-                            content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(implementation = SumResponse.class)
-                            )
-                    ),
-                    @ApiResponse(
-                            responseCode = "400",
-                            description = "Bad Request",
-                            content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(
-                                            example = """
-                                                    {
-                                                        "businessErrorCode": 400,
-                                                        "businessErrorDescription": "Missing request parameter: startDate"
-                                                    }"""
-                                    )
-                            )
-                    ),
-                    @ApiResponse(
-                            responseCode = "401",
-                            description = "Unauthorized",
-                            content = @Content(
-                                    mediaType = "",
-                                    schema = @Schema()
-                            )
-                    )
-            }
-    )
     @GetMapping("/sum-date")
     public ResponseEntity<SumResponse> sumAmountByUserAndDateBetween(
             @RequestParam String startDate,
@@ -535,32 +180,6 @@ public class TransactionController {
         ));
     }
 
-    @Operation(
-            summary = "Export transactions to CSV",
-            description = "Export transactions to CSV",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "OK",
-                            content = @Content(
-                                    schema = @Schema(
-                                            type = "string",
-                                            format = "binary",
-                                            description = "CSV file"
-                                    ),
-                                    mediaType = "application/csv"
-                            )
-                    ),
-                    @ApiResponse(
-                            responseCode = "401",
-                            description = "Unauthorized",
-                            content = @Content(
-                                    mediaType = "",
-                                    schema = @Schema()
-                            )
-                    )
-            }
-    )
     @GetMapping("/export")
     public ResponseEntity<byte[]> exportTransactionsToCsv() throws IOException {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
