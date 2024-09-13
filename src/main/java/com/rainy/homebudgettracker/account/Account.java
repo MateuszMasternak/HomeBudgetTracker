@@ -15,6 +15,9 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @EqualsAndHashCode
 @Entity
+@Table(uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"currencyCode", "user_id"})
+})
 public class Account {
     @Id
     @GeneratedValue
