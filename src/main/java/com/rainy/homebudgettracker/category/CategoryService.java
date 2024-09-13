@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -49,10 +50,10 @@ public class CategoryService {
 
     public CategoryResponse findByUserAndName(User user, String name) throws RecordDoesNotExistException {
         try {
-            Category categories = categoryRepository.findByUserAndName(user, name).orElseThrow();
+            Category category = categoryRepository.findByUserAndName(user, name).orElseThrow();
             return CategoryResponse.builder()
-                    .id(categories.getId())
-                    .name(categories.getName())
+                    .id(category.getId())
+                    .name(category.getName())
                     .build();
         } catch (NoSuchElementException e) {
             throw new RecordDoesNotExistException("Category with name " + name + " does not exist.");
@@ -84,11 +85,12 @@ public class CategoryService {
             UserIsNotOwnerException,
             CategoryAssociatedWithTransactionException
     {
-        if (!categoryRepository.existsById(categoryId)) {
+        Optional<Category> category = categoryRepository.findById(categoryId);
+        if (category.isEmpty()) {
             throw new RecordDoesNotExistException("Category with id " + categoryId + " does not exist.");
-        } else if (!categoryRepository.findById(categoryId).get().getUser().getEmail().equals(user.getEmail())) {
+        } else if (!category.get().getUser().getEmail().equals(user.getEmail())) {
             throw new UserIsNotOwnerException("Category with id " + categoryId + " does not belong to user.");
-        } else if (transactionRepository.existsByCategory(categoryRepository.findById(categoryId).get())) {
+        } else if (transactionRepository.existsByCategory(category.get())) {
             throw new CategoryAssociatedWithTransactionException("Category with id " + categoryId + " is associated with transactions.");
         } else {
             categoryRepository.deleteById(categoryId);

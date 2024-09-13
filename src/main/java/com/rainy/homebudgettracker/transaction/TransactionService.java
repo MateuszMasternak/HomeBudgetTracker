@@ -1,5 +1,8 @@
 package com.rainy.homebudgettracker.transaction;
 
+import com.rainy.homebudgettracker.account.Account;
+import com.rainy.homebudgettracker.account.AccountResponse;
+import com.rainy.homebudgettracker.account.AccountService;
 import com.rainy.homebudgettracker.category.Category;
 import com.rainy.homebudgettracker.category.CategoryResponse;
 import com.rainy.homebudgettracker.category.CategoryService;
@@ -10,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -20,12 +24,14 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final CategoryService categoryService;
+    private final AccountService accountService;
 
     public Page<TransactionResponse> findAllByUser(User user, Pageable pageable) {
         Page<Transaction> transactionResponses = transactionRepository.findAllByUser(user, pageable);
@@ -174,6 +180,7 @@ public class TransactionService {
         return getTransactionResponses(transactions);
     }
 
+    @Transactional
     public TransactionResponse createTransaction(User user, TransactionRequest transactionRequest)
             throws RecordDoesNotExistException
     {
@@ -195,6 +202,12 @@ public class TransactionService {
 
         transaction = transactionRepository.save(transaction);
 
+        AccountResponse account = accountService.findByUserAndCurrencyCode(user, transaction.getCurrencyCode());
+        accountService.updateAccountBalance(
+                user,
+                transaction.getAmount(),
+                CurrencyCode.valueOf(account.getCurrencyCode()));
+
         return TransactionResponse.builder()
                 .id(transaction.getId())
                 .amount(transaction.getAmount().toString())
@@ -211,9 +224,10 @@ public class TransactionService {
             RecordDoesNotExistException,
             UserIsNotOwnerException
     {
-        if (!transactionRepository.existsById(transactionId)) {
+        Optional<Transaction> transaction = transactionRepository.findById(transactionId);
+        if (transaction.isEmpty()) {
             throw new RecordDoesNotExistException("Transaction with id " + transactionId + " does not exist.");
-        } else if (!transactionRepository.findById(transactionId).get().getUser().getEmail().equals(user.getEmail())) {
+        } else if (!transaction.get().getUser().getEmail().equals(user.getEmail())) {
             throw new UserIsNotOwnerException("Transaction with id " + transactionId + " does not belong to user.");
         } else {
             transactionRepository.deleteById(transactionId);

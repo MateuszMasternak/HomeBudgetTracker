@@ -157,6 +157,10 @@ public class GlobalExceptionHandler {
                         ExceptionResponse.builder()
                                 .businessErrorCode(INVALID_DELETE_REQUEST.getCode())
                                 .businessErrorDescription(INVALID_DELETE_REQUEST.getDescription())
+                                .error(
+                                        e.getMessage().contains("Account") || e.getMessage().contains("Category")
+                                                ? e.getMessage()
+                                                : null)
                                 .build()
                 );
     }
