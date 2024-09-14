@@ -202,4 +202,28 @@ public class GlobalExceptionHandler {
                                 .build()
                 );
     }
+
+    @ExceptionHandler(QuotaReachedException.class)
+    public ResponseEntity<ExceptionResponse> handleException(QuotaReachedException e) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(
+                        ExceptionResponse.builder()
+                                .businessErrorCode(EXCHANGE_RATE_API_QUOTA_REACHED.getCode())
+                                .businessErrorDescription(EXCHANGE_RATE_API_QUOTA_REACHED.getDescription())
+                                .build()
+                );
+    }
+
+    @ExceptionHandler(ExchangeRateApiException.class)
+    public ResponseEntity<ExceptionResponse> handleException(ExchangeRateApiException e) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(
+                        ExceptionResponse.builder()
+                                .businessErrorCode(EXCHANGE_RATE_API_ERROR.getCode())
+                                .businessErrorDescription(EXCHANGE_RATE_API_ERROR.getDescription())
+                                .build()
+                );
+    }
 }
