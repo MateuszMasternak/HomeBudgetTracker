@@ -157,6 +157,10 @@ public class GlobalExceptionHandler {
                         ExceptionResponse.builder()
                                 .businessErrorCode(INVALID_DELETE_REQUEST.getCode())
                                 .businessErrorDescription(INVALID_DELETE_REQUEST.getDescription())
+                                .error(
+                                        e.getMessage().contains("Account") || e.getMessage().contains("Category")
+                                                ? e.getMessage()
+                                                : null)
                                 .build()
                 );
     }
@@ -195,6 +199,30 @@ public class GlobalExceptionHandler {
                                 .businessErrorCode(RECORD_ASSOCIATED_WITH_ANOTHER_RECORD.getCode())
                                 .businessErrorDescription(RECORD_ASSOCIATED_WITH_ANOTHER_RECORD.getDescription())
                                 .error(e.getMessage())
+                                .build()
+                );
+    }
+
+    @ExceptionHandler(QuotaReachedException.class)
+    public ResponseEntity<ExceptionResponse> handleException(QuotaReachedException e) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(
+                        ExceptionResponse.builder()
+                                .businessErrorCode(EXCHANGE_RATE_API_QUOTA_REACHED.getCode())
+                                .businessErrorDescription(EXCHANGE_RATE_API_QUOTA_REACHED.getDescription())
+                                .build()
+                );
+    }
+
+    @ExceptionHandler(ExchangeRateApiException.class)
+    public ResponseEntity<ExceptionResponse> handleException(ExchangeRateApiException e) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(
+                        ExceptionResponse.builder()
+                                .businessErrorCode(EXCHANGE_RATE_API_ERROR.getCode())
+                                .businessErrorDescription(EXCHANGE_RATE_API_ERROR.getDescription())
                                 .build()
                 );
     }

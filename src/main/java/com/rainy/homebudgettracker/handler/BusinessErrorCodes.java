@@ -21,6 +21,8 @@ public enum BusinessErrorCodes {
     INVALID_DELETE_REQUEST(402, NOT_FOUND, "Record does not exist or is not accessible"),
     INVALID_POST_REQUEST(403, BAD_REQUEST, "Record already exists"),
     RECORD_ASSOCIATED_WITH_ANOTHER_RECORD(404, BAD_REQUEST, "Record is associated with other records"),
+    EXCHANGE_RATE_API_QUOTA_REACHED(405, BAD_REQUEST, "Quota exceeded. Enter custom exchange rate or try later"),
+    EXCHANGE_RATE_API_ERROR(406, BAD_REQUEST, "Exchange rate API error"),
     ;
 
     private final int code;
