@@ -1,5 +1,7 @@
 package com.rainy.homebudgettracker.exchange;
 
+import com.rainy.homebudgettracker.handler.exception.ExchangeRateApiException;
+import com.rainy.homebudgettracker.handler.exception.QuotaReachedException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,18 @@ public class ExchangeService {
                 .uri(url)
                 .retrieve()
                 .toEntity(ExchangeResponse.class);
+
+        ExchangeResponse exchangeResponse = response.getBody();
+        if (exchangeResponse == null) {
+            throw new ExchangeRateApiException("Failed to get exchange rate.");
+        } else if ("error".equals(exchangeResponse.getResult())) {
+            if ("quota-reached".equals(exchangeResponse.getErrorType())) {
+                throw new QuotaReachedException("Quota reached. Provide a custom rate.");
+            }
+        } else if (!"success".equals(exchangeResponse.getResult())) {
+            throw new ExchangeRateApiException("Failed to get exchange rate.");
+        }
+
         return response.getBody();
     }
 }

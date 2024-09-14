@@ -40,4 +40,7 @@ public class ExchangeResponse {
 
     @JsonProperty("conversion_rate")
     String conversionRate;
+
+    @JsonProperty("error-type")
+    String errorType;
 }
