@@ -134,6 +134,19 @@ public class TransactionController {
         return ResponseEntity.ok(transactionService.createTransaction(user, transactionRequest));
     }
 
+    @PostMapping("/exchange")
+    public ResponseEntity<TransactionResponse> createTransactionWithOtherCurrencyCode(
+            @RequestParam String targetCurrency,
+            @RequestParam(required = false) String exchangeRate,
+            @RequestBody TransactionRequest transactionRequest
+    )
+            throws RecordDoesNotExistException
+    {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        CurrencyCode currencyCode = CurrencyCode.valueOf(targetCurrency.toUpperCase());
+        return ResponseEntity.ok(transactionService.createTransaction(user, currencyCode, exchangeRate, transactionRequest));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTransaction(@PathVariable Long id)
             throws RecordDoesNotExistException, UserIsNotOwnerException

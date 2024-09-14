@@ -6,6 +6,8 @@ import com.rainy.homebudgettracker.account.AccountService;
 import com.rainy.homebudgettracker.category.Category;
 import com.rainy.homebudgettracker.category.CategoryResponse;
 import com.rainy.homebudgettracker.category.CategoryService;
+import com.rainy.homebudgettracker.exchange.ExchangeResponse;
+import com.rainy.homebudgettracker.exchange.ExchangeService;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.user.User;
@@ -32,6 +34,7 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final CategoryService categoryService;
     private final AccountService accountService;
+    private final ExchangeService exchangeService;
 
     public Page<TransactionResponse> findAllByUser(User user, Pageable pageable) {
         Page<Transaction> transactionResponses = transactionRepository.findAllByUser(user, pageable);
@@ -47,11 +50,7 @@ public class TransactionService {
             throws RecordDoesNotExistException
     {
         CategoryResponse categoryResponse = categoryService.findByUserAndName(user, categoryName);
-        Category category = Category.builder()
-                .id(categoryResponse.getId())
-                .name(categoryResponse.getName())
-                .user(user)
-                .build();
+        Category category = getCategory(categoryResponse, user);
 
         Page<Transaction> transactions = transactionRepository.findAllByUserAndCategory(user, category, pageable);
         return getTransactionResponses(transactions);
@@ -61,11 +60,7 @@ public class TransactionService {
             User user, CurrencyCode currencyCode, String categoryName, Pageable pageable
     ) throws RecordDoesNotExistException {
         CategoryResponse categoryResponse = categoryService.findByUserAndName(user, categoryName);
-        Category category = Category.builder()
-                .id(categoryResponse.getId())
-                .name(categoryResponse.getName())
-                .user(user)
-                .build();
+        Category category = getCategory(categoryResponse, user);
 
         Page<Transaction> transactions = transactionRepository.findAllByUserAndCurrencyCodeAndCategory(
                 user, currencyCode, category, pageable
@@ -74,31 +69,13 @@ public class TransactionService {
     }
 
     private Page<TransactionResponse> getTransactionResponses(Page<Transaction> transactions) {
-        return transactions.map(transaction -> TransactionResponse.builder()
-                .id(transaction.getId())
-                .amount(transaction.getAmount().toString())
-                .category(CategoryResponse.builder()
-                        .id(transaction.getCategory().getId())
-                        .name(transaction.getCategory().getName())
-                        .build())
-                .date(transaction.getDate().toString())
-                .currencyCode(transaction.getCurrencyCode().toString())
-                .build());
+        return transactions.map(this::getTransactionResponse);
     }
 
     private List<TransactionResponse> getTransactionResponses(Iterable<Transaction> transactions) {
         List<TransactionResponse> transactionResponses = new ArrayList<>();
         transactions.forEach(transaction -> {
-            TransactionResponse transactionResponse = TransactionResponse.builder()
-                    .id(transaction.getId())
-                    .amount(transaction.getAmount().toString())
-                    .category(CategoryResponse.builder()
-                            .id(transaction.getCategory().getId())
-                            .name(transaction.getCategory().getName())
-                            .build())
-                    .date(transaction.getDate().toString())
-                    .currencyCode(transaction.getCurrencyCode().toString())
-                    .build();
+            TransactionResponse transactionResponse = getTransactionResponse(transaction);
             transactionResponses.add(transactionResponse);
         });
 
@@ -138,11 +115,7 @@ public class TransactionService {
             Pageable pageable
     ) throws RecordDoesNotExistException {
         CategoryResponse categoryResponse = categoryService.findByUserAndName(user, categoryName);
-        Category category = Category.builder()
-                .id(categoryResponse.getId())
-                .name(categoryResponse.getName())
-                .user(user)
-                .build();
+        Category category = getCategory(categoryResponse, user);
 
         Page<Transaction> transactions = transactionRepository.findAllByUserAndCategoryAndDateBetween(
                 user,
@@ -163,11 +136,7 @@ public class TransactionService {
             Pageable pageable
     ) throws RecordDoesNotExistException {
         CategoryResponse categoryResponse = categoryService.findByUserAndName(user, categoryName);
-        Category category = Category.builder()
-                .id(categoryResponse.getId())
-                .name(categoryResponse.getName())
-                .user(user)
-                .build();
+        Category category = getCategory(categoryResponse, user);
 
         Page<Transaction> transactions = transactionRepository.findAllByUserAndCurrencyCodeAndCategoryAndDateBetween(
                 user,
@@ -184,23 +153,37 @@ public class TransactionService {
     public TransactionResponse createTransaction(User user, TransactionRequest transactionRequest)
             throws RecordDoesNotExistException
     {
+        return saveTransactionResponse(user, transactionRequest);
+    }
+
+    @Transactional
+    public TransactionResponse createTransaction(User user, CurrencyCode targetCurrency, String exchangeRate,
+                                                 TransactionRequest transactionRequest)
+            throws RecordDoesNotExistException
+    {
+        if (exchangeRate != null) {
+            updateTransactionAmount(transactionRequest, exchangeRate);
+        } else {
+            ExchangeResponse exchangeResponse = exchangeService.getExchangeRate(
+                    transactionRequest.getCurrencyCode(),
+                    targetCurrency.toString()
+            );
+            String apiExchangeRate = exchangeResponse.getConversionRate();
+            updateTransactionAmount(transactionRequest, apiExchangeRate);
+            transactionRequest.setCurrencyCode(targetCurrency.toString());
+        }
+
+        return saveTransactionResponse(user, transactionRequest);
+    }
+
+    private TransactionResponse saveTransactionResponse(User user, TransactionRequest transactionRequest)
+            throws RecordDoesNotExistException
+    {
         CategoryResponse categoryResponse = categoryService.findByUserAndName(user,
                 transactionRequest.getCategory().getName().toUpperCase());
-        Category category = Category.builder()
-                .id(categoryResponse.getId())
-                .name(categoryResponse.getName())
-                .user(user)
-                .build();
+        Category category = getCategory(categoryResponse, user);
 
-        Transaction transaction = Transaction.builder()
-                .category(category)
-                .amount(transactionRequest.getAmount())
-                .date(transactionRequest.getDate())
-                .user(user)
-                .currencyCode(CurrencyCode.valueOf(transactionRequest.getCurrencyCode()))
-                .build();
-
-        transaction = transactionRepository.save(transaction);
+        Transaction transaction = getTransaction(transactionRequest, user, category);
 
         AccountResponse account = accountService.findByUserAndCurrencyCode(user, transaction.getCurrencyCode());
         accountService.updateAccountBalance(
@@ -208,6 +191,19 @@ public class TransactionService {
                 transaction.getAmount(),
                 CurrencyCode.valueOf(account.getCurrencyCode()));
 
+        transaction = transactionRepository.save(transaction);
+
+        return getTransactionResponse(transaction);
+    }
+
+    private void updateTransactionAmount(TransactionRequest transaction, String rate) {
+        transaction.setAmount(
+                transaction.getAmount()
+                        .multiply(BigDecimal.valueOf(Double.parseDouble(rate)))
+        );
+    }
+
+    private TransactionResponse getTransactionResponse(Transaction transaction) {
         return TransactionResponse.builder()
                 .id(transaction.getId())
                 .amount(transaction.getAmount().toString())
@@ -217,6 +213,24 @@ public class TransactionService {
                         .build())
                 .date(transaction.getDate().toString())
                 .currencyCode(transaction.getCurrencyCode().toString())
+                .build();
+    }
+
+    private Category getCategory(CategoryResponse categoryResponse, User user) {
+        return Category.builder()
+                .id(categoryResponse.getId())
+                .name(categoryResponse.getName())
+                .user(user)
+                .build();
+    }
+
+    private Transaction getTransaction(TransactionRequest transactionRequest, User user, Category category) {
+        return Transaction.builder()
+                .category(category)
+                .amount(transactionRequest.getAmount())
+                .date(transactionRequest.getDate())
+                .user(user)
+                .currencyCode(CurrencyCode.valueOf(transactionRequest.getCurrencyCode()))
                 .build();
     }
 

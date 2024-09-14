@@ -7,6 +7,10 @@ application:
     frontend:
       activation-url: http://localhost:5173/activate-account
       reset-url: http://localhost:5173/password-reset
+  exchange:
+    rate:
+      url: ${EXCHANGE_RATE_URL}
+      api-key: ${EXCHANGE_RATE_API_KEY}
 
 server:
   port: 8080
