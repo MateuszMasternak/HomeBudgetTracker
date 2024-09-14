@@ -170,8 +170,8 @@ public class TransactionService {
             );
             String apiExchangeRate = exchangeResponse.getConversionRate();
             updateTransactionAmount(transactionRequest, apiExchangeRate);
-            transactionRequest.setCurrencyCode(targetCurrency.toString());
         }
+        transactionRequest.setCurrencyCode(targetCurrency.toString());
 
         return saveTransactionResponse(user, transactionRequest);
     }
