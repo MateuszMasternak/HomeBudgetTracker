@@ -33,7 +33,9 @@ DB_HOST_DEV=db // don't change
 DB_PORT_DEV=5432 // don't change  
 MAILDEV_HOST_DEV=mail-dev-hbt // don't change  
 EMAIL_USERNAME_DEV=username@test.com  
-EMAIL_PASSWORD_DEV=password  
+EMAIL_PASSWORD_DEV=password
+EXCHANGE_RATE_URL=https://v6.exchangerate-api.com/v6
+EXCHANGE_RATE_API_KEY=API_KEY // create an account at https://www.exchangerate-api.com/ for free and get your own KEY
 
 ***Docker Setup***
 1. Build and run the Docker containers:  
