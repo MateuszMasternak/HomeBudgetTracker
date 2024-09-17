@@ -5,6 +5,134 @@ info:
   description: API documentation for Home Budget Tracker
 
 paths:
+  /api/v1/account:
+    get:
+      summary: Get all accounts by current user
+      description: Get all accounts by current user
+      responses:
+        '200':
+          description: Successful response
+        '401':
+          description: Unauthorized
+
+    post:
+      summary: Create a new account for current user
+      description: Create a new account for current user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountRequest'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+
+    patch:
+      summary: Update account name by current user
+      description: Update account name by current user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountRequest'
+      responses:
+        '200':
+          description: Successful response
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not found
+
+  /api/v1/account/{code}:
+    get:
+      summary: Get account by current user and currency code
+      description: Get account by current user and currency code
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not found
+
+  /api/v1/category:
+    get:
+      summary: Get all categories by current user
+      description: Get all categories by current user with pagination
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Successful response
+        '401':
+          description: Unauthorized
+
+    post:
+      summary: Create a new category for current user
+      description: Create a new category for current user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+
+  /api/v1/category/without-pagination:
+    get:
+      summary: Get all categories by current user without pagination
+      description: Get all categories by current user without pagination
+      responses:
+        '200':
+          description: Successful response
+        '401':
+          description: Unauthorized
+
+  /api/v1/category/{id}:
+    delete:
+      summary: Delete a category by current user
+      description: Delete a category by current user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: No content
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not found
+
   /api/v1/transaction:
     get:
       summary: Get all transactions by user and account
@@ -21,17 +149,13 @@ paths:
             type: integer
             default: 10
         - name: code
-          required: true
           in: query
+          required: true
           schema:
             type: string
       responses:
         '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Page'
+          description: Successful response
         '401':
           description: Unauthorized
 
@@ -43,44 +167,12 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                amount:
-                  type: number
-                date:
-                  type: string
-                  format: date
-                category:
-                  type: string
-                currency:
-                  type: string
+              $ref: '#/components/schemas/TransactionRequest'
       responses:
         '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                  status:
-                    type: string
+          description: Successful response
         '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  businessErrorCode:
-                    type: string
-                  businessErrorDescription:
-                    type: string
-                  validationErrors:
-                    type: array
-                    items:
-                      type: string
+          description: Bad request
         '401':
           description: Unauthorized
 
@@ -96,22 +188,13 @@ paths:
             type: integer
       responses:
         '204':
-          description: No Content
+          description: No content
         '401':
           description: Unauthorized
         '404':
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  businessErrorCode:
-                    type: string
-                  businessErrorDescription:
-                    type: string
+          description: Not found
 
-  /api/v1/transaction/category:
+  /api/v1/transaction/by-category:
     get:
       summary: Get all transactions by user, account, and category
       description: Get all transactions by user, account, and category with pagination, optionally filtered by currency code
@@ -132,32 +215,19 @@ paths:
             type: integer
             default: 10
         - name: code
-          required: true
           in: query
+          required: true
           schema:
             type: string
       responses:
         '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Page'
+          description: Successful response
         '401':
           description: Unauthorized
         '404':
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  businessErrorCode:
-                    type: string
-                  businessErrorDescription:
-                    type: string
+          description: Not found
 
-  /api/v1/transaction/date:
+  /api/v1/transaction/by-date:
     get:
       summary: Get all transactions by user, account, and date between
       description: Get all transactions by user, account, and date between with pagination, optionally filtered by currency code
@@ -185,32 +255,19 @@ paths:
             type: integer
             default: 10
         - name: code
-          required: true
           in: query
+          required: true
           schema:
             type: string
       responses:
         '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Page'
+          description: Successful response
         '401':
           description: Unauthorized
         '404':
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  businessErrorCode:
-                    type: string
-                  businessErrorDescription:
-                    type: string
+          description: Not found
 
-  /api/v1/transaction/category-date:
+  /api/v1/transaction/by-category-and-date:
     get:
       summary: Get all transactions by user, account, category, and date between
       description: Get all transactions by user, account, category, and date between with pagination, optionally filtered by currency code
@@ -243,30 +300,17 @@ paths:
             type: integer
             default: 10
         - name: code
-          required: true
           in: query
+          required: true
           schema:
             type: string
       responses:
         '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Page'
+          description: Successful response
         '401':
           description: Unauthorized
         '404':
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  businessErrorCode:
-                    type: string
-                  businessErrorDescription:
-                    type: string
+          description: Not found
 
   /api/v1/transaction/sum-positive:
     get:
@@ -280,25 +324,9 @@ paths:
             type: string
       responses:
         '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  total:
-                    type: number
+          description: Successful response
         '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  businessErrorCode:
-                    type: string
-                  businessErrorDescription:
-                    type: string
+          description: Bad request
         '401':
           description: Unauthorized
 
@@ -314,25 +342,9 @@ paths:
             type: string
       responses:
         '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  total:
-                    type: number
+          description: Successful response
         '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  businessErrorCode:
-                    type: string
-                  businessErrorDescription:
-                    type: string
+          description: Bad request
         '401':
           description: Unauthorized
 
@@ -348,306 +360,143 @@ paths:
             type: string
       responses:
         '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  total:
-                    type: number
+          description: Successful response
         '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  businessErrorCode:
-                    type: string
-                  businessErrorDescription:
-                    type: string
+          description: Bad request
         '401':
           description: Unauthorized
 
-  /api/v1/transaction/export:
+  /api/v1/transaction/export-csv:
     get:
       summary: Export transactions to CSV
       description: Export transactions to CSV
       responses:
         '200':
-          description: OK
-          content:
-            text/csv:
-              schema:
-                type: string
-                format: binary
+          description: Successful response
         '401':
           description: Unauthorized
 
-  /api/v1/category:
-    get:
-      summary: Get all categories by current user
-      description: Get all categories by current user with pagination
-      parameters:
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 0
-        - name: size
-          in: query
-          schema:
-            type: integer
-            default: 10
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Page'
-        '401':
-          description: Unauthorized
-
+  /api/v1/auth/register:
     post:
-      summary: Create a new category for current user
-      description: Create a new category for current user
+      summary: Register a new user
+      description: Register a new user
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
+              $ref: '#/components/schemas/RegisterRequest'
       responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                  status:
-                    type: string
+        '202':
+          description: Accepted
         '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  businessErrorCode:
-                    type: string
-                  businessErrorDescription:
-                    type: string
-                  validationErrors:
-                    type: array
-                    items:
-                      type: string
-        '401':
-          description: Unauthorized
+          description: Bad request
 
-  /api/v1/category/without-pagination:
-    get:
-      summary: Get all categories by current user without pagination
-      description: Get all categories by current user without pagination
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Category'
-        '401':
-          description: Unauthorized
-
-  /api/v1/category/{id}:
-    delete:
-      summary: Delete a category by current user
-      description: Delete a category by current user
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '204':
-          description: No Content
-        '401':
-          description: Unauthorized
-        '404':
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  businessErrorCode:
-                    type: string
-                  businessErrorDescription:
-                    type: string
-
-  /api/v1/account:
-    get:
-      summary: Get all accounts by current user
-      description: Get all accounts by current user
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Account'
-        '401':
-          description: Unauthorized
-
+  /api/v1/auth/authenticate:
     post:
-      summary: Create a new account for current user
-      description: Create a new account for current user
+      summary: Authenticate a user
+      description: Authenticate a user
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                currency:
-                  type: string
+              $ref: '#/components/schemas/AuthenticationRequest'
       responses:
         '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                  status:
-                    type: string
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  businessErrorCode:
-                    type: string
-                  businessErrorDescription:
-                    type: string
-                  validationErrors:
-                    type: array
-                    items:
-                      type: string
+          description: Successful response
         '401':
           description: Unauthorized
 
-    patch:
-      summary: Update account name by current user
-      description: Update account name by current user
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                currency:
-                  type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Account'
-        '401':
-          description: Unauthorized
-        '404':
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  businessErrorCode:
-                    type: string
-                  businessErrorDescription:
-                    type: string
-
-  /api/v1/account/{code}:
+  /api/v1/auth/activate-account:
     get:
-      summary: Get account by current user and currency code
-      description: Get account by current user and currency code
+      summary: Activate a user account
+      description: Activate a user account
       parameters:
-        - name: code
-          in: path
+        - name: token
+          in: query
           required: true
           schema:
             type: string
       responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Account'
-        '401':
-          description: Unauthorized
-        '404':
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  businessErrorCode:
-                    type: string
-                  businessErrorDescription:
-                    type: string
+        '202':
+          description: Accepted
+        '400':
+          description: Bad request
+
+  /api/v1/auth/password-reset-link:
+    get:
+      summary: Request a password reset link
+      description: Request a password reset link
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetLinkRequest'
+      responses:
+        '202':
+          description: Accepted
+        '400':
+          description: Bad request
+
+  /api/v1/auth/password-reset:
+    post:
+      summary: Reset a user password
+      description: Reset a user password
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+      responses:
+        '202':
+          description: Accepted
+        '400':
+          description: Bad request
+
+  /api/v1/auth/change-password:
+    put:
+      summary: Change a user password
+      description: Change a user password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+      responses:
+        '202':
+          description: Accepted
+        '400':
+          description: Bad request
 
 components:
   schemas:
-    Page:
+    AccountRequest:
       type: object
       properties:
-        content:
-          type: array
-          items:
-            $ref: '#/components/schemas/Transaction'
-        totalPages:
-          type: integer
-        totalElements:
-          type: integer
-        size:
-          type: integer
-        number:
-          type: integer
-        first:
-          type: boolean
-        last:
-          type: boolean
+        name:
+          type: string
+        currency:
+          type: string
 
-    Transaction:
+    CategoryRequest:
       type: object
       properties:
-        id:
-          type: integer
+        name:
+          type: string
+
+    TransactionRequest:
+      type: object
+      properties:
         amount:
           type: number
         date:
@@ -658,20 +507,30 @@ components:
         currency:
           type: string
 
-    Category:
+    RegisterRequest:
       type: object
       properties:
-        id:
-          type: integer
-        name:
+        email:
+          type: string
+        password:
           type: string
 
-    Account:
+    AuthenticationRequest:
       type: object
       properties:
-        id:
-          type: integer
-        name:
+        email:
           type: string
-        currency:
+        password:
+          type: string
+
+    PasswordResetLinkRequest:
+      type: object
+      properties:
+        email:
+          type: string
+
+    ChangePasswordRequest:
+      type: object
+      properties:
+        password:
           type: string
