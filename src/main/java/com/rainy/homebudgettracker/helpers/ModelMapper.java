@@ -104,7 +104,7 @@ public class ModelMapper {
                 .category(category)
                 .date(transactionRequest.getDate())
                 .account(account)
-                .paymentMethod(PaymentMethod.valueOf(transactionRequest.getPaymentMethod()))
+                .paymentMethod(PaymentMethod.valueOf(transactionRequest.getPaymentMethod().toUpperCase()))
                 .user(account.getUser())
                 .build();
     }
