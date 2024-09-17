@@ -2,12 +2,10 @@ package com.rainy.homebudgettracker.account;
 
 import com.rainy.homebudgettracker.handler.exception.RecordAlreadyExistsException;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
-import com.rainy.homebudgettracker.transaction.CurrencyCode;
-import com.rainy.homebudgettracker.user.User;
+import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,35 +15,27 @@ public class AccountController {
     private final AccountService accountService;
 
     @GetMapping
-    public ResponseEntity<Iterable<AccountResponse>> getAllAccountsByUser() {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseEntity.ok(accountService.findAllByUser(user));
+    public ResponseEntity<Iterable<AccountResponse>> getAllAccountsByCurrentUser() {
+        return ResponseEntity.ok(accountService.findAllByCurrentUser());
     }
 
     @GetMapping("/{code}")
-    public ResponseEntity<AccountResponse> getAccountByUserAndCurrencyCode(
+    public ResponseEntity<AccountResponse> getAccountByCurrentUserAndCurrencyCode(
             @PathVariable("code") String code
     ) throws RecordDoesNotExistException {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         CurrencyCode currencyCode = CurrencyCode.valueOf(code.toUpperCase());
-        return ResponseEntity.ok(accountService.findByUserAndCurrencyCode(user, currencyCode));
+        return ResponseEntity.ok(accountService.findOneAsResponseByCurrentUserAndCurrencyCode(currencyCode));
     }
 
     @PostMapping
-    public ResponseEntity<AccountResponse> createAccount(
-            @RequestBody @Valid AccountRequest accountRequest
-    ) throws RecordAlreadyExistsException
-    {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseEntity.ok(accountService.createAccount(user, accountRequest));
+    public ResponseEntity<AccountResponse> createAccountForCurrentUser(
+            @RequestBody @Valid AccountRequest accountRequest) throws RecordAlreadyExistsException {
+        return ResponseEntity.ok(accountService.createAccountForCurrentUser(accountRequest));
     }
 
     @PatchMapping
-    public ResponseEntity<AccountResponse> updateAccountName(
-            @RequestBody @Valid AccountRequest accountRequest
-    ) throws RecordDoesNotExistException
-    {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseEntity.ok(accountService.updateAccountName(user, accountRequest));
+    public ResponseEntity<AccountResponse> updateCurrentUserAccountName(
+            @RequestBody @Valid AccountRequest accountRequest) throws RecordDoesNotExistException {
+        return ResponseEntity.ok(accountService.updateCurrentUserAccountName(accountRequest));
     }
 }
