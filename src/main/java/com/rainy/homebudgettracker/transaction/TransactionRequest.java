@@ -26,4 +26,7 @@ public class TransactionRequest {
     @NotEmpty(message = "Currency code is required")
     @NotBlank(message = "Currency code is required")
     String currencyCode;
+    @NotEmpty(message = "Payment method is required")
+    @NotBlank(message = "Payment method is required")
+    String paymentMethod;
 }

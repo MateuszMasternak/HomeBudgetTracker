@@ -1,15 +1,16 @@
 package com.rainy.homebudgettracker.transaction;
 
 import com.rainy.homebudgettracker.account.Account;
-import com.rainy.homebudgettracker.account.AccountResponse;
 import com.rainy.homebudgettracker.account.AccountService;
+import com.rainy.homebudgettracker.auth.UserDetailsServiceImpl;
 import com.rainy.homebudgettracker.category.Category;
-import com.rainy.homebudgettracker.category.CategoryResponse;
 import com.rainy.homebudgettracker.category.CategoryService;
 import com.rainy.homebudgettracker.exchange.ExchangeResponse;
 import com.rainy.homebudgettracker.exchange.ExchangeService;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
+import com.rainy.homebudgettracker.helpers.ModelMapper;
+import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import com.rainy.homebudgettracker.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -35,132 +36,82 @@ public class TransactionService {
     private final CategoryService categoryService;
     private final AccountService accountService;
     private final ExchangeService exchangeService;
+    private final ModelMapper modelMapper;
+    private final UserDetailsServiceImpl userDetailsService;
 
-    public Page<TransactionResponse> findAllByUser(User user, Pageable pageable) {
-        Page<Transaction> transactionResponses = transactionRepository.findAllByUser(user, pageable);
-        return getTransactionResponses(transactionResponses);
+    public Page<TransactionResponse> findAllByCurrentUserAndAccount(CurrencyCode currencyCode, Pageable pageable)
+            throws RecordDoesNotExistException {
+        User user = userDetailsService.getCurrentUser();
+        Account account = accountService.findOneByCurrentUserAndCurrencyCode(currencyCode);
+        Page<Transaction> transactions = transactionRepository.findAllByUserAndAccount(user, account, pageable);
+        return transactions.map(t -> modelMapper.map(t, TransactionResponse.class));
     }
 
-    public Page<TransactionResponse> findAllByUserAndCurrencyCode(User user, CurrencyCode currencyCode, Pageable pageable) {
-        Page<Transaction> transactions = transactionRepository.findAllByUserAndCurrencyCode(user, currencyCode, pageable);
-        return getTransactionResponses(transactions);
-    }
-
-    public Page<TransactionResponse> findAllByUserAndCategory(User user, String categoryName, Pageable pageable)
-            throws RecordDoesNotExistException
-    {
-        CategoryResponse categoryResponse = categoryService.findByUserAndName(user, categoryName);
-        Category category = getCategory(categoryResponse, user);
-
-        Page<Transaction> transactions = transactionRepository.findAllByUserAndCategory(user, category, pageable);
-        return getTransactionResponses(transactions);
-    }
-
-    public Page<TransactionResponse> findAllByUserAndCurrencyCodeAndCategory(
-            User user, CurrencyCode currencyCode, String categoryName, Pageable pageable
+    public Page<TransactionResponse> findAllByCurrentUserAndAccountAndCategory(
+            CurrencyCode currencyCode, String categoryName, Pageable pageable
     ) throws RecordDoesNotExistException {
-        CategoryResponse categoryResponse = categoryService.findByUserAndName(user, categoryName);
-        Category category = getCategory(categoryResponse, user);
+        User user = userDetailsService.getCurrentUser();
+        Category category = categoryService.findOneByCurrentUserAndName(categoryName);
 
-        Page<Transaction> transactions = transactionRepository.findAllByUserAndCurrencyCodeAndCategory(
-                user, currencyCode, category, pageable
+        Account account = accountService.findOneByCurrentUserAndCurrencyCode(currencyCode);
+
+        Page<Transaction> transactions = transactionRepository.findAllByUserAndAccountAndCategory(
+                user, account, category, pageable
         );
-        return getTransactionResponses(transactions);
+        return transactions.map(t -> modelMapper.map(t, TransactionResponse.class));
     }
 
-    private Page<TransactionResponse> getTransactionResponses(Page<Transaction> transactions) {
-        return transactions.map(this::getTransactionResponse);
-    }
-
-    private List<TransactionResponse> getTransactionResponses(Iterable<Transaction> transactions) {
-        List<TransactionResponse> transactionResponses = new ArrayList<>();
-        transactions.forEach(transaction -> {
-            TransactionResponse transactionResponse = getTransactionResponse(transaction);
-            transactionResponses.add(transactionResponse);
-        });
-
-        return transactionResponses;
-    }
-
-    public Page<TransactionResponse> findAllByUserAndDateBetween(
-            User user, LocalDate startDate, LocalDate endDate, Pageable pageable
-    ) {
-        Page<Transaction> transactions = transactionRepository.findAllByUserAndDateBetween(
-                user, startDate, endDate, pageable);
-        return getTransactionResponses(transactions);
-    }
-
-    public Page<TransactionResponse> findAllByUserAndCurrencyCodeAndDateBetween(
-            User user,
+    public Page<TransactionResponse> findAllByCurrentUserAndAccountAndDateBetween(
             CurrencyCode currencyCode,
             LocalDate startDate,
             LocalDate endDate,
             Pageable pageable
-    ) {
-        Page<Transaction> transactions = transactionRepository.findAllByUserAndCurrencyCodeAndDateBetween(
-                user,
-                currencyCode,
-                startDate,
-                endDate,
-                pageable
-        );
-        return getTransactionResponses(transactions);
-    }
-
-    public Page<TransactionResponse> findAllByUserAndCategoryAndDateBetween(
-            User user,
-            String categoryName,
-            LocalDate startDate,
-            LocalDate endDate,
-            Pageable pageable
     ) throws RecordDoesNotExistException {
-        CategoryResponse categoryResponse = categoryService.findByUserAndName(user, categoryName);
-        Category category = getCategory(categoryResponse, user);
-
-        Page<Transaction> transactions = transactionRepository.findAllByUserAndCategoryAndDateBetween(
+        User user = userDetailsService.getCurrentUser();
+        Account account = accountService.findOneByCurrentUserAndCurrencyCode(currencyCode);
+        Page<Transaction> transactions = transactionRepository.findAllByUserAndAccountAndDateBetween(
                 user,
-                category,
+                account,
                 startDate,
                 endDate,
                 pageable
         );
-        return getTransactionResponses(transactions);
+        return transactions.map(t -> modelMapper.map(t, TransactionResponse.class));
     }
 
-    public Page<TransactionResponse> findAllByUserAndCurrencyCodeAndCategoryAndDateBetween(
-            User user,
+    public Page<TransactionResponse> findAllByCurrentUserAndAccountAndCategoryAndDateBetween(
             CurrencyCode currencyCode,
             String categoryName,
             LocalDate startDate,
             LocalDate endDate,
             Pageable pageable
     ) throws RecordDoesNotExistException {
-        CategoryResponse categoryResponse = categoryService.findByUserAndName(user, categoryName);
-        Category category = getCategory(categoryResponse, user);
+        User user = userDetailsService.getCurrentUser();
+        Category category = categoryService.findOneByCurrentUserAndName(categoryName);
+        Account account = accountService.findOneByCurrentUserAndCurrencyCode(currencyCode);
 
-        Page<Transaction> transactions = transactionRepository.findAllByUserAndCurrencyCodeAndCategoryAndDateBetween(
+        Page<Transaction> transactions = transactionRepository.findAllByUserAndAccountAndCategoryAndDateBetween(
                 user,
-                currencyCode,
+                account,
                 category,
                 startDate,
                 endDate,
                 pageable
         );
-        return getTransactionResponses(transactions);
+        return transactions.map(t -> modelMapper.map(t, TransactionResponse.class));
     }
 
     @Transactional
-    public TransactionResponse createTransaction(User user, TransactionRequest transactionRequest)
-            throws RecordDoesNotExistException
-    {
-        return saveTransactionResponse(user, transactionRequest);
+    public TransactionResponse createTransactionForCurrentUser(TransactionRequest transactionRequest)
+            throws RecordDoesNotExistException {
+        return saveTransactionForCurrentUser(transactionRequest);
     }
 
     @Transactional
-    public TransactionResponse createTransaction(User user, CurrencyCode targetCurrency, String exchangeRate,
-                                                 TransactionRequest transactionRequest)
-            throws RecordDoesNotExistException
-    {
+    public TransactionResponse createTransactionForCurrentUser(CurrencyCode targetCurrency, String exchangeRate,
+                                                               TransactionRequest transactionRequest
+    ) throws RecordDoesNotExistException {
+
         if (exchangeRate != null) {
             updateTransactionAmount(transactionRequest, exchangeRate);
         } else {
@@ -173,27 +124,17 @@ public class TransactionService {
         }
         transactionRequest.setCurrencyCode(targetCurrency.toString());
 
-        return saveTransactionResponse(user, transactionRequest);
+        return saveTransactionForCurrentUser(transactionRequest);
     }
 
-    private TransactionResponse saveTransactionResponse(User user, TransactionRequest transactionRequest)
-            throws RecordDoesNotExistException
-    {
-        CategoryResponse categoryResponse = categoryService.findByUserAndName(user,
-                transactionRequest.getCategory().getName().toUpperCase());
-        Category category = getCategory(categoryResponse, user);
+    private TransactionResponse saveTransactionForCurrentUser(TransactionRequest transactionRequest)
+            throws RecordDoesNotExistException {
 
-        Transaction transaction = getTransaction(transactionRequest, user, category);
-
-        AccountResponse account = accountService.findByUserAndCurrencyCode(user, transaction.getCurrencyCode());
-        accountService.updateAccountBalance(
-                user,
-                transaction.getAmount(),
-                CurrencyCode.valueOf(account.getCurrencyCode()));
+        Transaction transaction = modelMapper.map(transactionRequest, Transaction.class, true);
 
         transaction = transactionRepository.save(transaction);
 
-        return getTransactionResponse(transaction);
+        return modelMapper.map(transaction, TransactionResponse.class);
     }
 
     private void updateTransactionAmount(TransactionRequest transaction, String rate) {
@@ -203,41 +144,10 @@ public class TransactionService {
         );
     }
 
-    private TransactionResponse getTransactionResponse(Transaction transaction) {
-        return TransactionResponse.builder()
-                .id(transaction.getId())
-                .amount(transaction.getAmount().toString())
-                .category(CategoryResponse.builder()
-                        .id(transaction.getCategory().getId())
-                        .name(transaction.getCategory().getName())
-                        .build())
-                .date(transaction.getDate().toString())
-                .currencyCode(transaction.getCurrencyCode().toString())
-                .build();
-    }
-
-    private Category getCategory(CategoryResponse categoryResponse, User user) {
-        return Category.builder()
-                .id(categoryResponse.getId())
-                .name(categoryResponse.getName())
-                .user(user)
-                .build();
-    }
-
-    private Transaction getTransaction(TransactionRequest transactionRequest, User user, Category category) {
-        return Transaction.builder()
-                .category(category)
-                .amount(transactionRequest.getAmount())
-                .date(transactionRequest.getDate())
-                .user(user)
-                .currencyCode(CurrencyCode.valueOf(transactionRequest.getCurrencyCode()))
-                .build();
-    }
-
-    public void deleteTransaction(User user, Long transactionId) throws
+    public void deleteCurrentUserTransaction(Long transactionId) throws
             RecordDoesNotExistException,
-            UserIsNotOwnerException
-    {
+            UserIsNotOwnerException {
+        User user = userDetailsService.getCurrentUser();
         Optional<Transaction> transaction = transactionRepository.findById(transactionId);
         if (transaction.isEmpty()) {
             throw new RecordDoesNotExistException("Transaction with id " + transactionId + " does not exist.");
@@ -248,39 +158,43 @@ public class TransactionService {
         }
     }
 
-    public boolean existsByCategory(Category category) {
-        return transactionRepository.existsByCategory(category);
-    }
-
-    public SumResponse sumPositiveAmountByUser(User user, CurrencyCode currencyCode) {
-        BigDecimal sum = transactionRepository.sumPositiveAmountByUser(user, currencyCode);
+    public SumResponse sumPositiveAmountByCurrentUserAndAccount(CurrencyCode currencyCode)
+            throws RecordDoesNotExistException {
+        User user = userDetailsService.getCurrentUser();
+        Account account = accountService.findOneByCurrentUserAndCurrencyCode(currencyCode);
+        BigDecimal sum = transactionRepository.sumPositiveAmountByUserAndAccount(user, account);
         String amount = sum == null ? "0" : sum.toString();
         return SumResponse.builder().amount(amount).build();
     }
 
-    public SumResponse sumNegativeAmountByUser(User user, CurrencyCode currencyCode) {
-        BigDecimal sum = transactionRepository.sumNegativeAmountByUser(user, currencyCode);
+    public SumResponse sumNegativeAmountByCurrentUserAndAccount(CurrencyCode currencyCode)
+            throws RecordDoesNotExistException {
+        User user = userDetailsService.getCurrentUser();
+        Account account = accountService.findOneByCurrentUserAndCurrencyCode(currencyCode);
+        BigDecimal sum = transactionRepository.sumNegativeAmountByUserAndAccount(user, account);
         String amount = sum == null ? "0" : sum.toString();
         return SumResponse.builder().amount(amount).build();
     }
 
-    public SumResponse sumAmountByUser(User user, CurrencyCode currencyCode) {
-        BigDecimal sum = transactionRepository.sumAmountByUser(user, currencyCode);
+    public SumResponse sumAmountByCurrentUser(CurrencyCode currencyCode) throws RecordDoesNotExistException {
+        User user = userDetailsService.getCurrentUser();
+        Account account = accountService.findOneByCurrentUserAndCurrencyCode(currencyCode);
+        BigDecimal sum = transactionRepository.sumAmountByUserAndAccount(user, account);
         String amount = sum == null ? "0" : sum.toString();
         return SumResponse.builder().amount(amount).build();
     }
 
-    public SumResponse sumAmountByUserAndDateBetween(
-            User user, CurrencyCode currencyCode, LocalDate startDate, LocalDate endDate)
-    {
-        BigDecimal sum = transactionRepository.sumAmountByUserAndDateBetween(user, currencyCode, startDate, endDate);
-        String amount = sum == null ? "0" : sum.toString();
-        return SumResponse.builder().amount(amount).build();
-    }
-
-    public byte[] generateCsvFileForUserTransactions(User user) throws IOException {
+    public List<TransactionResponse> findAllByCurrentUser() {
+        User user = userDetailsService.getCurrentUser();
         Iterable<Transaction> transactions = transactionRepository.findAllByUser(user);
-        List<TransactionResponse> transactionResponses = getTransactionResponses(transactions);
+        List<TransactionResponse> transactionResponses = new ArrayList<>();
+        transactions.forEach(t -> transactionResponses.add(modelMapper.map(t, TransactionResponse.class)));
+        return transactionResponses;
+    }
+
+    public byte[] generateCsvFileForCurrentUserTransactions() throws IOException {
+        User user = userDetailsService.getCurrentUser();
+        List<TransactionResponse> transactionResponses = findAllByCurrentUser();
 
         Path csvFilePath = Paths.get("temp_transactions_" + user.getId() + "_" + LocalDate.now() + ".csv");
 
@@ -296,7 +210,7 @@ public class TransactionService {
                         .append(",")
                         .append(transactionResponse.getDate())
                         .append(",")
-                        .append(transactionResponse.getCurrencyCode())
+                        .append(transactionResponse.getAccount().getCurrencyCode())
                         .append("\n");
             }
         }

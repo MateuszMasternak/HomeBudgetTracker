@@ -1,6 +1,6 @@
 package com.rainy.homebudgettracker.account;
 
-import com.rainy.homebudgettracker.transaction.CurrencyCode;
+import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import com.rainy.homebudgettracker.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

@@ -1,5 +1,6 @@
 package com.rainy.homebudgettracker.transaction;
 
+import com.rainy.homebudgettracker.account.AccountResponse;
 import com.rainy.homebudgettracker.category.CategoryResponse;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,5 +14,6 @@ public class TransactionResponse {
     private String amount;
     private CategoryResponse category;
     private String date;
-    private String currencyCode;
+    private AccountResponse account;
+    private String paymentMethod;
 }

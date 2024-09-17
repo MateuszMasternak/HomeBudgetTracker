@@ -1,4 +1,4 @@
-package com.rainy.homebudgettracker.transaction;
+package com.rainy.homebudgettracker.transaction.enums;
 
 public enum CurrencyCode {
     AED, // United Arab Emirates Dirham
