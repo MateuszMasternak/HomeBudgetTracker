@@ -4,7 +4,6 @@ import com.rainy.homebudgettracker.handler.exception.CategoryAssociatedWithTrans
 import com.rainy.homebudgettracker.handler.exception.RecordAlreadyExistsException;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
-import com.rainy.homebudgettracker.user.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -12,7 +11,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,38 +22,31 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @GetMapping
-    public ResponseEntity<Page<CategoryResponse>> getAllCategoriesByUser(
+    public ResponseEntity<Page<CategoryResponse>> getAllCategoriesByCurrentUser(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Pageable pageable = PageRequest.of(page, size, Sort.by("name"));
-        return ResponseEntity.ok(categoryService.findAllByUser(user, pageable));
+        return ResponseEntity.ok(categoryService.findAllByCurrentUser(pageable));
     }
 
     @GetMapping("/without-pagination")
-    public ResponseEntity<List<CategoryResponse>> getAllCategoriesByUserWithoutPagination() {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseEntity.ok(categoryService.findAllByUser(user));
+    public ResponseEntity<List<CategoryResponse>> getAllCategoriesByCurrentUserWithoutPagination() {
+        return ResponseEntity.ok(categoryService.findAllByCurrentUser());
     }
 
 
     @PostMapping
-    public ResponseEntity<CategoryResponse> createCategory(
-            @RequestBody @Valid CategoryRequest categoryRequest
-    )
-            throws RecordAlreadyExistsException
+    public ResponseEntity<CategoryResponse> createCategoryForCurrentUser(
+            @RequestBody @Valid CategoryRequest categoryRequest) throws RecordAlreadyExistsException
     {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseEntity.ok(categoryService.createCategory(user, categoryRequest));
+        return ResponseEntity.ok(categoryService.createCategoryForCurrentUser(categoryRequest));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCategory(@PathVariable Long id)
-            throws RecordDoesNotExistException, UserIsNotOwnerException, CategoryAssociatedWithTransactionException
-    {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        categoryService.deleteCategory(user, id);
+    public ResponseEntity<Void> deleteCurrentUserCategory(@PathVariable Long id)
+            throws RecordDoesNotExistException, UserIsNotOwnerException, CategoryAssociatedWithTransactionException {
+        categoryService.deleteCurrentUserCategory(id);
         return ResponseEntity.noContent().build();
     }
 }

@@ -5,6 +5,7 @@ import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import com.rainy.homebudgettracker.user.User;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.Response;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @RestController
@@ -25,188 +27,111 @@ public class TransactionController {
     private final TransactionService transactionService;
 
     @GetMapping
-    public ResponseEntity<Page<TransactionResponse>> getAllTransactionsByUser(
+    public ResponseEntity<Page<TransactionResponse>> getAllByCurrentUserAndAccount(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String code
-    ) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            @RequestParam String code
+    ) throws RecordDoesNotExistException {
         Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
-        if (code == null) {
-            return ResponseEntity.ok(transactionService.findAllByUser(user, pageable));
-        } else {
-            CurrencyCode currencyCode = CurrencyCode.valueOf(code.toUpperCase());
-            return ResponseEntity.ok(transactionService.findAllByUserAndCurrencyCode(user, currencyCode, pageable));
-        }
+        CurrencyCode currencyCode = CurrencyCode.valueOf(code.toUpperCase());
+        return ResponseEntity.ok(transactionService.findAllByCurrentUserAndAccount(currencyCode, pageable));
     }
 
-    @GetMapping("/category")
-    public ResponseEntity<Iterable<TransactionResponse>> getAllTransactionsByUserAndCategory(
-            @RequestParam String categoryName,
+    @GetMapping
+    public ResponseEntity<Page<TransactionResponse>> getAllByCurrentUserAndAccountAndCategory(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String code
-    )
-            throws RecordDoesNotExistException
-    {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            @RequestParam String code,
+            @RequestParam String category
+    ) throws RecordDoesNotExistException {
         Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
-        if (code == null) {
-            return ResponseEntity.ok(transactionService.findAllByUserAndCategory(user, categoryName.toUpperCase(), pageable));
-        } else {
-            CurrencyCode currencyCode = CurrencyCode.valueOf(code.toUpperCase());
-            return ResponseEntity.ok(transactionService.findAllByUserAndCurrencyCodeAndCategory(
-                    user,
-                    currencyCode,
-                    categoryName.toUpperCase(),
-                    pageable
-            ));
-        }
+        CurrencyCode currencyCode = CurrencyCode.valueOf(code.toUpperCase());
+        return ResponseEntity.ok(transactionService.findAllByCurrentUserAndAccountAndCategory(currencyCode, category, pageable));
     }
 
-    @GetMapping("/date")
-    public ResponseEntity<Iterable<TransactionResponse>> getAllTransactionsByUserAndDateBetween(
+    @GetMapping
+    public ResponseEntity<Page<TransactionResponse>> getAllByCurrentUserAndAccountAndDateBetween(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam String code,
             @RequestParam String startDate,
-            @RequestParam String endDate,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String code
-    ) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            @RequestParam String endDate
+    ) throws RecordDoesNotExistException {
         Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
-        if (code == null) {
-            return ResponseEntity.ok(transactionService.findAllByUserAndDateBetween(
-                    user,
-                    LocalDate.parse(startDate),
-                    LocalDate.parse(endDate),
-                    pageable
-            ));
-        } else {
-            CurrencyCode currencyCode = CurrencyCode.valueOf(code.toUpperCase());
-            return ResponseEntity.ok(transactionService.findAllByUserAndCurrencyCodeAndDateBetween(
-                    user,
-                    currencyCode,
-                    LocalDate.parse(startDate),
-                    LocalDate.parse(endDate),
-                    pageable
-            ));
-        }
+        CurrencyCode currencyCode = CurrencyCode.valueOf(code.toUpperCase());
+        return ResponseEntity.ok(transactionService.findAllByCurrentUserAndAccountAndDateBetween(
+                currencyCode, LocalDate.parse(startDate), LocalDate.parse(endDate), pageable));
     }
 
-    @GetMapping("/category-date")
-    public ResponseEntity<Iterable<TransactionResponse>> getAllTransactionsByUserAndCategoryAndDateBetween(
-            @RequestParam String categoryName,
-            @RequestParam String startDate,
-            @RequestParam String endDate,
+    @GetMapping
+    public ResponseEntity<Page<TransactionResponse>> getAllByCurrentUserAndAccountAndCategoryAndDateBetween(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String code
-    )
-            throws RecordDoesNotExistException
-    {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            @RequestParam String code,
+            @RequestParam String category,
+            @RequestParam String startDate,
+            @RequestParam String endDate
+    ) throws RecordDoesNotExistException {
         Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
-        if (code == null) {
-            return ResponseEntity.ok(transactionService.findAllByUserAndCategoryAndDateBetween(
-                    user,
-                    categoryName.toUpperCase(),
-                    LocalDate.parse(startDate),
-                    LocalDate.parse(endDate),
-                    pageable
-            ));
-        } else {
-            CurrencyCode currencyCode = CurrencyCode.valueOf(code.toUpperCase());
-            return ResponseEntity.ok(transactionService.findAllByUserAndCurrencyCodeAndCategoryAndDateBetween(
-                    user,
-                    currencyCode,
-                    categoryName.toUpperCase(),
-                    LocalDate.parse(startDate),
-                    LocalDate.parse(endDate),
-                    pageable
-            ));
-        }
+        CurrencyCode currencyCode = CurrencyCode.valueOf(code.toUpperCase());
+        return ResponseEntity.ok(transactionService.findAllByCurrentUserAndAccountAndCategoryAndDateBetween(
+                currencyCode, category, LocalDate.parse(startDate), LocalDate.parse(endDate), pageable));
     }
 
     @PostMapping
-    public ResponseEntity<TransactionResponse> createTransaction(@RequestBody TransactionRequest transactionRequest)
-            throws RecordDoesNotExistException
-    {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseEntity.ok(transactionService.createTransaction(user, transactionRequest));
+    public ResponseEntity<TransactionResponse> createTransactionForCurrentUser(
+            @RequestBody TransactionRequest request) throws RecordDoesNotExistException {
+        return ResponseEntity.ok(transactionService.createTransactionForCurrentUser(request));
     }
 
-    @PostMapping("/exchange")
-    public ResponseEntity<TransactionResponse> createTransactionWithOtherCurrencyCode(
+    @PostMapping
+    public ResponseEntity<TransactionResponse> createTransactionForCurrentUser(
+            @RequestBody TransactionRequest request,
             @RequestParam String targetCurrency,
-            @RequestParam(required = false) String exchangeRate,
-            @RequestBody TransactionRequest transactionRequest
-    )
-            throws RecordDoesNotExistException
-    {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            @RequestParam(required = false) String exchangeRate
+    ) throws RecordDoesNotExistException {
         CurrencyCode currencyCode = CurrencyCode.valueOf(targetCurrency.toUpperCase());
-        return ResponseEntity.ok(transactionService.createTransaction(user, currencyCode, exchangeRate, transactionRequest));
+        BigDecimal rate = exchangeRate == null ? null : new BigDecimal(exchangeRate);
+        return ResponseEntity.ok(transactionService.createTransactionForCurrentUser(currencyCode, rate, request));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTransaction(@PathVariable Long id)
-            throws RecordDoesNotExistException, UserIsNotOwnerException
-    {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        transactionService.deleteTransaction(user, id);
+    @DeleteMapping
+    public ResponseEntity<Void> deleteCurrentUserTransaction(@RequestParam Long id)
+            throws RecordDoesNotExistException, UserIsNotOwnerException {
+        transactionService.deleteCurrentUserTransaction(id);
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/sum-positive")
-    public ResponseEntity<SumResponse> sumPositiveAmountByUser(@RequestParam String code) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        CurrencyCode currencyCode = CurrencyCode.valueOf(code.toUpperCase());
-        return ResponseEntity.ok(transactionService.sumPositiveAmountByUser(user, currencyCode));
-    }
-
-    @GetMapping("/sum-negative")
-    public ResponseEntity<SumResponse> sumNegativeAmountByUser(@RequestParam String code) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        CurrencyCode currencyCode = CurrencyCode.valueOf(code.toUpperCase());
-        return ResponseEntity.ok(transactionService.sumNegativeAmountByUser(user, currencyCode));
-    }
-
-    @GetMapping("/sum")
-    public ResponseEntity<SumResponse> sumAmountByUser(@RequestParam String code) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        CurrencyCode currencyCode = CurrencyCode.valueOf(code.toUpperCase());
-        return ResponseEntity.ok(transactionService.sumAmountByUser(user, currencyCode));
-    }
-
-    @GetMapping("/sum-date")
-    public ResponseEntity<SumResponse> sumAmountByUserAndDateBetween(
-            @RequestParam String startDate,
-            @RequestParam String endDate,
+    @GetMapping
+    public ResponseEntity<SumResponse> sumPositiveAmountByCurrentUserAndAccount(
             @RequestParam String code
-    ) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    ) throws RecordDoesNotExistException {
         CurrencyCode currencyCode = CurrencyCode.valueOf(code.toUpperCase());
-        return ResponseEntity.ok(transactionService.sumAmountByUserAndDateBetween(
-                user,
-                currencyCode,
-                LocalDate.parse(startDate),
-                LocalDate.parse(endDate)
-        ));
+        return ResponseEntity.ok(transactionService.sumPositiveAmountByCurrentUserAndAccount(currencyCode));
     }
 
-    @GetMapping("/export")
+    @GetMapping
+    public ResponseEntity<SumResponse> sumNegativeAmountByCurrentUserAndAccount(
+            @RequestParam String code
+    ) throws RecordDoesNotExistException {
+        CurrencyCode currencyCode = CurrencyCode.valueOf(code.toUpperCase());
+        return ResponseEntity.ok(transactionService.sumNegativeAmountByCurrentUserAndAccount(currencyCode));
+    }
+
+    @GetMapping
+    public ResponseEntity<SumResponse> sumAmountByCurrentUserAndAccount(
+            @RequestParam String code
+    ) throws RecordDoesNotExistException {
+        CurrencyCode currencyCode = CurrencyCode.valueOf(code.toUpperCase());
+        return ResponseEntity.ok(transactionService.sumAmountByCurrentUserAndAccount(currencyCode));
+    }
+
+    @GetMapping
     public ResponseEntity<byte[]> exportTransactionsToCsv() throws IOException {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        byte[] csvFileContent = transactionService.generateCsvFileForUserTransactions(user);
-
+        byte[] content = transactionService.generateCsvFileForCurrentUserTransactions();
         HttpHeaders headers = new HttpHeaders();
-        String fileName = "transactions_" + user.getId() + "_" + LocalDate.now() + ".csv";
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName);
-
-        return ResponseEntity.ok()
-                .headers(headers)
-                .contentLength(csvFileContent.length)
-                .contentType(MediaType.parseMediaType("application/csv"))
-                .body(csvFileContent);
+        headers.setContentType(MediaType.parseMediaType("text/csv"));
+        headers.setContentDispositionFormData("filename", "transactions.csv");
+        return ResponseEntity.ok().headers(headers).body(content);
     }
 }

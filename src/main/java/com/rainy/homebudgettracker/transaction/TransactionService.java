@@ -108,21 +108,21 @@ public class TransactionService {
     }
 
     @Transactional
-    public TransactionResponse createTransactionForCurrentUser(CurrencyCode targetCurrency, String exchangeRate,
+    public TransactionResponse createTransactionForCurrentUser(CurrencyCode targetCurrency, BigDecimal exchangeRate,
                                                                TransactionRequest transactionRequest
     ) throws RecordDoesNotExistException {
 
         if (exchangeRate != null) {
-            updateTransactionAmount(transactionRequest, exchangeRate);
+            convertCurrency(transactionRequest, exchangeRate, targetCurrency);
         } else {
             ExchangeResponse exchangeResponse = exchangeService.getExchangeRate(
                     transactionRequest.getCurrencyCode(),
                     targetCurrency.toString()
             );
             String apiExchangeRate = exchangeResponse.getConversionRate();
-            updateTransactionAmount(transactionRequest, apiExchangeRate);
+            BigDecimal apiExchangeRateBG = new BigDecimal(apiExchangeRate);
+            convertCurrency(transactionRequest, apiExchangeRateBG, targetCurrency);
         }
-        transactionRequest.setCurrencyCode(targetCurrency.toString());
 
         return saveTransactionForCurrentUser(transactionRequest);
     }
@@ -137,11 +137,11 @@ public class TransactionService {
         return modelMapper.map(transaction, TransactionResponse.class);
     }
 
-    private void updateTransactionAmount(TransactionRequest transaction, String rate) {
+    private void convertCurrency(TransactionRequest transaction, BigDecimal rate, CurrencyCode targetCurrency) {
         transaction.setAmount(
                 transaction.getAmount()
-                        .multiply(BigDecimal.valueOf(Double.parseDouble(rate)))
-        );
+                        .multiply(rate));
+        transaction.setCurrencyCode(targetCurrency.toString());
     }
 
     public void deleteCurrentUserTransaction(Long transactionId) throws
@@ -176,7 +176,7 @@ public class TransactionService {
         return SumResponse.builder().amount(amount).build();
     }
 
-    public SumResponse sumAmountByCurrentUser(CurrencyCode currencyCode) throws RecordDoesNotExistException {
+    public SumResponse sumAmountByCurrentUserAndAccount(CurrencyCode currencyCode) throws RecordDoesNotExistException {
         User user = userDetailsService.getCurrentUser();
         Account account = accountService.findOneByCurrentUserAndCurrencyCode(currencyCode);
         BigDecimal sum = transactionRepository.sumAmountByUserAndAccount(user, account);
