@@ -1,28 +1,5 @@
 package com.rainy.homebudgettracker.service;
 
-import com.rainy.homebudgettracker.category.Category;
-import com.rainy.homebudgettracker.category.CategoryRequest;
-import com.rainy.homebudgettracker.category.CategoryResponse;
-import com.rainy.homebudgettracker.category.CategoryService;
-import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
-import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
-import com.rainy.homebudgettracker.transaction.*;
-import com.rainy.homebudgettracker.user.Role;
-import com.rainy.homebudgettracker.user.User;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
-
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
 public class TransactionServiceTest {
@@ -184,9 +161,9 @@ public class TransactionServiceTest {
 //    @Test
 //    void findAllByUser() {
 //        TransactionRepository transactionRepository = mock(TransactionRepository.class);
-//        CategoryService categoryService = mock(CategoryService.class);
+//        CategoryServiceImpl categoryService = mock(CategoryServiceImpl.class);
 //
-//        TransactionService transactionService = new TransactionService(transactionRepository, categoryService);
+//        TransactionServiceImpl transactionService = new TransactionServiceImpl(transactionRepository, categoryService);
 //
 //        given(transactionRepository.findAllByUser(user1, Pageable.ofSize(10).withPage(0)))
 //                .willReturn(transactionsByUser1);
@@ -206,9 +183,9 @@ public class TransactionServiceTest {
 //    @Test
 //    void findAllByUserAndCategory() throws RecordDoesNotExistException {
 //        TransactionRepository transactionRepository = mock(TransactionRepository.class);
-//        CategoryService categoryService = mock(CategoryService.class);
+//        CategoryServiceImpl categoryService = mock(CategoryServiceImpl.class);
 //
-//        TransactionService transactionService = new TransactionService(transactionRepository, categoryService);
+//        TransactionServiceImpl transactionService = new TransactionServiceImpl(transactionRepository, categoryService);
 //
 //        given(categoryService.findByUserAndName(user1, "CATEGORY"))
 //                .willReturn(CategoryResponse.builder().id(1L).name("CATEGORY").build());
@@ -251,9 +228,9 @@ public class TransactionServiceTest {
 //    @Test
 //    void findAllByUserAndDateBetween() {
 //        TransactionRepository transactionRepository = mock(TransactionRepository.class);
-//        CategoryService categoryService = mock(CategoryService.class);
+//        CategoryServiceImpl categoryService = mock(CategoryServiceImpl.class);
 //
-//        TransactionService transactionService = new TransactionService(transactionRepository, categoryService);
+//        TransactionServiceImpl transactionService = new TransactionServiceImpl(transactionRepository, categoryService);
 //
 //        given(transactionRepository.findAllByUserAndDateBetween(
 //                user1,
@@ -299,9 +276,9 @@ public class TransactionServiceTest {
 //    @Test
 //    void findAllByUserAndCategoryAndDateBetween() throws RecordDoesNotExistException {
 //        TransactionRepository transactionRepository = mock(TransactionRepository.class);
-//        CategoryService categoryService = mock(CategoryService.class);
+//        CategoryServiceImpl categoryService = mock(CategoryServiceImpl.class);
 //
-//        TransactionService transactionService = new TransactionService(transactionRepository, categoryService);
+//        TransactionServiceImpl transactionService = new TransactionServiceImpl(transactionRepository, categoryService);
 //
 //        given(categoryService.findByUserAndName(user1, "CATEGORY"))
 //                .willReturn(CategoryResponse.builder().id(1L).name("CATEGORY").build());
@@ -372,9 +349,9 @@ public class TransactionServiceTest {
 //    @Test
 //    void createTransaction() throws RecordDoesNotExistException {
 //        TransactionRepository transactionRepository = mock(TransactionRepository.class);
-//        CategoryService categoryService = mock(CategoryService.class);
+//        CategoryServiceImpl categoryService = mock(CategoryServiceImpl.class);
 //
-//        TransactionService transactionService = new TransactionService(transactionRepository, categoryService);
+//        TransactionServiceImpl transactionService = new TransactionServiceImpl(transactionRepository, categoryService);
 //
 //        given(categoryService.findByUserAndName(user1, "CATEGORY"))
 //                .willReturn(CategoryResponse.builder().id(1L).name("CATEGORY").build());
@@ -423,9 +400,9 @@ public class TransactionServiceTest {
 //    @Test
 //    void deleteTransaction() {
 //        TransactionRepository transactionRepository = mock(TransactionRepository.class);
-//        CategoryService categoryService = mock(CategoryService.class);
+//        CategoryServiceImpl categoryService = mock(CategoryServiceImpl.class);
 //
-//        TransactionService transactionService = new TransactionService(transactionRepository, categoryService);
+//        TransactionServiceImpl transactionService = new TransactionServiceImpl(transactionRepository, categoryService);
 //
 //        given(transactionRepository.existsById(1L))
 //                .willReturn(true);
@@ -451,9 +428,9 @@ public class TransactionServiceTest {
 //    @Test
 //    void existsByCategory() {
 //        TransactionRepository transactionRepository = mock(TransactionRepository.class);
-//        CategoryService categoryService = mock(CategoryService.class);
+//        CategoryServiceImpl categoryService = mock(CategoryServiceImpl.class);
 //
-//        TransactionService transactionService = new TransactionService(transactionRepository, categoryService);
+//        TransactionServiceImpl transactionService = new TransactionServiceImpl(transactionRepository, categoryService);
 //
 //        given(transactionRepository.existsByCategory(category1))
 //                .willReturn(true);
@@ -467,9 +444,9 @@ public class TransactionServiceTest {
 //    @Test
 //    void sumPositiveAmountByUser() {
 //        TransactionRepository transactionRepository = mock(TransactionRepository.class);
-//        CategoryService categoryService = mock(CategoryService.class);
+//        CategoryServiceImpl categoryService = mock(CategoryServiceImpl.class);
 //
-//        TransactionService transactionService = new TransactionService(transactionRepository, categoryService);
+//        TransactionServiceImpl transactionService = new TransactionServiceImpl(transactionRepository, categoryService);
 //
 //        given(transactionRepository.sumPositiveAmountByUser(user1))
 //                .willReturn(BigDecimal.TEN);
@@ -483,9 +460,9 @@ public class TransactionServiceTest {
 //    @Test
 //    void sumNegativeAmountByUser() {
 //        TransactionRepository transactionRepository = mock(TransactionRepository.class);
-//        CategoryService categoryService = mock(CategoryService.class);
+//        CategoryServiceImpl categoryService = mock(CategoryServiceImpl.class);
 //
-//        TransactionService transactionService = new TransactionService(transactionRepository, categoryService);
+//        TransactionServiceImpl transactionService = new TransactionServiceImpl(transactionRepository, categoryService);
 //
 //        given(transactionRepository.sumNegativeAmountByUser(user1))
 //                .willReturn(BigDecimal.TEN);
@@ -499,9 +476,9 @@ public class TransactionServiceTest {
 //    @Test
 //    void sumAmountByUser() {
 //        TransactionRepository transactionRepository = mock(TransactionRepository.class);
-//        CategoryService categoryService = mock(CategoryService.class);
+//        CategoryServiceImpl categoryService = mock(CategoryServiceImpl.class);
 //
-//        TransactionService transactionService = new TransactionService(transactionRepository, categoryService);
+//        TransactionServiceImpl transactionService = new TransactionServiceImpl(transactionRepository, categoryService);
 //
 //        given(transactionRepository.sumAmountByUser(user1))
 //                .willReturn(BigDecimal.TEN);

@@ -1,92 +1,22 @@
 package com.rainy.homebudgettracker.category;
 
-import com.rainy.homebudgettracker.auth.UserDetailsServiceImpl;
 import com.rainy.homebudgettracker.handler.exception.CategoryAssociatedWithTransactionException;
 import com.rainy.homebudgettracker.handler.exception.RecordAlreadyExistsException;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
-import com.rainy.homebudgettracker.helpers.ModelMapper;
-import com.rainy.homebudgettracker.transaction.TransactionRepository;
-import com.rainy.homebudgettracker.user.User;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
-@Service
-@RequiredArgsConstructor
-public class CategoryService {
-    private final CategoryRepository categoryRepository;
-    private final TransactionRepository transactionRepository;
-    private final UserDetailsServiceImpl userDetailsService;
-    private final ModelMapper modelMapper;
-
-    public Page<CategoryResponse> findAllByCurrentUser(Pageable pageable) {
-        User user = userDetailsService.getCurrentUser();
-        Page<Category> categories = categoryRepository.findAllByUser(user, pageable);
-        return categories.map(category -> modelMapper.map(category, CategoryResponse.class));
-    }
-
-    public List<CategoryResponse> findAllByCurrentUser() {
-        User user = userDetailsService.getCurrentUser();
-        Iterable<Category> categories = categoryRepository.findAllByUser(user);
-        return mapIterableCategoryToResponseCategoryList(categories);
-    }
-
-    private List<CategoryResponse> mapIterableCategoryToResponseCategoryList(Iterable<Category> categories) {
-        List<CategoryResponse> responseCategoryList = new ArrayList<>();
-        categories.forEach(c -> responseCategoryList.add(modelMapper.map(c, CategoryResponse.class)));
-        responseCategoryList.sort((c1, c2) -> c1.getName().compareToIgnoreCase(c2.getName()));
-        return responseCategoryList;
-    }
-
-    public CategoryResponse findOneAsResponseByCurrentUserAndName(String name) throws RecordDoesNotExistException {
-        User user = userDetailsService.getCurrentUser();
-        Category category = categoryRepository.findByUserAndName(user, name).orElseThrow(
-                () -> new RecordDoesNotExistException("Category with name " + name + " does not exist.")
-        );
-        return modelMapper.map(category, CategoryResponse.class);
-    }
-
-    public Category findOneByCurrentUserAndName(String name) throws RecordDoesNotExistException {
-        User user = userDetailsService.getCurrentUser();
-        return categoryRepository.findByUserAndName(user, name).orElseThrow(
-                () -> new RecordDoesNotExistException("Category with name " + name + " does not exist.")
-        );
-    }
-
-    public CategoryResponse createCategoryForCurrentUser(CategoryRequest categoryRequest)
-            throws RecordAlreadyExistsException {
-        try {
-            Category category = modelMapper.map(categoryRequest, Category.class);
-
-            Category savedCategory = categoryRepository.save(category);
-            return modelMapper.map(savedCategory, CategoryResponse.class);
-        } catch (Exception e) {
-            throw new RecordAlreadyExistsException(
-                    "Category with name " + categoryRequest.getName() + " already exists.");
-        }
-    }
-
-    public void deleteCurrentUserCategory(Long categoryId) throws
+public interface CategoryService {
+    Page<CategoryResponse> findAllByCurrentUser(Pageable pageable);
+    List<CategoryResponse> findAllByCurrentUser();
+    CategoryResponse findOneAsResponseByCurrentUserAndName(String name) throws RecordDoesNotExistException;
+    Category findOneByCurrentUserAndName(String name) throws RecordDoesNotExistException;
+    CategoryResponse createCategoryForCurrentUser(CategoryRequest categoryRequest) throws RecordAlreadyExistsException;
+    void deleteCurrentUserCategory(Long categoryId) throws
             RecordDoesNotExistException,
             UserIsNotOwnerException,
-            CategoryAssociatedWithTransactionException
-    {
-        User user = userDetailsService.getCurrentUser();
-        Optional<Category> category = categoryRepository.findById(categoryId);
-        if (category.isEmpty()) {
-            throw new RecordDoesNotExistException("Category with id " + categoryId + " does not exist.");
-        } else if (!category.get().getUser().getEmail().equals(user.getEmail())) {
-            throw new UserIsNotOwnerException("Category with id " + categoryId + " does not belong to user.");
-        } else if (transactionRepository.existsByCategory(category.get())) {
-            throw new CategoryAssociatedWithTransactionException("Category with id " + categoryId + " is associated with transactions.");
-        } else {
-            categoryRepository.deleteById(categoryId);
-        }
-    }
+            CategoryAssociatedWithTransactionException;
 }

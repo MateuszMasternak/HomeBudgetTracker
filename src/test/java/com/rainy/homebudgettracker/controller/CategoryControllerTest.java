@@ -36,7 +36,7 @@
 //    private MockMvc mockMvc;
 //
 //    @MockBean
-//    private CategoryService categoryService;
+//    private CategoryServiceImpl categoryService;
 //
 //    @MockBean
 //    private JwtService jwtService;

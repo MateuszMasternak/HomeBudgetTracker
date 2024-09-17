@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @Tag(name = "Authentication")
 public class AuthenticationController {
-    private final AuthenticationService authenticationService;
+    private final AuthenticationServiceImpl authenticationServiceImpl;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(
@@ -26,7 +26,7 @@ public class AuthenticationController {
     ) throws MessagingException {
         String message = "You will receive an email with an activation code soon";
         try {
-            authenticationService.register(registerRequest);
+            authenticationServiceImpl.register(registerRequest);
             return ResponseEntity.accepted().body(message);
         } catch (EmailAlreadyExistsException e) {
             return ResponseEntity.accepted().body(message);
@@ -37,14 +37,14 @@ public class AuthenticationController {
     public ResponseEntity<AuthenticationResponse> authenticate(
             @RequestBody @Valid AuthenticationRequest authenticationRequest
     ) {
-        return ResponseEntity.ok(authenticationService.authenticate(authenticationRequest));
+        return ResponseEntity.ok(authenticationServiceImpl.authenticate(authenticationRequest));
     }
 
     @GetMapping("/activate-account")
     public ResponseEntity<?> activateAccount(
             @RequestParam String token
     ) throws MessagingException, InvalidConfirmationTokenException, ExpiredConfirmationTokenException {
-        authenticationService.activateAccount(token);
+        authenticationServiceImpl.activateAccount(token);
         return ResponseEntity.accepted().build();
     }
 
@@ -54,7 +54,7 @@ public class AuthenticationController {
     ) throws MessagingException, UsernameNotFoundException {
         String message = "You will receive an email with a password reset link soon";
         try {
-            authenticationService.sendPasswordResetEmail(email);
+            authenticationServiceImpl.sendPasswordResetEmail(email);
             return ResponseEntity.accepted().body(message);
         } catch (UsernameNotFoundException e) {
             return ResponseEntity.accepted().body(message);
@@ -66,7 +66,7 @@ public class AuthenticationController {
             @RequestParam String token,
             @RequestBody @Valid ChangePasswordRequest password
     ) throws InvalidConfirmationTokenException, ExpiredConfirmationTokenException {
-        authenticationService.changePassword(token, password);
+        authenticationServiceImpl.changePassword(token, password);
         return ResponseEntity.accepted().build();
     }
 
@@ -75,7 +75,7 @@ public class AuthenticationController {
             @RequestBody @Valid ChangePasswordRequest password
     ) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        authenticationService.changePassword(user, password);
+        authenticationServiceImpl.changePassword(user, password);
         return ResponseEntity.accepted().build();
     }
 }
