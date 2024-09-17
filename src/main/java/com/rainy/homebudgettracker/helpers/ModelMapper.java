@@ -3,28 +3,22 @@ package com.rainy.homebudgettracker.helpers;
 import com.rainy.homebudgettracker.account.Account;
 import com.rainy.homebudgettracker.account.AccountRequest;
 import com.rainy.homebudgettracker.account.AccountResponse;
-import com.rainy.homebudgettracker.account.AccountService;
 import com.rainy.homebudgettracker.auth.UserDetailsServiceImpl;
 import com.rainy.homebudgettracker.category.Category;
 import com.rainy.homebudgettracker.category.CategoryRequest;
 import com.rainy.homebudgettracker.category.CategoryResponse;
-import com.rainy.homebudgettracker.category.CategoryService;
-import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.transaction.Transaction;
 import com.rainy.homebudgettracker.transaction.TransactionRequest;
 import com.rainy.homebudgettracker.transaction.TransactionResponse;
-import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
-import com.rainy.homebudgettracker.transaction.enums.PaymentMethod;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 public class ModelMapper {
-    private final AccountService accountService;
-    private final CategoryService categoryService;
     private final UserDetailsServiceImpl userDetailsService;
 
+    // DOESN'T INCLUDE MAPPING TransactionRequest TO Transaction
     @SuppressWarnings("unchecked")
     public <T> T map(Object source, Class<T> destinationType) {
         return switch (destinationType.getSimpleName()) {
@@ -63,24 +57,16 @@ public class ModelMapper {
         };
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> T map(Object source, Class<T> destinationType, boolean mayThrowRDNEException)
-            throws RecordDoesNotExistException
-    {
-        if (!mayThrowRDNEException) {
-            return map(source, destinationType);
-        }
-
-        return switch (destinationType.getSimpleName()) {
-            case "Transaction": {
-                if (source instanceof TransactionRequest transactionRequest)
-                    yield (T) mapTransactionRequestToTransaction(transactionRequest);
-                else
-                    throw new UnsupportedOperationException("Mapping not supported");
-            }
-            default:
-                throw new UnsupportedOperationException("Mapping not supported");
-        };
+    public Transaction mapTransactionRequestToTransaction(
+            TransactionRequest transactionRequest, Account account, Category category) {
+        return Transaction.builder()
+                .amount(transactionRequest.getAmount())
+                .category(category)
+                .date(transactionRequest.getDate())
+                .account(account)
+                .paymentMethod(transactionRequest.getPaymentMethod())
+                .user(account.getUser())
+                .build();
     }
 
     private TransactionResponse mapTransactionToResponse(Transaction transaction) {
@@ -91,21 +77,6 @@ public class ModelMapper {
                 .date(String.valueOf(transaction.getDate()))
                 .account(mapAccountToResponse(transaction.getAccount()))
                 .paymentMethod(transaction.getPaymentMethod().name())
-                .build();
-    }
-
-    private Transaction mapTransactionRequestToTransaction(TransactionRequest transactionRequest)
-            throws RecordDoesNotExistException
-    {
-        Category category = categoryService.findOneByCurrentUserAndName(transactionRequest.getCategory().getName());
-        Account account = accountService.findOneByCurrentUserAndCurrencyCode(CurrencyCode.valueOf(transactionRequest.getCurrencyCode()));
-        return Transaction.builder()
-                .amount(transactionRequest.getAmount())
-                .category(category)
-                .date(transactionRequest.getDate())
-                .account(account)
-                .paymentMethod(PaymentMethod.valueOf(transactionRequest.getPaymentMethod().toUpperCase()))
-                .user(account.getUser())
                 .build();
     }
 
@@ -134,7 +105,7 @@ public class ModelMapper {
     private Account mapAccountRequestToAccount(AccountRequest accountRequest) {
         return Account.builder()
                 .name(accountRequest.getName())
-                .currencyCode(CurrencyCode.valueOf(accountRequest.getCurrencyCode()))
+                .currencyCode(accountRequest.getCurrencyCode())
                 .user(userDetailsService.getCurrentUser())
                 .build();
     }

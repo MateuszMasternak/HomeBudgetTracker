@@ -4,6 +4,7 @@ import com.rainy.homebudgettracker.account.Account;
 import com.rainy.homebudgettracker.account.AccountService;
 import com.rainy.homebudgettracker.auth.UserDetailsServiceImpl;
 import com.rainy.homebudgettracker.category.Category;
+import com.rainy.homebudgettracker.category.CategoryRequest;
 import com.rainy.homebudgettracker.category.CategoryService;
 import com.rainy.homebudgettracker.exchange.ExchangeResponse;
 import com.rainy.homebudgettracker.exchange.ExchangeService;
@@ -48,10 +49,10 @@ public class TransactionService {
     }
 
     public Page<TransactionResponse> findAllByCurrentUserAndAccountAndCategory(
-            CurrencyCode currencyCode, String categoryName, Pageable pageable
+            CurrencyCode currencyCode, CategoryRequest categoryName, Pageable pageable
     ) throws RecordDoesNotExistException {
         User user = userDetailsService.getCurrentUser();
-        Category category = categoryService.findOneByCurrentUserAndName(categoryName);
+        Category category = categoryService.findOneByCurrentUserAndName(categoryName.getName());
 
         Account account = accountService.findOneByCurrentUserAndCurrencyCode(currencyCode);
 
@@ -116,7 +117,7 @@ public class TransactionService {
             convertCurrency(transactionRequest, exchangeRate, targetCurrency);
         } else {
             ExchangeResponse exchangeResponse = exchangeService.getExchangeRate(
-                    transactionRequest.getCurrencyCode(),
+                    transactionRequest.getCurrencyCode().name(),
                     targetCurrency.toString()
             );
             String apiExchangeRate = exchangeResponse.getConversionRate();
@@ -129,8 +130,11 @@ public class TransactionService {
 
     private TransactionResponse saveTransactionForCurrentUser(TransactionRequest transactionRequest)
             throws RecordDoesNotExistException {
+        Category category = categoryService.findOneByCurrentUserAndName(
+                transactionRequest.getCategory().getName());
+        Account account = accountService.findOneByCurrentUserAndCurrencyCode(transactionRequest.getCurrencyCode());
 
-        Transaction transaction = modelMapper.map(transactionRequest, Transaction.class, true);
+        Transaction transaction = modelMapper.mapTransactionRequestToTransaction(transactionRequest, account, category);
 
         transaction = transactionRepository.save(transaction);
 
@@ -141,7 +145,7 @@ public class TransactionService {
         transaction.setAmount(
                 transaction.getAmount()
                         .multiply(rate));
-        transaction.setCurrencyCode(targetCurrency.toString());
+        transaction.setCurrencyCode(targetCurrency);
     }
 
     public void deleteCurrentUserTransaction(Long transactionId) throws

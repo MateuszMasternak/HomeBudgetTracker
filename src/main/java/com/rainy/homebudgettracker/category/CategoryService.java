@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -60,9 +59,8 @@ public class CategoryService {
         );
     }
 
-    public CategoryResponse createCategoryForCurrentUser(CategoryRequest categoryRequest) throws
-            RecordAlreadyExistsException
-    {
+    public CategoryResponse createCategoryForCurrentUser(CategoryRequest categoryRequest)
+            throws RecordAlreadyExistsException {
         try {
             Category category = modelMapper.map(categoryRequest, Category.class);
 

@@ -58,7 +58,7 @@ public class AccountService {
 
     public AccountResponse createAccountForCurrentUser(AccountRequest accountRequest) throws RecordAlreadyExistsException {
         User user = userDetailsService.getCurrentUser();
-        if (accountRepository.existsByUserAndCurrencyCode(user, CurrencyCode.valueOf(accountRequest.getCurrencyCode().toUpperCase()))) {
+        if (accountRepository.existsByUserAndCurrencyCode(user, accountRequest.getCurrencyCode())) {
             throw new RecordAlreadyExistsException("Account with currency code " + accountRequest.getCurrencyCode() + " already exists.");
         } else {
             Account account = modelMapper.map(accountRequest, Account.class);
@@ -73,7 +73,7 @@ public class AccountService {
     {
         User user = userDetailsService.getCurrentUser();
         String name = accountRequest.getName();
-        CurrencyCode currencyCode = CurrencyCode.valueOf(accountRequest.getCurrencyCode().toUpperCase());
+        CurrencyCode currencyCode = accountRequest.getCurrencyCode();
         Optional<Account> account = accountRepository.findByUserAndCurrencyCode(user, currencyCode);
         if (account.isEmpty()) {
             throw new RecordDoesNotExistException("Account with currency code " + currencyCode + " does not exist.");
