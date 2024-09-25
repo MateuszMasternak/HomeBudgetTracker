@@ -23,7 +23,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class CategoryServiceImplTest {
-    private CategoryServiceImpl categoryService;
+    private CategoryService categoryService;
     private User user;
     private Category category;
     private CategoryRequest categoryRequest;
@@ -58,8 +58,8 @@ class CategoryServiceImplTest {
                 .name("Healthcare")
                 .build();
 
-        when(transactionRepository.existsByCategory(category)).thenReturn(true);
-        when(transactionRepository.existsByCategory(any())).thenReturn(false);
+        var pageable = PageRequest.of(0, 10);
+        var categoryPage = new PageImpl<>(List.of(category));
 
         when(modelMapper.map(category, CategoryResponse.class)).thenReturn(CategoryResponse.builder()
                 .id(category.getId())
@@ -71,19 +71,16 @@ class CategoryServiceImplTest {
                 .user(user)
                 .build());
 
+        when(transactionRepository.existsByCategory(category)).thenReturn(true);
+        when(transactionRepository.existsByCategory(any())).thenReturn(false);
         when(categoryRepository.save(any())).thenReturn(category);
         when(categoryRepository.findByUserAndName(user, "Food")).thenReturn(Optional.of(category));
         when(categoryRepository.findByUserAndName(user, "Healthcare")).thenReturn(Optional.empty());
-
-        var pageable = PageRequest.of(0, 10);
-        var categoryPage = new PageImpl<>(List.of(category));
         when(categoryRepository.findAllByUser(user, pageable)).thenReturn(categoryPage);
         when(categoryRepository.findAllByUser(user)).thenReturn(List.of(category));
-
         when(categoryRepository.save(Category.builder().name("Food").user(user).build())).thenReturn(category);
         when(categoryRepository.existsByUserAndName(user, "Food")).thenReturn(false);
         when(categoryRepository.existsByUserAndName(user, "Healthcare")).thenReturn(true);
-
         doNothing().when(categoryRepository).deleteById(1L);
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
         when(categoryRepository.findById(4L)).thenReturn(Optional.empty());

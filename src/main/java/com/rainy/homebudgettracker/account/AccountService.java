@@ -4,8 +4,10 @@ import com.rainy.homebudgettracker.handler.exception.RecordAlreadyExistsExceptio
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 
+import java.util.List;
+
 public interface AccountService {
-    Iterable<AccountResponse> findAllByCurrentUser();
+    List<AccountResponse> findAllByCurrentUser();
     AccountResponse findOneAsResponseByCurrentUserAndCurrencyCode(CurrencyCode currencyCode)
             throws RecordDoesNotExistException;
     Account findOneByCurrentUserAndCurrencyCode(CurrencyCode currencyCode)
