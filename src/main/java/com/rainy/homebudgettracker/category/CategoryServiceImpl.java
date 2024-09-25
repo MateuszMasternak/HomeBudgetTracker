@@ -59,14 +59,13 @@ public class CategoryServiceImpl implements  CategoryService {
     @Override
     public CategoryResponse createCategoryForCurrentUser(CategoryRequest categoryRequest)
             throws RecordAlreadyExistsException {
-        try {
-            Category category = modelMapper.map(categoryRequest, Category.class);
-
-            Category savedCategory = categoryRepository.save(category);
-            return modelMapper.map(savedCategory, CategoryResponse.class);
-        } catch (Exception e) {
+        Category category = modelMapper.map(categoryRequest, Category.class);
+        if (categoryRepository.existsByUserAndName(category.getUser(), category.getName())) {
             throw new RecordAlreadyExistsException(
                     "Category with name " + categoryRequest.getName() + " already exists.");
+        } else {
+            Category savedCategory = categoryRepository.save(category);
+            return modelMapper.map(savedCategory, CategoryResponse.class);
         }
     }
 
