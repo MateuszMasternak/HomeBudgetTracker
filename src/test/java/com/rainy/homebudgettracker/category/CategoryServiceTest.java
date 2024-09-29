@@ -11,7 +11,6 @@ import com.rainy.homebudgettracker.user.Role;
 import com.rainy.homebudgettracker.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
@@ -22,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-class CategoryServiceImplTest {
+class CategoryServiceTest {
     private CategoryService categoryService;
     private User user;
     private Category category;
@@ -106,8 +105,8 @@ class CategoryServiceImplTest {
     }
 
     @Test
-    void shouldReturnPageZeroWithCategoryResponse() {
-        Page<CategoryResponse> categoryPage = categoryService.findAllByCurrentUser(
+    void shouldReturnPageWithCategoryResponse() {
+        var categoryPage = categoryService.findAllByCurrentUser(
                 PageRequest.of(0, 10));
         assertEquals(1, categoryPage.getTotalElements());
         assertEquals(category.getName(), categoryPage.getContent().get(0).getName());
@@ -115,14 +114,14 @@ class CategoryServiceImplTest {
 
     @Test
     void shouldReturnListWithCategoryResponse() {
-        List<CategoryResponse> categoryList = categoryService.findAllByCurrentUser();
+        var categoryList = categoryService.findAllByCurrentUser();
         assertEquals(1, categoryList.size());
         assertEquals(category.getName(), categoryList.get(0).getName());
     }
 
     @Test
     void shouldReturnCategoryResponse() throws RecordDoesNotExistException {
-        CategoryResponse categoryResponse = categoryService.findOneAsResponseByCurrentUserAndName("Food");
+        var categoryResponse = categoryService.findOneAsResponseByCurrentUserAndName("Food");
         assertEquals(category.getName(), categoryResponse.getName());
     }
 
@@ -134,7 +133,7 @@ class CategoryServiceImplTest {
 
     @Test
     void shouldReturnCategory() throws RecordDoesNotExistException {
-        Category category = categoryService.findOneByCurrentUserAndName("Food");
+        var category = categoryService.findOneByCurrentUserAndName("Food");
         assertEquals(this.category.getName(), category.getName());
         assertEquals(user.getId(), category.getUser().getId());
     }
@@ -147,7 +146,7 @@ class CategoryServiceImplTest {
 
     @Test
     void shouldReturnCategoryResponseWhenCategoryIsCreated() throws RecordAlreadyExistsException {
-        CategoryResponse categoryResponse = categoryService.createCategoryForCurrentUser(categoryRequest);
+        var categoryResponse = categoryService.createCategoryForCurrentUser(categoryRequest);
         assertEquals(category.getName(), categoryResponse.getName());
     }
 
@@ -158,11 +157,8 @@ class CategoryServiceImplTest {
     }
 
     @Test
-    void shouldDeleteCategory() throws
-            RecordDoesNotExistException,
-            UserIsNotOwnerException,
-            CategoryAssociatedWithTransactionException {
-        categoryService.deleteCurrentUserCategory(1L);
+    void shouldDeleteCategory() {
+        assertDoesNotThrow(() -> categoryService.deleteCurrentUserCategory(1L));
     }
 
     @Test

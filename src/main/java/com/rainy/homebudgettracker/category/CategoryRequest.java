@@ -9,6 +9,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 public class CategoryRequest {
     @NotEmpty(message = "Name is required")
     @NotBlank(message = "Name is required")

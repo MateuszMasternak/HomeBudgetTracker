@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -118,13 +119,12 @@ public class TransactionServiceImpl implements TransactionService {
     public TransactionResponse createTransactionForCurrentUser(CurrencyCode targetCurrency, BigDecimal exchangeRate,
                                                                TransactionRequest transactionRequest
     ) throws RecordDoesNotExistException {
-
         if (exchangeRate != null) {
             convertCurrency(transactionRequest, exchangeRate, targetCurrency);
         } else {
             ExchangeResponse exchangeResponse = exchangeService.getExchangeRate(
-                    transactionRequest.getCurrencyCode().name(),
-                    targetCurrency.toString()
+                    transactionRequest.getCurrencyCode(),
+                    targetCurrency
             );
             String apiExchangeRate = exchangeResponse.getConversionRate();
             BigDecimal apiExchangeRateBG = new BigDecimal(apiExchangeRate);
@@ -196,8 +196,9 @@ public class TransactionServiceImpl implements TransactionService {
 
         try (FileWriter writer = new FileWriter(csvFilePath.toString())) {
             writer.append("sep=,\n"); // separator for microsoft excel
-            writer.append("ID,Amount,Category,Date,Currency code\n");
+            writer.append("ID,Amount,Category,Date,Currency code,Payment method\n");
             for (TransactionResponse transactionResponse : transactionResponses) {
+                System.out.println(transactionResponse);
                 writer.append(transactionResponse.getId().toString())
                         .append(",")
                         .append(transactionResponse.getAmount())
@@ -207,6 +208,8 @@ public class TransactionServiceImpl implements TransactionService {
                         .append(transactionResponse.getDate())
                         .append(",")
                         .append(transactionResponse.getAccount().getCurrencyCode())
+                        .append(",")
+                        .append(transactionResponse.getPaymentMethod())
                         .append("\n");
             }
         }

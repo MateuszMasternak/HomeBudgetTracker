@@ -2,6 +2,7 @@ package com.rainy.homebudgettracker.exchange;
 
 import com.rainy.homebudgettracker.handler.exception.ExchangeRateApiException;
 import com.rainy.homebudgettracker.handler.exception.QuotaReachedException;
+import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -12,8 +13,8 @@ import org.springframework.web.client.RestClient;
 public class ExchangeService {
     private final RestClient restClient;
 
-    public ExchangeResponse getExchangeRate(String baseCurrency, String targetCurrency) {
-        String url = String.format("/pair/%s/%s", baseCurrency, targetCurrency);
+    public ExchangeResponse getExchangeRate(CurrencyCode baseCurrency, CurrencyCode targetCurrency) {
+        String url = String.format("/pair/%s/%s", baseCurrency.name(), targetCurrency.name());
         ResponseEntity<ExchangeResponse> response = restClient.get()
                 .uri(url)
                 .retrieve()

@@ -15,7 +15,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class AccountServiceImplTest {
+class AccountServiceTest {
     private AccountService accountService;
     private User user;
     private Account account;
@@ -101,7 +101,7 @@ class AccountServiceImplTest {
 
     @Test
     void shouldReturnListWithAccountResponse() {
-        List<AccountResponse> accountResponses = accountService.findAllByCurrentUser();
+        var accountResponses = accountService.findAllByCurrentUser();
         assertEquals(1, accountResponses.size());
         assertEquals(account.getId(), accountResponses.get(0).getId());
         assertEquals(account.getName(), accountResponses.get(0).getName());
@@ -110,7 +110,7 @@ class AccountServiceImplTest {
 
     @Test
     void shouldReturnAccountResponse() throws RecordDoesNotExistException {
-        AccountResponse accountResponse = accountService.findOneAsResponseByCurrentUserAndCurrencyCode(CurrencyCode.USD);
+        var accountResponse = accountService.findOneAsResponseByCurrentUserAndCurrencyCode(CurrencyCode.USD);
         assertEquals(account.getId(), accountResponse.getId());
         assertEquals(account.getName(), accountResponse.getName());
         assertEquals(account.getCurrencyCode().name(), accountResponse.getCurrencyCode());
@@ -124,7 +124,7 @@ class AccountServiceImplTest {
 
     @Test
     void shouldReturnAccount() throws RecordDoesNotExistException {
-        Account account = accountService.findOneByCurrentUserAndCurrencyCode(CurrencyCode.USD);
+        var account = accountService.findOneByCurrentUserAndCurrencyCode(CurrencyCode.USD);
         assertEquals(this.account, account);
     }
 
@@ -136,7 +136,7 @@ class AccountServiceImplTest {
 
     @Test
     void shouldReturnAccountResponseWhenAccountIsCreated() throws RecordAlreadyExistsException {
-        AccountResponse accountResponse = accountService.createAccountForCurrentUser(accountRequest2);
+        var accountResponse = accountService.createAccountForCurrentUser(accountRequest2);
         assertEquals(account2.getId(), accountResponse.getId());
         assertEquals(account2.getName(), accountResponse.getName());
         assertEquals(account2.getCurrencyCode().name(), accountResponse.getCurrencyCode());
@@ -150,10 +150,17 @@ class AccountServiceImplTest {
 
     @Test
     void shouldReturnAccountResponseWhenAccountNameIsUpdated() throws RecordDoesNotExistException {
-        AccountResponse accountResponse = accountService.updateCurrentUserAccountName(
+        var accountResponse = accountService.updateCurrentUserAccountName(
                 AccountRequest.builder().name("Changed name").currencyCode(CurrencyCode.USD).build());
         assertEquals(account.getId(), accountResponse.getId());
         assertEquals("Changed name", accountResponse.getName());
         assertEquals(account.getCurrencyCode().name(), accountResponse.getCurrencyCode());
+    }
+
+    @Test
+    void shouldThrowRecordDoesNotExistExceptionWhenAccountWhenUpdatingName() {
+        assertThrows(RecordDoesNotExistException.class,
+                () -> accountService.updateCurrentUserAccountName(
+                        AccountRequest.builder().name("Changed name").currencyCode(CurrencyCode.EUR).build()));
     }
 }
