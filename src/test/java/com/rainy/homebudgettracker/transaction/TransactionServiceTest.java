@@ -9,7 +9,7 @@ import com.rainy.homebudgettracker.category.CategoryRequest;
 import com.rainy.homebudgettracker.category.CategoryResponse;
 import com.rainy.homebudgettracker.category.CategoryService;
 import com.rainy.homebudgettracker.exchange.ExchangeResponse;
-import com.rainy.homebudgettracker.exchange.ExchangeService;
+import com.rainy.homebudgettracker.exchange.ExchangeServiceImpl;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
@@ -25,7 +25,6 @@ import org.springframework.data.domain.PageRequest;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,7 +45,7 @@ class TransactionServiceTest {
         var transactionRepository = mock(TransactionRepository.class);
         var categoryService = mock(CategoryService.class);
         var accountService = mock(AccountService.class);
-        var exchangeService = mock(ExchangeService.class);
+        var exchangeService = mock(ExchangeServiceImpl.class);
         var userDetailsService = mock(UserDetailsServiceImpl.class);
         var modelMapper = mock(ModelMapper.class);
 
