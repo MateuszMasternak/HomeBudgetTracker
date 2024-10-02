@@ -7,8 +7,12 @@ import com.rainy.homebudgettracker.mapper.ModelMapper;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import com.rainy.homebudgettracker.user.Role;
 import com.rainy.homebudgettracker.user.User;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.util.List;
 
@@ -16,20 +20,20 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class AccountServiceTest {
-    private AccountService accountService;
-    private User user;
-    private Account account;
-    private Account account2;
-    private AccountRequest accountRequest;
-    private AccountRequest accountRequest2;
+    @InjectMocks
+    AccountServiceImpl accountService;
+    @Mock
+    AccountRepository accountRepository;
+    @Mock
+    UserDetailsServiceImpl userDetailsService;
+    @Mock
+    ModelMapper modelMapper;
 
     @BeforeEach
     void setUp() {
-        var accountRepository = mock(AccountRepository.class);
-        var userDetailsService = mock(UserDetailsServiceImpl.class);
-        var modelMapper = mock(ModelMapper.class);
+        MockitoAnnotations.openMocks(this);
 
-        user = User.builder()
+        var user = User.builder()
                 .id(1L)
                 .email("mail@mail.com")
                 .password("password")
@@ -37,14 +41,14 @@ class AccountServiceTest {
                 .build();
         when(userDetailsService.getCurrentUser()).thenReturn(user);
 
-        account = Account.builder()
+        var account = Account.builder()
                 .id(1L)
                 .name("USD account")
                 .currencyCode(CurrencyCode.USD)
                 .user(user)
                 .build();
 
-        account2 = Account.builder()
+        var account2 = Account.builder()
                 .id(2L)
                 .name("EUR account")
                 .currencyCode(CurrencyCode.EUR)
@@ -58,12 +62,12 @@ class AccountServiceTest {
                 .user(user)
                 .build();
 
-        accountRequest = AccountRequest.builder()
+        var accountRequest = AccountRequest.builder()
                 .name("USD account")
                 .currencyCode(CurrencyCode.USD)
                 .build();
 
-        accountRequest2 = AccountRequest.builder()
+        var accountRequest2 = AccountRequest.builder()
                 .name("EUR account")
                 .currencyCode(CurrencyCode.EUR)
                 .build();
@@ -95,66 +99,142 @@ class AccountServiceTest {
         doNothing().when(accountRepository).updateAccountName(user, "Changed name", CurrencyCode.USD);
         when(accountRepository.existsByUserAndCurrencyCode(user, CurrencyCode.USD)).thenReturn(true);
         when(accountRepository.existsByUserAndCurrencyCode(user, CurrencyCode.EUR)).thenReturn(false);
+    }
 
-        accountService = new AccountServiceImpl(accountRepository, userDetailsService, modelMapper);
+    @AfterEach
+    void tearDown() {
+        clearInvocations(accountRepository);
     }
 
     @Test
     void shouldReturnListWithAccountResponse() {
         var accountResponses = accountService.findAllByCurrentUser();
+
+        var account = Account.builder()
+                .id(1L)
+                .name("USD account")
+                .currencyCode(CurrencyCode.USD)
+                .build();
+
         assertEquals(1, accountResponses.size());
         assertEquals(account.getId(), accountResponses.get(0).getId());
         assertEquals(account.getName(), accountResponses.get(0).getName());
         assertEquals(account.getCurrencyCode().name(), accountResponses.get(0).getCurrencyCode());
+
+        verify(userDetailsService, times(1)).getCurrentUser();
+        verify(accountRepository, times(1)).findAllByUser(any(User.class));
+        verify(modelMapper, times(1)).map(any(Account.class), eq(AccountResponse.class));
     }
 
     @Test
     void shouldReturnAccountResponse() throws RecordDoesNotExistException {
         var accountResponse = accountService.findOneAsResponseByCurrentUserAndCurrencyCode(CurrencyCode.USD);
+
+        var account = Account.builder()
+                .id(1L)
+                .name("USD account")
+                .currencyCode(CurrencyCode.USD)
+                .build();
+
         assertEquals(account.getId(), accountResponse.getId());
         assertEquals(account.getName(), accountResponse.getName());
         assertEquals(account.getCurrencyCode().name(), accountResponse.getCurrencyCode());
+
+        verifyGetOne(new int[]{1, 1});
+        verify(modelMapper, times(1)).map(any(Account.class), eq(AccountResponse.class));
     }
 
     @Test
     void shouldThrowRecordDoesNotExistExceptionAccountResponse() {
         assertThrows(RecordDoesNotExistException.class,
                 () -> accountService.findOneAsResponseByCurrentUserAndCurrencyCode(CurrencyCode.EUR));
+
+        verifyGetOne(new int[]{1, 1});
+        verify(modelMapper, times(0)).map(any(Account.class), eq(AccountResponse.class));
     }
 
     @Test
     void shouldReturnAccount() throws RecordDoesNotExistException {
-        var account = accountService.findOneByCurrentUserAndCurrencyCode(CurrencyCode.USD);
-        assertEquals(this.account, account);
+        var returnedAccount = accountService.findOneByCurrentUserAndCurrencyCode(CurrencyCode.USD);
+
+        var user = User.builder()
+                .id(1L)
+                .email("mail@mail.com")
+                .password("password")
+                .role(Role.USER)
+                .build();
+
+        var account = Account.builder()
+                .id(1L)
+                .name("USD account")
+                .currencyCode(CurrencyCode.USD)
+                .user(user)
+                .build();
+
+        assertEquals(account, returnedAccount);
+
+        verifyGetOne(new int[]{1, 1});
     }
 
     @Test
     void shouldThrowRecordDoesNotExistExceptionAccount() {
         assertThrows(RecordDoesNotExistException.class,
                 () -> accountService.findOneByCurrentUserAndCurrencyCode(CurrencyCode.EUR));
+
+        verifyGetOne(new int[]{1, 1});
     }
 
     @Test
     void shouldReturnAccountResponseWhenAccountIsCreated() throws RecordAlreadyExistsException {
-        var accountResponse = accountService.createAccountForCurrentUser(accountRequest2);
-        assertEquals(account2.getId(), accountResponse.getId());
-        assertEquals(account2.getName(), accountResponse.getName());
-        assertEquals(account2.getCurrencyCode().name(), accountResponse.getCurrencyCode());
+        var accountRequest = AccountRequest.builder()
+                .name("EUR account")
+                .currencyCode(CurrencyCode.EUR)
+                .build();
+
+        var accountResponse = accountService.createAccountForCurrentUser(accountRequest);
+
+        var account = Account.builder()
+                .id(2L)
+                .name("EUR account")
+                .currencyCode(CurrencyCode.EUR)
+                .build();
+
+        assertEquals(account.getId(), accountResponse.getId());
+        assertEquals(account.getName(), accountResponse.getName());
+        assertEquals(account.getCurrencyCode().name(), accountResponse.getCurrencyCode());
+
+        verifySave(new int[]{1, 1, 1, 1, 1});
     }
 
     @Test
     void shouldThrowRecordAlreadyExistsExceptionWhenAccountAlreadyExists() {
+        var accountRequest = AccountRequest.builder()
+                .name("USD account")
+                .currencyCode(CurrencyCode.USD)
+                .build();
+
         assertThrows(RecordAlreadyExistsException.class,
                 () -> accountService.createAccountForCurrentUser(accountRequest));
+
+        verifySave(new int[]{1, 1, 0, 0, 0});
     }
 
     @Test
     void shouldReturnAccountResponseWhenAccountNameIsUpdated() throws RecordDoesNotExistException {
         var accountResponse = accountService.updateCurrentUserAccountName(
                 AccountRequest.builder().name("Changed name").currencyCode(CurrencyCode.USD).build());
+
+        var account = Account.builder()
+                .id(1L)
+                .name("Changed name")
+                .currencyCode(CurrencyCode.USD)
+                .build();
+
         assertEquals(account.getId(), accountResponse.getId());
         assertEquals("Changed name", accountResponse.getName());
         assertEquals(account.getCurrencyCode().name(), accountResponse.getCurrencyCode());
+
+        verifyUpdate(new int[]{1, 1});
     }
 
     @Test
@@ -162,5 +242,25 @@ class AccountServiceTest {
         assertThrows(RecordDoesNotExistException.class,
                 () -> accountService.updateCurrentUserAccountName(
                         AccountRequest.builder().name("Changed name").currencyCode(CurrencyCode.EUR).build()));
+
+        verifyUpdate(new int[]{1, 0});
+    }
+
+    void verifySave(int[] times) {
+        verify(userDetailsService, times(times[0])).getCurrentUser();
+        verify(accountRepository, times(times[1])).existsByUserAndCurrencyCode(any(User.class), any(CurrencyCode.class));
+        verify(accountRepository, times(times[2])).save(any(Account.class));
+        verify(modelMapper, times(times[3])).map(any(Account.class), eq(AccountResponse.class));
+        verify(modelMapper, times(times[4])).map(any(AccountRequest.class), eq(Account.class));
+    }
+
+    void verifyUpdate(int[] times) {
+        verify(accountRepository, times(times[0])).findByUserAndCurrencyCode(any(User.class), any(CurrencyCode.class));
+        verify(accountRepository, times(times[1])).updateAccountName(any(User.class), any(String.class), any(CurrencyCode.class));
+    }
+
+    void verifyGetOne(int[] times) {
+        verify(userDetailsService, times(times[0])).getCurrentUser();
+        verify(accountRepository, times(times[1])).findByUserAndCurrencyCode(any(User.class), any(CurrencyCode.class));
     }
 }
