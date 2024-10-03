@@ -28,15 +28,15 @@ import static org.mockito.Mockito.*;
 
 class CategoryServiceTest {
     @InjectMocks
-    private CategoryServiceImpl categoryService;
+    CategoryServiceImpl categoryService;
     @Mock
-    private CategoryRepository categoryRepository;
+    CategoryRepository categoryRepository;
     @Mock
-    private TransactionRepository transactionRepository;
+    TransactionRepository transactionRepository;
     @Mock
-    private UserDetailsServiceImpl userDetailsService;
+    UserDetailsServiceImpl userDetailsService;
     @Mock
-    private ModelMapper modelMapper;
+    ModelMapper modelMapper;
 
     @BeforeEach
     void setUp() {

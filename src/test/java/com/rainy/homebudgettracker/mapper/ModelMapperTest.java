@@ -7,38 +7,47 @@ import com.rainy.homebudgettracker.auth.UserDetailsServiceImpl;
 import com.rainy.homebudgettracker.category.Category;
 import com.rainy.homebudgettracker.category.CategoryRequest;
 import com.rainy.homebudgettracker.category.CategoryResponse;
+import com.rainy.homebudgettracker.transaction.Transaction;
 import com.rainy.homebudgettracker.transaction.TransactionRequest;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import com.rainy.homebudgettracker.transaction.enums.PaymentMethod;
 import com.rainy.homebudgettracker.user.Role;
 import com.rainy.homebudgettracker.user.User;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class ModelMapperTest {
-    private ModelMapper modelMapper;
-    private User user;
+    @InjectMocks
+    ModelMapper modelMapper;
+    @Mock
+    UserDetailsServiceImpl userDetailsService;
 
     @BeforeEach
     void setUp() {
-        user = User.builder()
+        MockitoAnnotations.openMocks(this);
+
+        var user = User.builder()
                 .id(1L)
                 .email("mail@mail.com")
                 .password("password")
                 .role(Role.USER)
                 .build();
 
-        var userDetailsService = mock(UserDetailsServiceImpl.class);
         when(userDetailsService.getCurrentUser()).thenReturn(user);
+    }
 
-        modelMapper = new ModelMapper(userDetailsService);
+    @AfterEach
+    void tearDown() {
     }
 
     @Test
@@ -46,13 +55,22 @@ class ModelMapperTest {
         var category = Category.builder()
                 .id(1L)
                 .name("Food")
-                .user(user)
+                .user(User.builder()
+                        .id(1L)
+                        .email("mail@mail.com")
+                        .password("password")
+                        .role(Role.USER)
+                        .build())
                 .build();
 
-        var categoryResponse = modelMapper.map(category, CategoryResponse.class);
+        var returnedCategoryResponse = modelMapper.map(category, CategoryResponse.class);
 
-        assertEquals(category.getId(), categoryResponse.getId());
-        assertEquals(category.getName(), categoryResponse.getName());
+        var categoryResponse = CategoryResponse.builder()
+                .id(1L)
+                .name("Food")
+                .build();
+
+        assertEquals(categoryResponse, returnedCategoryResponse);
     }
 
     @Test
@@ -68,11 +86,21 @@ class ModelMapperTest {
                 .name("Food")
                 .build();
 
-        var category = modelMapper.map(categoryRequest, Category.class);
+        var returnedCategory = modelMapper.map(categoryRequest, Category.class);
 
-        assertEquals(categoryRequest.getName(), category.getName());
-        assertNotNull(category.getUser());
-        assertEquals(user.getId(), category.getUser().getId());
+        var category = Category.builder()
+                .name("Food")
+                .user(User.builder()
+                        .id(1L)
+                        .email("mail@mail.com")
+                        .password("password")
+                        .role(Role.USER)
+                        .build())
+                .build();
+
+        assertEquals(category, returnedCategory);
+
+        verify(userDetailsService, times(1)).getCurrentUser();
     }
 
     @Test
@@ -80,6 +108,8 @@ class ModelMapperTest {
         var exception = assertThrows(
                 UnsupportedOperationException.class, () -> modelMapper.map(new Object(), CategoryRequest.class));
         assertEquals("Mapping not supported", exception.getMessage());
+
+        verify(userDetailsService, times(0)).getCurrentUser();
     }
 
     @Test
@@ -88,14 +118,23 @@ class ModelMapperTest {
                 .id(1L)
                 .name("Main")
                 .currencyCode(CurrencyCode.USD)
-                .user(user)
+                .user(User.builder()
+                        .id(1L)
+                        .email("mail@mail.com")
+                        .password("password")
+                        .role(Role.USER)
+                        .build())
                 .build();
 
-        var accountResponse = modelMapper.map(account, AccountResponse.class);
+        var returnedAccountResponse = modelMapper.map(account, AccountResponse.class);
 
-        assertEquals(account.getId(), accountResponse.getId());
-        assertEquals(account.getName(), accountResponse.getName());
-        assertEquals(account.getCurrencyCode().name(), accountResponse.getCurrencyCode());
+        var accountResponse = AccountResponse.builder()
+                .id(1L)
+                .name("Main")
+                .currencyCode(CurrencyCode.USD.name())
+                .build();
+
+        assertEquals(accountResponse, returnedAccountResponse);
     }
 
     @Test
@@ -112,12 +151,22 @@ class ModelMapperTest {
                 .currencyCode(CurrencyCode.USD)
                 .build();
 
-        var account = modelMapper.map(accountRequest, Account.class);
+        var returnedAccount = modelMapper.map(accountRequest, Account.class);
 
-        assertEquals(accountRequest.getName(), account.getName());
-        assertEquals(accountRequest.getCurrencyCode(), account.getCurrencyCode());
-        assertNotNull(account.getUser());
-        assertEquals(user.getId(), account.getUser().getId());
+        var account = Account.builder()
+                .name("Main")
+                .currencyCode(CurrencyCode.USD)
+                .user(User.builder()
+                        .id(1L)
+                        .email("mail@mail.com")
+                        .password("password")
+                        .role(Role.USER)
+                        .build())
+                .build();
+
+        assertEquals(account, returnedAccount);
+
+        verify(userDetailsService, times(1)).getCurrentUser();
     }
 
     @Test
@@ -125,10 +174,19 @@ class ModelMapperTest {
         var exception = assertThrows(
                 UnsupportedOperationException.class, () -> modelMapper.map(new Object(), AccountRequest.class));
         assertEquals("Mapping not supported", exception.getMessage());
+
+        verify(userDetailsService, times(0)).getCurrentUser();
     }
 
     @Test
     public void TransactionRequestToTransaction() {
+        var user = User.builder()
+                .id(1L)
+                .email("mail@mail.com")
+                .password("password")
+                .role(Role.USER)
+                .build();
+
         var account = Account.builder()
                 .id(1L)
                 .name("Main")
@@ -140,6 +198,7 @@ class ModelMapperTest {
                 .name("Food")
                 .user(user)
                 .build();
+
         var transactionRequest = TransactionRequest.builder()
                 .amount(BigDecimal.valueOf(100))
                 .date(LocalDate.now())
@@ -148,14 +207,18 @@ class ModelMapperTest {
                 .currencyCode(CurrencyCode.USD)
                 .build();
 
-        var transaction = modelMapper.mapTransactionRequestToTransaction(transactionRequest, account, category);
+        var returnedTransaction = modelMapper.mapTransactionRequestToTransaction(transactionRequest, account, category);
 
-        assertEquals(transactionRequest.getAmount(), transaction.getAmount());
-        assertEquals(category, transaction.getCategory());
-        assertEquals(transactionRequest.getDate(), transaction.getDate());
-        assertEquals(account, transaction.getAccount());
-        assertEquals(transactionRequest.getPaymentMethod(), transaction.getPaymentMethod());
-        assertEquals(user, transaction.getUser());
+        var transaction = Transaction.builder()
+                .amount(transactionRequest.getAmount())
+                .category(category)
+                .date(transactionRequest.getDate())
+                .account(account)
+                .paymentMethod(transactionRequest.getPaymentMethod())
+                .user(user)
+                .build();
+
+        assertEquals(transaction, returnedTransaction);
     }
 
     @Test
@@ -174,6 +237,13 @@ class ModelMapperTest {
 
     @Test
     public void shouldMapTransactionRequestToTransaction() {
+        var user = User.builder()
+                .id(1L)
+                .email("mail@mail.com")
+                .password("password")
+                .role(Role.USER)
+                .build();
+
         var account = Account.builder()
                 .id(1L)
                 .name("Main")
@@ -185,6 +255,7 @@ class ModelMapperTest {
                 .name("Food")
                 .user(user)
                 .build();
+
         var transactionRequest = TransactionRequest.builder()
                 .amount(BigDecimal.valueOf(100))
                 .date(LocalDate.now())
@@ -193,13 +264,17 @@ class ModelMapperTest {
                 .currencyCode(CurrencyCode.USD)
                 .build();
 
-        var transaction = modelMapper.mapTransactionRequestToTransaction(transactionRequest, account, category);
+        var returnedTransaction = modelMapper.mapTransactionRequestToTransaction(transactionRequest, account, category);
 
-        assertEquals(transactionRequest.getAmount(), transaction.getAmount());
-        assertEquals(category, transaction.getCategory());
-        assertEquals(transactionRequest.getDate(), transaction.getDate());
-        assertEquals(account, transaction.getAccount());
-        assertEquals(transactionRequest.getPaymentMethod(), transaction.getPaymentMethod());
-        assertEquals(user, transaction.getUser());
+        var transaction = Transaction.builder()
+                .amount(transactionRequest.getAmount())
+                .category(category)
+                .date(transactionRequest.getDate())
+                .account(account)
+                .paymentMethod(transactionRequest.getPaymentMethod())
+                .user(user)
+                .build();
+
+        assertEquals(transaction, returnedTransaction);
     }
 }
