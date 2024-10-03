@@ -1,33 +1,32 @@
 package com.rainy.homebudgettracker.exchange;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rainy.homebudgettracker.handler.exception.ExchangeRateApiException;
 import com.rainy.homebudgettracker.handler.exception.QuotaReachedException;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Answers;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.MediaType;
+import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 class ExchangeServiceTest {
-    private ExchangeService exchangeService;
+    @InjectMocks
+    ExchangeServiceImpl exchangeService;
+    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
+    RestClient restClient;
 
     @BeforeEach
     void setUp() throws JsonProcessingException {
-        var restClient = mock(RestClient.class, RETURNS_DEEP_STUBS);
+        MockitoAnnotations.initMocks(this);
 
         ResponseEntity<ExchangeResponse> exchangeResponse = ResponseEntity.ok(ExchangeResponse.builder()
                 .result("success")
@@ -54,8 +53,6 @@ class ExchangeServiceTest {
 
         ResponseEntity<ExchangeResponse> exchangeResponseNull = ResponseEntity.ok(null);
 
-        exchangeService = new ExchangeServiceImpl(restClient);
-
         when(restClient.get().uri("/pair/EUR/GBP").retrieve().toEntity(ExchangeResponse.class))
                 .thenReturn(exchangeResponse);
         when(restClient.get().uri("/pair/EUR/USD").retrieve().toEntity(ExchangeResponse.class))
@@ -64,6 +61,11 @@ class ExchangeServiceTest {
                 .thenReturn(exchangeResponseQuotaReached);
         when(restClient.get().uri("/pair/USD/JPY").retrieve().toEntity(ExchangeResponse.class))
                 .thenReturn(exchangeResponseNull);
+    }
+
+    @AfterEach
+    void tearDown() {
+        exchangeService = null;
     }
 
     @Test

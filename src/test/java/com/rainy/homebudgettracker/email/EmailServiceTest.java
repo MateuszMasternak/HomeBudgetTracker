@@ -20,16 +20,16 @@ import static org.mockito.Mockito.*;
 class EmailServiceTest {
 
     @Mock
-    private JavaMailSender mailSender;
+    JavaMailSender mailSender;
 
     @Mock
-    private SpringTemplateEngine templateEngine;
+    SpringTemplateEngine templateEngine;
 
     @InjectMocks
-    private EmailService emailService;
+    EmailService emailService;
 
     @Mock
-    private MimeMessage mimeMessage;
+    MimeMessage mimeMessage;
 
     @BeforeEach
     void setUp() {
@@ -39,7 +39,7 @@ class EmailServiceTest {
     }
 
     @Test
-    void sendConfirmationEmail_shouldSendEmailWithCorrectTemplate() throws MessagingException {
+    void shouldSendEmailWithCorrectTemplateConfirmationEmail() throws MessagingException {
         // Arrange
         String to = "test@example.com";
         String username = "JohnDoe";
@@ -73,7 +73,7 @@ class EmailServiceTest {
     }
 
     @Test
-    void sendPasswordResetEmail_shouldSendEmailWithCorrectTemplate() throws MessagingException {
+    void shouldSendEmailWithCorrectTemplatePasswordResetEmail() throws MessagingException {
         // Arrange
         String to = "test@example.com";
         String username = "JohnDoe";
@@ -102,7 +102,7 @@ class EmailServiceTest {
     }
 
     @Test
-    void sendConfirmationEmail_shouldUseDefaultTemplateWhenTemplateIsNull() throws MessagingException {
+    void shouldUseDefaultTemplateWhenTemplateIsNullConfirmationEmail() throws MessagingException {
         String to = "test@example.com";
         String username = "JohnDoe";
         String confirmationUrl = "http://test.com/confirm";

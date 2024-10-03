@@ -39,19 +39,19 @@ import static org.mockito.Mockito.*;
 
 class TransactionServiceTest {
     @InjectMocks
-    private TransactionServiceImpl transactionService;
+    TransactionServiceImpl transactionService;
     @Mock
-    private TransactionRepository transactionRepository;
+    TransactionRepository transactionRepository;
     @Mock
-    private CategoryService categoryService;
+    CategoryService categoryService;
     @Mock
-    private AccountService accountService;
+    AccountService accountService;
     @Mock
-    private ExchangeService exchangeService;
+    ExchangeService exchangeService;
     @Mock
-    private ModelMapper modelMapper;
+    ModelMapper modelMapper;
     @Mock
-    private UserDetailsServiceImpl userDetailsService;
+    UserDetailsServiceImpl userDetailsService;
 
     @BeforeEach
     void setUp() throws RecordDoesNotExistException {
