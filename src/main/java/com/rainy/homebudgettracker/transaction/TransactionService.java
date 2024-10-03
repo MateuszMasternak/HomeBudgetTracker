@@ -4,6 +4,7 @@ import com.rainy.homebudgettracker.category.CategoryRequest;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
+import com.rainy.homebudgettracker.user.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -43,6 +44,6 @@ public interface TransactionService {
     SumResponse sumNegativeAmountByCurrentUserAndAccount(CurrencyCode currencyCode)
             throws RecordDoesNotExistException;
     SumResponse sumAmountByCurrentUserAndAccount(CurrencyCode currencyCode) throws RecordDoesNotExistException;
-    List<TransactionResponse> findAllByCurrentUser();
+    List<TransactionResponse> findAllByUser(User user);
     byte[] generateCsvFileForCurrentUserTransactions() throws IOException;
 }

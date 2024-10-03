@@ -178,8 +178,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public List<TransactionResponse> findAllByCurrentUser() {
-        User user = userDetailsService.getCurrentUser();
+    public List<TransactionResponse> findAllByUser(User user) {
         Iterable<Transaction> transactions = transactionRepository.findAllByUser(user);
         List<TransactionResponse> transactionResponses = new ArrayList<>();
         transactions.forEach(t -> transactionResponses.add(modelMapper.map(t, TransactionResponse.class)));
@@ -189,7 +188,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public byte[] generateCsvFileForCurrentUserTransactions() throws IOException {
         User user = userDetailsService.getCurrentUser();
-        List<TransactionResponse> transactionResponses = findAllByCurrentUser();
+        List<TransactionResponse> transactionResponses = findAllByUser(user);
 
         Path csvFilePath = Paths.get("temp_transactions_" + user.getId() + "_" + LocalDate.now() + ".csv");
 
