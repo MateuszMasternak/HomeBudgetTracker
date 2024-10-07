@@ -15,6 +15,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode
 @Entity
 @Table(name = "_user") // User is a reserved keyword in PostgreSQL which is going to be used as a production database
 public class User implements UserDetails, Principal {

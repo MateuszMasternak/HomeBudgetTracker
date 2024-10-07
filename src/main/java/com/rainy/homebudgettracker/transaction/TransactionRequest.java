@@ -5,6 +5,7 @@ import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import com.rainy.homebudgettracker.transaction.enums.PaymentMethod;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,6 +15,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @Builder
+@EqualsAndHashCode
 public class TransactionRequest {
     @NotNull(message = "Amount is required")
     BigDecimal amount;

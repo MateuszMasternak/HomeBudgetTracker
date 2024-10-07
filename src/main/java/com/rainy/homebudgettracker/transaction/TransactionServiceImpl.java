@@ -10,7 +10,7 @@ import com.rainy.homebudgettracker.exchange.ExchangeResponse;
 import com.rainy.homebudgettracker.exchange.ExchangeService;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
-import com.rainy.homebudgettracker.helpers.ModelMapper;
+import com.rainy.homebudgettracker.mapper.ModelMapper;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import com.rainy.homebudgettracker.user.User;
 import lombok.RequiredArgsConstructor;
@@ -118,13 +118,12 @@ public class TransactionServiceImpl implements TransactionService {
     public TransactionResponse createTransactionForCurrentUser(CurrencyCode targetCurrency, BigDecimal exchangeRate,
                                                                TransactionRequest transactionRequest
     ) throws RecordDoesNotExistException {
-
         if (exchangeRate != null) {
             convertCurrency(transactionRequest, exchangeRate, targetCurrency);
         } else {
             ExchangeResponse exchangeResponse = exchangeService.getExchangeRate(
-                    transactionRequest.getCurrencyCode().name(),
-                    targetCurrency.toString()
+                    transactionRequest.getCurrencyCode(),
+                    targetCurrency
             );
             String apiExchangeRate = exchangeResponse.getConversionRate();
             BigDecimal apiExchangeRateBG = new BigDecimal(apiExchangeRate);
@@ -179,8 +178,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public List<TransactionResponse> findAllByCurrentUser() {
-        User user = userDetailsService.getCurrentUser();
+    public List<TransactionResponse> findAllByUser(User user) {
         Iterable<Transaction> transactions = transactionRepository.findAllByUser(user);
         List<TransactionResponse> transactionResponses = new ArrayList<>();
         transactions.forEach(t -> transactionResponses.add(modelMapper.map(t, TransactionResponse.class)));
@@ -190,14 +188,15 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public byte[] generateCsvFileForCurrentUserTransactions() throws IOException {
         User user = userDetailsService.getCurrentUser();
-        List<TransactionResponse> transactionResponses = findAllByCurrentUser();
+        List<TransactionResponse> transactionResponses = findAllByUser(user);
 
         Path csvFilePath = Paths.get("temp_transactions_" + user.getId() + "_" + LocalDate.now() + ".csv");
 
         try (FileWriter writer = new FileWriter(csvFilePath.toString())) {
             writer.append("sep=,\n"); // separator for microsoft excel
-            writer.append("ID,Amount,Category,Date,Currency code\n");
+            writer.append("ID,Amount,Category,Date,Currency code,Payment method\n");
             for (TransactionResponse transactionResponse : transactionResponses) {
+                System.out.println(transactionResponse);
                 writer.append(transactionResponse.getId().toString())
                         .append(",")
                         .append(transactionResponse.getAmount())
@@ -207,6 +206,8 @@ public class TransactionServiceImpl implements TransactionService {
                         .append(transactionResponse.getDate())
                         .append(",")
                         .append(transactionResponse.getAccount().getCurrencyCode())
+                        .append(",")
+                        .append(transactionResponse.getPaymentMethod())
                         .append("\n");
             }
         }

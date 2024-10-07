@@ -5,7 +5,7 @@ import com.rainy.homebudgettracker.handler.exception.CategoryAssociatedWithTrans
 import com.rainy.homebudgettracker.handler.exception.RecordAlreadyExistsException;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
-import com.rainy.homebudgettracker.helpers.ModelMapper;
+import com.rainy.homebudgettracker.mapper.ModelMapper;
 import com.rainy.homebudgettracker.transaction.TransactionRepository;
 import com.rainy.homebudgettracker.user.User;
 import lombok.RequiredArgsConstructor;
@@ -59,14 +59,13 @@ public class CategoryServiceImpl implements  CategoryService {
     @Override
     public CategoryResponse createCategoryForCurrentUser(CategoryRequest categoryRequest)
             throws RecordAlreadyExistsException {
-        try {
-            Category category = modelMapper.map(categoryRequest, Category.class);
-
-            Category savedCategory = categoryRepository.save(category);
-            return modelMapper.map(savedCategory, CategoryResponse.class);
-        } catch (Exception e) {
+        Category category = modelMapper.map(categoryRequest, Category.class);
+        if (categoryRepository.existsByUserAndName(category.getUser(), category.getName())) {
             throw new RecordAlreadyExistsException(
                     "Category with name " + categoryRequest.getName() + " already exists.");
+        } else {
+            Category savedCategory = categoryRepository.save(category);
+            return modelMapper.map(savedCategory, CategoryResponse.class);
         }
     }
 

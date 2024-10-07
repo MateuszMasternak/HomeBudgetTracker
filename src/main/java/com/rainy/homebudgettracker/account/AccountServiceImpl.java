@@ -3,7 +3,7 @@ package com.rainy.homebudgettracker.account;
 import com.rainy.homebudgettracker.auth.UserDetailsServiceImpl;
 import com.rainy.homebudgettracker.handler.exception.RecordAlreadyExistsException;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
-import com.rainy.homebudgettracker.helpers.ModelMapper;
+import com.rainy.homebudgettracker.mapper.ModelMapper;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import com.rainy.homebudgettracker.user.User;
 import lombok.RequiredArgsConstructor;
@@ -23,15 +23,12 @@ public class AccountServiceImpl implements AccountService {
     private final ModelMapper modelMapper;
 
     @Override
-    public Iterable<AccountResponse> findAllByCurrentUser() {
+    public List<AccountResponse> findAllByCurrentUser() {
         User user = userDetailsService.getCurrentUser();
         Iterable<Account> accounts = accountRepository.findAllByUser(user);
 
         List<AccountResponse> accountResponses = new ArrayList<>();
-        for (Account account : accounts) {
-            AccountResponse accountResponse = modelMapper.map(account, AccountResponse.class);
-            accountResponses.add(accountResponse);
-        }
+        accounts.forEach(account -> accountResponses.add(modelMapper.map(account, AccountResponse.class)));
         return accountResponses;
     }
 
@@ -39,13 +36,10 @@ public class AccountServiceImpl implements AccountService {
     public AccountResponse findOneAsResponseByCurrentUserAndCurrencyCode(CurrencyCode currencyCode)
             throws RecordDoesNotExistException
     {
-        try {
             User user = userDetailsService.getCurrentUser();
-            Account account = accountRepository.findByUserAndCurrencyCode(user, currencyCode).orElseThrow();
+            Account account = accountRepository.findByUserAndCurrencyCode(user, currencyCode).orElseThrow(
+                    () -> new RecordDoesNotExistException("Account with currency code " + currencyCode + " does not exist."));
             return modelMapper.map(account, AccountResponse.class);
-        } catch (NoSuchElementException e) {
-            throw new RecordDoesNotExistException("Account with currency code " + currencyCode + " does not exist.");
-        }
     }
 
     @Override
