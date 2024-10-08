@@ -3,7 +3,6 @@ package com.rainy.homebudgettracker.transaction;
 import com.rainy.homebudgettracker.account.Account;
 import com.rainy.homebudgettracker.account.AccountResponse;
 import com.rainy.homebudgettracker.account.AccountService;
-import com.rainy.homebudgettracker.auth.UserDetailsServiceImpl;
 import com.rainy.homebudgettracker.category.Category;
 import com.rainy.homebudgettracker.category.CategoryRequest;
 import com.rainy.homebudgettracker.category.CategoryResponse;
@@ -17,6 +16,7 @@ import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import com.rainy.homebudgettracker.transaction.enums.PaymentMethod;
 import com.rainy.homebudgettracker.user.Role;
 import com.rainy.homebudgettracker.user.User;
+import com.rainy.homebudgettracker.user.UserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,7 +51,7 @@ class TransactionServiceTest {
     @Mock
     ModelMapper modelMapper;
     @Mock
-    UserDetailsServiceImpl userDetailsService;
+    UserService userService;
 
     @BeforeEach
     void setUp() throws RecordDoesNotExistException {
@@ -63,7 +63,7 @@ class TransactionServiceTest {
                 .password("password")
                 .role(Role.USER)
                 .build();
-        when(userDetailsService.getCurrentUser()).thenReturn(user);
+        when(userService.getCurrentUser()).thenReturn(user);
 
         var account = Account.builder()
                 .id(1L)
@@ -687,7 +687,7 @@ class TransactionServiceTest {
         var expectedCsvAsBytes = expectedCsv.getBytes();
         assertArrayEquals(expectedCsvAsBytes, csv);
 
-        verify(userDetailsService, times(1)).getCurrentUser();
+        verify(userService, times(1)).getCurrentUser();
     }
 
     void verifyFindAllByCurrentUserAndAccount(int[] times) throws RecordDoesNotExistException {
@@ -726,7 +726,7 @@ class TransactionServiceTest {
     }
 
     void verifyGetCurrentUserAndFindOneAccount(int[] times) throws RecordDoesNotExistException {
-        verify(userDetailsService, times(times[0])).getCurrentUser();
+        verify(userService, times(times[0])).getCurrentUser();
         verify(accountService, times(times[1])).findOneByCurrentUserAndCurrencyCode(any(CurrencyCode.class));
     }
 
@@ -736,7 +736,7 @@ class TransactionServiceTest {
     }
 
     void verifyDelete(int[] times) {
-        verify(userDetailsService, times(times[0])).getCurrentUser();
+        verify(userService, times(times[0])).getCurrentUser();
         verify(transactionRepository, times(times[1])).findById(any(Long.class));
         verify(transactionRepository, times(times[2])).deleteById(any(Long.class));
     }

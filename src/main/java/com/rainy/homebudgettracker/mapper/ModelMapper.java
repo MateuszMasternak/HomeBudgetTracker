@@ -3,7 +3,7 @@ package com.rainy.homebudgettracker.mapper;
 import com.rainy.homebudgettracker.account.Account;
 import com.rainy.homebudgettracker.account.AccountRequest;
 import com.rainy.homebudgettracker.account.AccountResponse;
-import com.rainy.homebudgettracker.auth.UserDetailsServiceImpl;
+import com.rainy.homebudgettracker.user.UserService;
 import com.rainy.homebudgettracker.category.Category;
 import com.rainy.homebudgettracker.category.CategoryRequest;
 import com.rainy.homebudgettracker.category.CategoryResponse;
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class ModelMapper {
-    private final UserDetailsServiceImpl userDetailsService;
+    private final UserService userService;
 
     // DOESN'T INCLUDE MAPPING TransactionRequest TO Transaction
     @SuppressWarnings("unchecked")
@@ -90,7 +90,7 @@ public class ModelMapper {
     private Category mapCategoryRequestToCategory(CategoryRequest categoryRequest) {
         return Category.builder()
                 .name(categoryRequest.getName())
-                .user(userDetailsService.getCurrentUser())
+                .user(userService.getCurrentUser())
                 .build();
     }
 
@@ -106,7 +106,7 @@ public class ModelMapper {
         return Account.builder()
                 .name(accountRequest.getName())
                 .currencyCode(accountRequest.getCurrencyCode())
-                .user(userDetailsService.getCurrentUser())
+                .user(userService.getCurrentUser())
                 .build();
     }
 }

@@ -3,7 +3,6 @@ package com.rainy.homebudgettracker.mapper;
 import com.rainy.homebudgettracker.account.Account;
 import com.rainy.homebudgettracker.account.AccountRequest;
 import com.rainy.homebudgettracker.account.AccountResponse;
-import com.rainy.homebudgettracker.auth.UserDetailsServiceImpl;
 import com.rainy.homebudgettracker.category.Category;
 import com.rainy.homebudgettracker.category.CategoryRequest;
 import com.rainy.homebudgettracker.category.CategoryResponse;
@@ -13,6 +12,7 @@ import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import com.rainy.homebudgettracker.transaction.enums.PaymentMethod;
 import com.rainy.homebudgettracker.user.Role;
 import com.rainy.homebudgettracker.user.User;
+import com.rainy.homebudgettracker.user.UserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,7 +30,7 @@ class ModelMapperTest {
     @InjectMocks
     ModelMapper modelMapper;
     @Mock
-    UserDetailsServiceImpl userDetailsService;
+    UserService userService;
 
     @BeforeEach
     void setUp() {
@@ -43,7 +43,7 @@ class ModelMapperTest {
                 .role(Role.USER)
                 .build();
 
-        when(userDetailsService.getCurrentUser()).thenReturn(user);
+        when(userService.getCurrentUser()).thenReturn(user);
     }
 
     @AfterEach
@@ -100,7 +100,7 @@ class ModelMapperTest {
 
         assertEquals(category, returnedCategory);
 
-        verify(userDetailsService, times(1)).getCurrentUser();
+        verify(userService, times(1)).getCurrentUser();
     }
 
     @Test
@@ -109,7 +109,7 @@ class ModelMapperTest {
                 UnsupportedOperationException.class, () -> modelMapper.map(new Object(), CategoryRequest.class));
         assertEquals("Mapping not supported", exception.getMessage());
 
-        verify(userDetailsService, times(0)).getCurrentUser();
+        verify(userService, times(0)).getCurrentUser();
     }
 
     @Test
@@ -166,7 +166,7 @@ class ModelMapperTest {
 
         assertEquals(account, returnedAccount);
 
-        verify(userDetailsService, times(1)).getCurrentUser();
+        verify(userService, times(1)).getCurrentUser();
     }
 
     @Test
@@ -175,7 +175,7 @@ class ModelMapperTest {
                 UnsupportedOperationException.class, () -> modelMapper.map(new Object(), AccountRequest.class));
         assertEquals("Mapping not supported", exception.getMessage());
 
-        verify(userDetailsService, times(0)).getCurrentUser();
+        verify(userService, times(0)).getCurrentUser();
     }
 
     @Test

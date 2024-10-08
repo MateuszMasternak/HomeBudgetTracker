@@ -1,6 +1,6 @@
 package com.rainy.homebudgettracker.category;
 
-import com.rainy.homebudgettracker.auth.UserDetailsServiceImpl;
+import com.rainy.homebudgettracker.user.UserService;
 import com.rainy.homebudgettracker.handler.exception.CategoryAssociatedWithTransactionException;
 import com.rainy.homebudgettracker.handler.exception.RecordAlreadyExistsException;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
@@ -22,26 +22,26 @@ import java.util.Optional;
 public class CategoryServiceImpl implements  CategoryService {
     private final CategoryRepository categoryRepository;
     private final TransactionRepository transactionRepository;
-    private final UserDetailsServiceImpl userDetailsService;
+    private final UserService userService;
     private final ModelMapper modelMapper;
 
     @Override
     public Page<CategoryResponse> findAllByCurrentUser(Pageable pageable) {
-        User user = userDetailsService.getCurrentUser();
+        User user = userService.getCurrentUser();
         Page<Category> categories = categoryRepository.findAllByUser(user, pageable);
         return categories.map(category -> modelMapper.map(category, CategoryResponse.class));
     }
 
     @Override
     public List<CategoryResponse> findAllByCurrentUser() {
-        User user = userDetailsService.getCurrentUser();
+        User user = userService.getCurrentUser();
         Iterable<Category> categories = categoryRepository.findAllByUser(user);
         return mapIterableCategoryToResponseCategoryList(categories);
     }
 
     @Override
     public CategoryResponse findOneAsResponseByCurrentUserAndName(String name) throws RecordDoesNotExistException {
-        User user = userDetailsService.getCurrentUser();
+        User user = userService.getCurrentUser();
         Category category = categoryRepository.findByUserAndName(user, name).orElseThrow(
                 () -> new RecordDoesNotExistException("Category with name " + name + " does not exist.")
         );
@@ -50,7 +50,7 @@ public class CategoryServiceImpl implements  CategoryService {
 
     @Override
     public Category findOneByCurrentUserAndName(String name) throws RecordDoesNotExistException {
-        User user = userDetailsService.getCurrentUser();
+        User user = userService.getCurrentUser();
         return categoryRepository.findByUserAndName(user, name).orElseThrow(
                 () -> new RecordDoesNotExistException("Category with name " + name + " does not exist.")
         );
@@ -75,7 +75,7 @@ public class CategoryServiceImpl implements  CategoryService {
             UserIsNotOwnerException,
             CategoryAssociatedWithTransactionException
     {
-        User user = userDetailsService.getCurrentUser();
+        User user = userService.getCurrentUser();
         Optional<Category> category = categoryRepository.findById(categoryId);
         if (category.isEmpty()) {
             throw new RecordDoesNotExistException("Category with id " + categoryId + " does not exist.");

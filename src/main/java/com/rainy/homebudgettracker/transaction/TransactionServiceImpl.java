@@ -2,7 +2,6 @@ package com.rainy.homebudgettracker.transaction;
 
 import com.rainy.homebudgettracker.account.Account;
 import com.rainy.homebudgettracker.account.AccountService;
-import com.rainy.homebudgettracker.auth.UserDetailsServiceImpl;
 import com.rainy.homebudgettracker.category.Category;
 import com.rainy.homebudgettracker.category.CategoryRequest;
 import com.rainy.homebudgettracker.category.CategoryService;
@@ -13,6 +12,7 @@ import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import com.rainy.homebudgettracker.user.User;
+import com.rainy.homebudgettracker.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -38,12 +38,12 @@ public class TransactionServiceImpl implements TransactionService {
     private final AccountService accountService;
     private final ExchangeService exchangeService;
     private final ModelMapper modelMapper;
-    private final UserDetailsServiceImpl userDetailsService;
+    private final UserService userService;
 
     @Override
     public Page<TransactionResponse> findAllByCurrentUserAndAccount(CurrencyCode currencyCode, Pageable pageable)
             throws RecordDoesNotExistException {
-        User user = userDetailsService.getCurrentUser();
+        User user = userService.getCurrentUser();
         Account account = accountService.findOneByCurrentUserAndCurrencyCode(currencyCode);
         Page<Transaction> transactions = transactionRepository.findAllByUserAndAccount(user, account, pageable);
         return transactions.map(t -> modelMapper.map(t, TransactionResponse.class));
@@ -53,7 +53,7 @@ public class TransactionServiceImpl implements TransactionService {
     public Page<TransactionResponse> findAllByCurrentUserAndAccountAndCategory(
             CurrencyCode currencyCode, CategoryRequest categoryName, Pageable pageable
     ) throws RecordDoesNotExistException {
-        User user = userDetailsService.getCurrentUser();
+        User user = userService.getCurrentUser();
         Category category = categoryService.findOneByCurrentUserAndName(categoryName.getName());
 
         Account account = accountService.findOneByCurrentUserAndCurrencyCode(currencyCode);
@@ -71,7 +71,7 @@ public class TransactionServiceImpl implements TransactionService {
             LocalDate endDate,
             Pageable pageable
     ) throws RecordDoesNotExistException {
-        User user = userDetailsService.getCurrentUser();
+        User user = userService.getCurrentUser();
         Account account = accountService.findOneByCurrentUserAndCurrencyCode(currencyCode);
         Page<Transaction> transactions = transactionRepository.findAllByUserAndAccountAndDateBetween(
                 user,
@@ -91,7 +91,7 @@ public class TransactionServiceImpl implements TransactionService {
             LocalDate endDate,
             Pageable pageable
     ) throws RecordDoesNotExistException {
-        User user = userDetailsService.getCurrentUser();
+        User user = userService.getCurrentUser();
         Category category = categoryService.findOneByCurrentUserAndName(categoryName);
         Account account = accountService.findOneByCurrentUserAndCurrencyCode(currencyCode);
 
@@ -137,7 +137,7 @@ public class TransactionServiceImpl implements TransactionService {
     public void deleteCurrentUserTransaction(Long transactionId) throws
             RecordDoesNotExistException,
             UserIsNotOwnerException {
-        User user = userDetailsService.getCurrentUser();
+        User user = userService.getCurrentUser();
         Optional<Transaction> transaction = transactionRepository.findById(transactionId);
         if (transaction.isEmpty()) {
             throw new RecordDoesNotExistException("Transaction with id " + transactionId + " does not exist.");
@@ -151,7 +151,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public SumResponse sumPositiveAmountByCurrentUserAndAccount(CurrencyCode currencyCode)
             throws RecordDoesNotExistException {
-        User user = userDetailsService.getCurrentUser();
+        User user = userService.getCurrentUser();
         Account account = accountService.findOneByCurrentUserAndCurrencyCode(currencyCode);
         BigDecimal sum = transactionRepository.sumPositiveAmountByUserAndAccount(user, account);
         String amount = sum == null ? "0" : sum.toString();
@@ -161,7 +161,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public SumResponse sumNegativeAmountByCurrentUserAndAccount(CurrencyCode currencyCode)
             throws RecordDoesNotExistException {
-        User user = userDetailsService.getCurrentUser();
+        User user = userService.getCurrentUser();
         Account account = accountService.findOneByCurrentUserAndCurrencyCode(currencyCode);
         BigDecimal sum = transactionRepository.sumNegativeAmountByUserAndAccount(user, account);
         String amount = sum == null ? "0" : sum.toString();
@@ -170,7 +170,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public SumResponse sumAmountByCurrentUserAndAccount(CurrencyCode currencyCode) throws RecordDoesNotExistException {
-        User user = userDetailsService.getCurrentUser();
+        User user = userService.getCurrentUser();
         Account account = accountService.findOneByCurrentUserAndCurrencyCode(currencyCode);
         BigDecimal sum = transactionRepository.sumAmountByUserAndAccount(user, account);
         String amount = sum == null ? "0" : sum.toString();
@@ -187,7 +187,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public byte[] generateCsvFileForCurrentUserTransactions() throws IOException {
-        User user = userDetailsService.getCurrentUser();
+        User user = userService.getCurrentUser();
         List<TransactionResponse> transactionResponses = findAllByUser(user);
 
         Path csvFilePath = Paths.get("temp_transactions_" + user.getId() + "_" + LocalDate.now() + ".csv");
