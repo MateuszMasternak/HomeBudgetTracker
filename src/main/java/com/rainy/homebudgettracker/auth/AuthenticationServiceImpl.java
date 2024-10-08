@@ -3,6 +3,7 @@ package com.rainy.homebudgettracker.auth;
 import com.rainy.homebudgettracker.email.EmailService;
 import com.rainy.homebudgettracker.email.EmailTemplateName;
 import com.rainy.homebudgettracker.handler.exception.EmailAlreadyExistsException;
+import com.rainy.homebudgettracker.handler.exception.EmailAlreadyInUseException;
 import com.rainy.homebudgettracker.handler.exception.ExpiredConfirmationTokenException;
 import com.rainy.homebudgettracker.handler.exception.InvalidConfirmationTokenException;
 import com.rainy.homebudgettracker.user.*;
@@ -29,6 +30,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final TokenRepository tokenRepository;
     private final EmailService emailService;
+    private final UserService userService;
 
     @Value("${application.mailing.frontend.activation-url}")
     private String activationUrl;
@@ -168,8 +170,21 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public void changePassword(User user, ChangePasswordRequest changePasswordRequest) {
+    public void changePassword(ChangePasswordRequest changePasswordRequest) {
+        User user = userService.getCurrentUser();
         user.setPassword(passwordEncoder.encode(changePasswordRequest.getPassword()));
+        userRepository.save(user);
+    }
+
+    @Override
+    public void changeEmail(ChangeEmailRequest changeEmailRequest) throws EmailAlreadyInUseException {
+        User user = userService.getCurrentUser();
+
+        if (userRepository.existsByEmail(changeEmailRequest.getEmail())) {
+            throw new EmailAlreadyInUseException("Email already in use");
+        }
+
+        user.setEmail(changeEmailRequest.getEmail());
         userRepository.save(user);
     }
 }

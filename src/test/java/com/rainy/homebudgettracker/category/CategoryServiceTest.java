@@ -1,6 +1,6 @@
 package com.rainy.homebudgettracker.category;
 
-import com.rainy.homebudgettracker.auth.UserDetailsServiceImpl;
+import com.rainy.homebudgettracker.user.UserService;
 import com.rainy.homebudgettracker.handler.exception.CategoryAssociatedWithTransactionException;
 import com.rainy.homebudgettracker.handler.exception.RecordAlreadyExistsException;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
@@ -34,7 +34,7 @@ class CategoryServiceTest {
     @Mock
     TransactionRepository transactionRepository;
     @Mock
-    UserDetailsServiceImpl userDetailsService;
+    UserService userService;
     @Mock
     ModelMapper modelMapper;
 
@@ -48,7 +48,7 @@ class CategoryServiceTest {
                 .password("password")
                 .role(Role.USER)
                 .build();
-        when(userDetailsService.getCurrentUser()).thenReturn(user);
+        when(userService.getCurrentUser()).thenReturn(user);
 
         var category = Category.builder()
                 .id(1L)
@@ -187,7 +187,7 @@ class CategoryServiceTest {
 
         assertEquals(category, returnedCategory);
 
-        verify(userDetailsService, times(1)).getCurrentUser();
+        verify(userService, times(1)).getCurrentUser();
         verify(categoryRepository, times(1)).findByUserAndName(any(User.class), eq("Food"));
     }
 
@@ -196,7 +196,7 @@ class CategoryServiceTest {
         assertThrows(RecordDoesNotExistException.class,
                 () -> categoryService.findOneByCurrentUserAndName("Healthcare"));
 
-        verify(userDetailsService, times(1)).getCurrentUser();
+        verify(userService, times(1)).getCurrentUser();
         verify(categoryRepository, times(1)).findByUserAndName(any(User.class), eq("Healthcare"));
     }
 
@@ -264,7 +264,7 @@ class CategoryServiceTest {
     }
 
     void verifyUserDetailsServiceAndModelMapper(int[] times) {
-        verify(userDetailsService, times(times[0])).getCurrentUser();
+        verify(userService, times(times[0])).getCurrentUser();
         verify(modelMapper, times(times[1])).map(any(Category.class), eq(CategoryResponse.class));
     }
 
@@ -275,7 +275,7 @@ class CategoryServiceTest {
     }
 
     void verifyDeleteCategory(int[] times) {
-        verify(userDetailsService, times(times[0])).getCurrentUser();
+        verify(userService, times(times[0])).getCurrentUser();
         verify(categoryRepository, times(times[1])).findById(anyLong());
         verify(transactionRepository, times(times[2])).existsByCategory(any(Category.class));
         verify(categoryRepository, times(times[3])).deleteById(anyLong());

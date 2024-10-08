@@ -93,7 +93,6 @@ public class GlobalExceptionHandler {
                 .body(
                         ExceptionResponse.builder()
                                 .businessErrorDescription("Internal server error. Contact support")
-                                .error(e.getMessage())
                                 .build()
                 );
     }
@@ -223,6 +222,19 @@ public class GlobalExceptionHandler {
                         ExceptionResponse.builder()
                                 .businessErrorCode(EXCHANGE_RATE_API_ERROR.getCode())
                                 .businessErrorDescription(EXCHANGE_RATE_API_ERROR.getDescription())
+                                .build()
+                );
+    }
+
+    @ExceptionHandler(EmailAlreadyInUseException.class)
+    public ResponseEntity<ExceptionResponse> handleException(EmailAlreadyInUseException e) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(
+                        ExceptionResponse.builder()
+                                .businessErrorCode(INVALID_POST_REQUEST.getCode())
+                                .businessErrorDescription(INVALID_POST_REQUEST.getDescription())
+                                .error(e.getMessage())
                                 .build()
                 );
     }

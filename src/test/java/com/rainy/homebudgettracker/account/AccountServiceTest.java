@@ -1,6 +1,6 @@
 package com.rainy.homebudgettracker.account;
 
-import com.rainy.homebudgettracker.auth.UserDetailsServiceImpl;
+import com.rainy.homebudgettracker.user.UserService;
 import com.rainy.homebudgettracker.handler.exception.RecordAlreadyExistsException;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
@@ -25,7 +25,7 @@ class AccountServiceTest {
     @Mock
     AccountRepository accountRepository;
     @Mock
-    UserDetailsServiceImpl userDetailsService;
+    UserService userService;
     @Mock
     ModelMapper modelMapper;
 
@@ -39,7 +39,7 @@ class AccountServiceTest {
                 .password("password")
                 .role(Role.USER)
                 .build();
-        when(userDetailsService.getCurrentUser()).thenReturn(user);
+        when(userService.getCurrentUser()).thenReturn(user);
 
         var account = Account.builder()
                 .id(1L)
@@ -121,7 +121,7 @@ class AccountServiceTest {
         assertEquals(account.getName(), accountResponses.get(0).getName());
         assertEquals(account.getCurrencyCode().name(), accountResponses.get(0).getCurrencyCode());
 
-        verify(userDetailsService, times(1)).getCurrentUser();
+        verify(userService, times(1)).getCurrentUser();
         verify(accountRepository, times(1)).findAllByUser(any(User.class));
         verify(modelMapper, times(1)).map(any(Account.class), eq(AccountResponse.class));
     }
@@ -247,7 +247,7 @@ class AccountServiceTest {
     }
 
     void verifySave(int[] times) {
-        verify(userDetailsService, times(times[0])).getCurrentUser();
+        verify(userService, times(times[0])).getCurrentUser();
         verify(accountRepository, times(times[1])).existsByUserAndCurrencyCode(any(User.class), any(CurrencyCode.class));
         verify(accountRepository, times(times[2])).save(any(Account.class));
         verify(modelMapper, times(times[3])).map(any(Account.class), eq(AccountResponse.class));
@@ -260,7 +260,7 @@ class AccountServiceTest {
     }
 
     void verifyGetOne(int[] times) {
-        verify(userDetailsService, times(times[0])).getCurrentUser();
+        verify(userService, times(times[0])).getCurrentUser();
         verify(accountRepository, times(times[1])).findByUserAndCurrencyCode(any(User.class), any(CurrencyCode.class));
     }
 }

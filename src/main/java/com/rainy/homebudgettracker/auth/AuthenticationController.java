@@ -1,6 +1,7 @@
 package com.rainy.homebudgettracker.auth;
 
 import com.rainy.homebudgettracker.handler.exception.EmailAlreadyExistsException;
+import com.rainy.homebudgettracker.handler.exception.EmailAlreadyInUseException;
 import com.rainy.homebudgettracker.handler.exception.ExpiredConfirmationTokenException;
 import com.rainy.homebudgettracker.handler.exception.InvalidConfirmationTokenException;
 import com.rainy.homebudgettracker.user.User;
@@ -74,8 +75,15 @@ public class AuthenticationController {
     public ResponseEntity<?> changePassword(
             @RequestBody @Valid ChangePasswordRequest password
     ) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        authenticationService.changePassword(user, password);
+        authenticationService.changePassword(password);
+        return ResponseEntity.accepted().build();
+    }
+
+    @PutMapping("/change-email")
+    public ResponseEntity<?> changeEmail(
+            @RequestBody @Valid ChangeEmailRequest email
+    ) throws EmailAlreadyInUseException {
+        authenticationService.changeEmail(email);
         return ResponseEntity.accepted().build();
     }
 }
