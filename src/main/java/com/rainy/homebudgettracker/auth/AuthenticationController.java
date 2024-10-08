@@ -76,7 +76,7 @@ public class AuthenticationController {
             @RequestBody @Valid ChangePasswordRequest password
     ) {
         authenticationService.changePassword(password);
-        return ResponseEntity.accepted().build();
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/change-email")
@@ -84,6 +84,6 @@ public class AuthenticationController {
             @RequestBody @Valid ChangeEmailRequest email
     ) throws EmailAlreadyInUseException {
         authenticationService.changeEmail(email);
-        return ResponseEntity.accepted().build();
+        return ResponseEntity.ok().build();
     }
 }

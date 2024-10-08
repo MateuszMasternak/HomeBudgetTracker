@@ -36,4 +36,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     @Query("SELECT SUM(t.amount) FROM Transaction t " +
             "WHERE t.user = :user AND t.account = :account")
     BigDecimal sumAmountByUserAndAccount(User user, Account account);
+
+    void deleteAllByUser(User user);
 }

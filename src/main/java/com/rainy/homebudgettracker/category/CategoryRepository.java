@@ -13,4 +13,5 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     Page<Category> findAllByUser(User user, Pageable pageable);
     Iterable<Category> findAllByUser(User user);
     boolean existsByUserAndName(User user, String name);
+    void deleteAllByUser(User user);
 }
