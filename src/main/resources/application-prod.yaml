@@ -6,6 +6,7 @@ application:
   mailing:
     frontend:
       activation-url: https://home-budget-tracker.vercel.app/activate-account
+      reset-url: https://home-budget-tracker.vercel.app/password-reset
   exchange:
     rate:
       url: ${EXCHANGE_RATE_URL}
