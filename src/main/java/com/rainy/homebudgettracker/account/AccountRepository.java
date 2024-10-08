@@ -16,4 +16,5 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     @Query("update Account a set a.name = :name where a.user = :user and a.currencyCode = :currencyCode")
     void updateAccountName(User user, String name, CurrencyCode currencyCode);
     boolean existsByUserAndCurrencyCode(User user, CurrencyCode currencyCode);
+    void deleteAllByUser(User user);
 }

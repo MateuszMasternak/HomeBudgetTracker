@@ -196,7 +196,6 @@ public class TransactionServiceImpl implements TransactionService {
             writer.append("sep=,\n"); // separator for microsoft excel
             writer.append("ID,Amount,Category,Date,Currency code,Payment method\n");
             for (TransactionResponse transactionResponse : transactionResponses) {
-                System.out.println(transactionResponse);
                 writer.append(transactionResponse.getId().toString())
                         .append(",")
                         .append(transactionResponse.getAmount())
