@@ -1,12 +1,15 @@
 package com.rainy.homebudgettracker.transaction;
 
 import com.rainy.homebudgettracker.category.CategoryRequest;
+import com.rainy.homebudgettracker.handler.exception.ImageUploadException;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
+import com.rainy.homebudgettracker.handler.exception.WrongFileTypeException;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import com.rainy.homebudgettracker.user.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -46,4 +49,6 @@ public interface TransactionService {
     SumResponse sumAmountByCurrentUserAndAccount(CurrencyCode currencyCode) throws RecordDoesNotExistException;
     List<TransactionResponse> findAllByUser(User user);
     byte[] generateCsvFileForCurrentUserTransactions() throws IOException;
+    TransactionResponse addImageToTransaction(Long id, MultipartFile file) throws RecordDoesNotExistException, UserIsNotOwnerException, ImageUploadException, WrongFileTypeException;
+    TransactionResponse deleteImageFromTransaction(Long id) throws RecordDoesNotExistException, UserIsNotOwnerException;
 }

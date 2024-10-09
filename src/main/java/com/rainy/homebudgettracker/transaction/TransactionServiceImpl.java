@@ -7,17 +7,22 @@ import com.rainy.homebudgettracker.category.CategoryRequest;
 import com.rainy.homebudgettracker.category.CategoryService;
 import com.rainy.homebudgettracker.exchange.ExchangeResponse;
 import com.rainy.homebudgettracker.exchange.ExchangeService;
+import com.rainy.homebudgettracker.handler.exception.ImageUploadException;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
+import com.rainy.homebudgettracker.handler.exception.WrongFileTypeException;
+import com.rainy.homebudgettracker.images.S3Service;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import com.rainy.homebudgettracker.user.User;
 import com.rainy.homebudgettracker.user.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -39,6 +44,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final ExchangeService exchangeService;
     private final ModelMapper modelMapper;
     private final UserService userService;
+    private final S3Service s3Service;
 
     @Override
     public Page<TransactionResponse> findAllByCurrentUserAndAccount(CurrencyCode currencyCode, Pageable pageable)
@@ -215,6 +221,48 @@ public class TransactionServiceImpl implements TransactionService {
         Files.delete(csvFilePath);
 
         return fileContent;
+    }
+
+    @Override
+    public TransactionResponse addImageToTransaction(Long id, MultipartFile file)
+            throws RecordDoesNotExistException, UserIsNotOwnerException, ImageUploadException, WrongFileTypeException {
+        User user = userService.getCurrentUser();
+        Optional<Transaction> transaction = transactionRepository.findById(id);
+
+        if (transaction.isEmpty()) {
+            throw new RecordDoesNotExistException("Transaction with id " + id + " does not exist.");
+        } else if (!transaction.get().getUser().getEmail().equals(user.getEmail())) {
+            throw new UserIsNotOwnerException("Transaction with id " + id + " does not belong to the user.");
+        } else if (file.getContentType() == null || !file.getContentType().startsWith("image")) {
+            throw new WrongFileTypeException("Invalid file type. Only images are allowed.");
+        }
+
+        String key = s3Service.uploadFile(file, user.getId(), id);
+
+        transaction.get().setImageFilePath(key);
+
+        transactionRepository.save(transaction.get());
+        return modelMapper.map(transaction.get(), TransactionResponse.class);
+    }
+
+    @Override
+    public TransactionResponse deleteImageFromTransaction(Long id) throws RecordDoesNotExistException, UserIsNotOwnerException {
+        User user = userService.getCurrentUser();
+        Optional<Transaction> transaction = transactionRepository.findById(id);
+
+        if (transaction.isEmpty()) {
+            throw new RecordDoesNotExistException("Transaction with id " + id + " does not exist.");
+        } else if (!transaction.get().getUser().getEmail().equals(user.getEmail())) {
+            throw new UserIsNotOwnerException("Transaction with id " + id + " does not belong to the user.");
+        }
+
+        String key = transaction.get().getImageFilePath();
+        s3Service.deleteFile(key);
+
+        transaction.get().setImageFilePath(null);
+
+        transactionRepository.save(transaction.get());
+        return modelMapper.map(transaction.get(), TransactionResponse.class);
     }
 
     private TransactionResponse saveTransactionForCurrentUser(TransactionRequest transactionRequest)

@@ -238,4 +238,28 @@ public class GlobalExceptionHandler {
                                 .build()
                 );
     }
+
+    @ExceptionHandler(ImageUploadException.class)
+    public ResponseEntity<ExceptionResponse> handleException(ImageUploadException e) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(
+                        ExceptionResponse.builder()
+                                .businessErrorCode(FILE_UPLOAD_ERROR.getCode())
+                                .businessErrorDescription(FILE_UPLOAD_ERROR.getDescription())
+                                .build()
+                );
+    }
+
+    @ExceptionHandler(WrongFileTypeException.class)
+    public ResponseEntity<ExceptionResponse> handleException(WrongFileTypeException e) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(
+                        ExceptionResponse.builder()
+                                .businessErrorCode(INVALID_FILE.getCode())
+                                .businessErrorDescription(INVALID_FILE.getDescription())
+                                .build()
+                );
+    }
 }

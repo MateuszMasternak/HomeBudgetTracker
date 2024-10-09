@@ -12,6 +12,12 @@ application:
       url: ${EXCHANGE_RATE_URL}
       api-key: ${EXCHANGE_RATE_API_KEY}
 
+aws:
+  profile: ${AWS_PROFILE_DEV}
+  s3:
+    region: ${AWS_S3_REGION_DEV}
+    bucket: ${AWS_S3_BUCKET_DEV}
+
 server:
   port: 8080
 
