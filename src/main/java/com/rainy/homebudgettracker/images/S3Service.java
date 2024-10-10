@@ -28,7 +28,7 @@ public class S3Service {
 
     public String uploadFile(MultipartFile file, Long userId, Long transactionId) throws ImageUploadException {
         try {
-            File tempFile = convertMultipartFileToFile(file);
+            File tempFile = convertMultipartFileToCompressedFile(file);
             String key = createKeyForImage(userId, transactionId, tempFile.getName());
             s3Client.putObject(PutObjectRequest.builder().bucket(bucketName).key(key).build(), tempFile.toPath());
             return key;
@@ -59,9 +59,9 @@ public class S3Service {
         return "images/" + userId + "_" + transactionId + "_" + LocalDate.now() + extension;
     }
 
-    private File convertMultipartFileToFile(MultipartFile file) throws IOException {
+    private File convertMultipartFileToCompressedFile(MultipartFile file) throws IOException {
         File tempFile = File.createTempFile("temp", file.getOriginalFilename());
         file.transferTo(tempFile);
-        return tempFile;
+        return ImageCompressor.compressImage(tempFile);
     }
 }
