@@ -13,6 +13,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.HashSet;
 
@@ -259,6 +260,18 @@ public class GlobalExceptionHandler {
                         ExceptionResponse.builder()
                                 .businessErrorCode(INVALID_FILE.getCode())
                                 .businessErrorDescription(INVALID_FILE.getDescription())
+                                .build()
+                );
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ExceptionResponse> handleException(MaxUploadSizeExceededException e) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(
+                        ExceptionResponse.builder()
+                                .businessErrorCode(MAXIMUM_FILE_SIZE_EXCEEDED.getCode())
+                                .businessErrorDescription(MAXIMUM_FILE_SIZE_EXCEEDED.getDescription())
                                 .build()
                 );
     }

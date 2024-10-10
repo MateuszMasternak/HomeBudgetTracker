@@ -25,6 +25,7 @@ public enum BusinessErrorCodes {
     EXCHANGE_RATE_API_ERROR(406, BAD_REQUEST, "Exchange rate API error"),
     INVALID_FILE(407, BAD_REQUEST, "Invalid file"),
     FILE_UPLOAD_ERROR(408, BAD_REQUEST, "File upload error"),
+    MAXIMUM_FILE_SIZE_EXCEEDED(409, BAD_REQUEST, "Maximum file size exceeded. Maximum file size is 10MB"),
     ;
 
     private final int code;

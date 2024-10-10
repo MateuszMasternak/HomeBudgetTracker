@@ -7,10 +7,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDate;
 
 @Service
@@ -36,8 +41,20 @@ public class S3Service {
         s3Client.deleteObject(DeleteObjectRequest.builder().bucket(bucketName).key(key).build());
     }
 
+    public String createPresignedGetUrl(String key) {
+        S3Presigner presigner = S3Presigner.create();
+
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(bucketName).key(key).build();
+        GetObjectPresignRequest getObjectPresignRequest = GetObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofDays(7))
+                .getObjectRequest(getObjectRequest)
+                .build();
+        PresignedGetObjectRequest presignedGetObjectRequest = presigner.presignGetObject(getObjectPresignRequest);
+
+        return presignedGetObjectRequest.url().toExternalForm();
+    }
+
     private String createKeyForImage(Long userId, Long transactionId, String fileName) {
-        System.out.println(fileName);
         String extension = fileName.substring(fileName.lastIndexOf("."));
         return "images/" + userId + "_" + transactionId + "_" + LocalDate.now() + extension;
     }
