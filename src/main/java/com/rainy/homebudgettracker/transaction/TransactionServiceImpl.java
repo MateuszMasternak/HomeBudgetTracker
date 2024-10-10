@@ -17,7 +17,6 @@ import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import com.rainy.homebudgettracker.user.User;
 import com.rainy.homebudgettracker.user.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;

@@ -40,6 +40,7 @@ public class RateLimitFilter implements Filter {
 
         if (count.incrementAndGet() > limit) {
             log.info("IP: {} count: {}", ipAddress, count.get());
+
             HttpServletResponse response = (HttpServletResponse) servletResponse;
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
             response.getWriter().write("Too many requests from this IP. Please try again later.");
