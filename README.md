@@ -25,7 +25,8 @@ Home Budget Tracker is a Java-based API designed to help users manage their pers
 * Import transactions from a file (probably CSV, maybe PDF)
 * Cloudfront with caching for images
 * More secure authentication
-* Frontend (probably Vue + PrimeVue for UI - already have one in the other repository, but it has implemented only a few features and is not up to date)
+* Frontend (probably Vue + PrimeVue for UI - already have one in the other repository, but it has implemented only a few feature and is not up to date)  
+![hbt_fe_demo.gif](hbt_fe_demo.gif)
 
 ## Technologies Used
 * Java
