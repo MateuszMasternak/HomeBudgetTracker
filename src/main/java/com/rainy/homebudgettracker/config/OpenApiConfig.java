@@ -25,7 +25,7 @@ import io.swagger.v3.oas.annotations.servers.Server;
                 ),
                 @Server(
                         url = "https://home-budget-tracker-6d3b2b68aff0.herokuapp.com",
-                        description = "Prod server"
+                        description = "Dev server"
                 )
         },
         security = {
