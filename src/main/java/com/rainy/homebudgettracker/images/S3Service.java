@@ -46,11 +46,11 @@ public class S3Service {
 
         GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(bucketName).key(key).build();
         GetObjectPresignRequest getObjectPresignRequest = GetObjectPresignRequest.builder()
-                .signatureDuration(Duration.ofDays(7))
+                .signatureDuration(Duration.ofHours(1))
                 .getObjectRequest(getObjectRequest)
                 .build();
-        PresignedGetObjectRequest presignedGetObjectRequest = presigner.presignGetObject(getObjectPresignRequest);
 
+        PresignedGetObjectRequest presignedGetObjectRequest = presigner.presignGetObject(getObjectPresignRequest);
         return presignedGetObjectRequest.url().toExternalForm();
     }
 
