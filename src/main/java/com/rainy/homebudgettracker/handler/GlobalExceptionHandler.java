@@ -259,6 +259,7 @@ public class GlobalExceptionHandler {
                 );
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(ImageUploadException.class)
     public ResponseEntity<ExceptionResponse> handleException(ImageUploadException e) {
         return ResponseEntity
@@ -271,6 +272,7 @@ public class GlobalExceptionHandler {
                 );
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(WrongFileTypeException.class)
     public ResponseEntity<ExceptionResponse> handleException(WrongFileTypeException e) {
         return ResponseEntity
@@ -283,6 +285,7 @@ public class GlobalExceptionHandler {
                 );
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ExceptionResponse> handleException(MaxUploadSizeExceededException e) {
         return ResponseEntity
