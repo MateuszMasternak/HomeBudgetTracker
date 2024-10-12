@@ -71,7 +71,7 @@ EXCHANGE_RATE_API_KEY=API_KEY // create an account at https://www.exchangerate-a
 > * The profile should be configured in the ~/.aws/config file for example by aws configure sso through AWS CLI. Then you can login by aws sso login --profile your-profile-name. More info here: https://docs.aws.amazon.com/sdkref/latest/guide/access-sso.html. 
 
 ***Docker Setup***
-1. Build and run the Docker containers:  
+1. Build and run Docker containers:  
 > docker-compose up --build
 2. The API will be available at http://localhost:8080.  
 3. Access the MailDev interface at http://localhost:1080 to view sent emails.
