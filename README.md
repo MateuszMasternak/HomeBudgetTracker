@@ -56,7 +56,7 @@ Home Budget Tracker is a Java-based API designed to help users manage their pers
 DB_NAME_DEV=yourdatabasename 
 DB_USERNAME_DEV=yourusername  
 DB_PASSWORD_DEV=yourpassword  
-DB_HOST_DEV=db  
+DB_HOST_DEV=postgres-hbt  
 DB_PORT_DEV=5432  
 MAILDEV_HOST_DEV=mail-dev-hbt  
 EMAIL_USERNAME_DEV=username@test.com    
