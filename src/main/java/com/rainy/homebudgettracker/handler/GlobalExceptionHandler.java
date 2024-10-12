@@ -12,6 +12,7 @@ import org.springframework.security.authentication.LockedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
@@ -22,6 +23,8 @@ import static com.rainy.homebudgettracker.handler.BusinessErrorCodes.*;
 @RestControllerAdvice
 @Log4j2
 public class GlobalExceptionHandler {
+
+    @ResponseStatus(HttpStatus.UNAUTHORIZED) // For auto generating Swagger documentation
     @ExceptionHandler(LockedException.class)
     public ResponseEntity<ExceptionResponse> handleException(LockedException e) {
         return ResponseEntity
@@ -35,6 +38,7 @@ public class GlobalExceptionHandler {
                 );
     }
 
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(DisabledException.class)
     public ResponseEntity<ExceptionResponse> handleException(DisabledException e) {
         return ResponseEntity
@@ -48,6 +52,7 @@ public class GlobalExceptionHandler {
                 );
     }
 
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ExceptionResponse> handleException(BadCredentialsException e) {
         return ResponseEntity
@@ -60,6 +65,7 @@ public class GlobalExceptionHandler {
                 );
     }
 
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(MessagingException.class)
     public ResponseEntity<ExceptionResponse> handleException(MessagingException e) {
         return ResponseEntity
@@ -71,6 +77,7 @@ public class GlobalExceptionHandler {
                 );
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ExceptionResponse> handleException(MethodArgumentNotValidException e) {
         var errors = new HashSet<String>();
@@ -86,6 +93,7 @@ public class GlobalExceptionHandler {
                 );
     }
 
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ExceptionResponse> handleException(Exception e) {
         log.error("Internal server error", e);
@@ -98,6 +106,7 @@ public class GlobalExceptionHandler {
                 );
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<ExceptionResponse> handleException(MissingServletRequestParameterException e) {
         return ResponseEntity
@@ -111,6 +120,7 @@ public class GlobalExceptionHandler {
                 );
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ExceptionResponse> handleException(HttpMessageNotReadableException e) {
         return ResponseEntity
@@ -123,6 +133,7 @@ public class GlobalExceptionHandler {
                 );
     }
 
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(InvalidConfirmationTokenException.class)
     public ResponseEntity<ExceptionResponse> handleException(InvalidConfirmationTokenException e) {
         return ResponseEntity
@@ -136,6 +147,7 @@ public class GlobalExceptionHandler {
                 );
     }
 
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(ExpiredConfirmationTokenException.class)
     public ResponseEntity<ExceptionResponse> handleException(ExpiredConfirmationTokenException e) {
         return ResponseEntity
@@ -149,6 +161,7 @@ public class GlobalExceptionHandler {
                 );
     }
 
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(RecordDoesNotExistException.class)
     public ResponseEntity<ExceptionResponse> handleException(RecordDoesNotExistException e) {
         return ResponseEntity
@@ -165,6 +178,7 @@ public class GlobalExceptionHandler {
                 );
     }
 
+    @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(UserIsNotOwnerException.class)
     public ResponseEntity<ExceptionResponse> handleException(UserIsNotOwnerException e) {
         return ResponseEntity
@@ -177,6 +191,7 @@ public class GlobalExceptionHandler {
                 );
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(RecordAlreadyExistsException.class)
     public ResponseEntity<ExceptionResponse> handleException(RecordAlreadyExistsException e) {
         return ResponseEntity
@@ -190,6 +205,7 @@ public class GlobalExceptionHandler {
                 );
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(CategoryAssociatedWithTransactionException.class)
     public ResponseEntity<ExceptionResponse> handleException(CategoryAssociatedWithTransactionException e) {
         return ResponseEntity
@@ -203,6 +219,7 @@ public class GlobalExceptionHandler {
                 );
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(QuotaReachedException.class)
     public ResponseEntity<ExceptionResponse> handleException(QuotaReachedException e) {
         return ResponseEntity
@@ -215,6 +232,7 @@ public class GlobalExceptionHandler {
                 );
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(ExchangeRateApiException.class)
     public ResponseEntity<ExceptionResponse> handleException(ExchangeRateApiException e) {
         return ResponseEntity
@@ -227,6 +245,7 @@ public class GlobalExceptionHandler {
                 );
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(EmailAlreadyInUseException.class)
     public ResponseEntity<ExceptionResponse> handleException(EmailAlreadyInUseException e) {
         return ResponseEntity
