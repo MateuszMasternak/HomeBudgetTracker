@@ -16,7 +16,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequ
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
-import java.time.LocalDate;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +29,7 @@ public class S3Service {
     public String uploadFile(MultipartFile file, Long userId, Long transactionId) throws ImageUploadException {
         try {
             File tempFile = convertMultipartFileToCompressedFile(file);
-            String key = createKeyForImage(userId, transactionId, tempFile.getName());
+            String key = createKeyForImage(userId, transactionId);
             s3Client.putObject(PutObjectRequest.builder().bucket(bucketName).key(key).build(), tempFile.toPath());
             return key;
         } catch (IOException e) {
@@ -54,9 +54,9 @@ public class S3Service {
         return presignedGetObjectRequest.url().toExternalForm();
     }
 
-    private String createKeyForImage(Long userId, Long transactionId, String fileName) {
-        String extension = fileName.substring(fileName.lastIndexOf("."));
-        return "images/" + userId + "_" + transactionId + "_" + LocalDate.now() + extension;
+    private String createKeyForImage(Long userId, Long transactionId) {
+        String name = userId + "_" + transactionId;
+        return "images/" + UUID.nameUUIDFromBytes(name.getBytes());
     }
 
     private File convertMultipartFileToCompressedFile(MultipartFile file) throws IOException {
