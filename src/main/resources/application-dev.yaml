@@ -17,6 +17,8 @@ aws:
   s3:
     region: ${AWS_S3_REGION_DEV}
     bucket: ${AWS_S3_BUCKET_DEV}
+  cloudfront:
+    url: ${AWS_CLOUDFRONT_URL_DEV}
 
 server:
   port: 8080

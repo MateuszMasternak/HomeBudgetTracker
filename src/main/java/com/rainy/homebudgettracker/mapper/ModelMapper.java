@@ -3,7 +3,7 @@ package com.rainy.homebudgettracker.mapper;
 import com.rainy.homebudgettracker.account.Account;
 import com.rainy.homebudgettracker.account.AccountRequest;
 import com.rainy.homebudgettracker.account.AccountResponse;
-import com.rainy.homebudgettracker.images.S3Service;
+import com.rainy.homebudgettracker.images.CloudfrontService;
 import com.rainy.homebudgettracker.user.UserService;
 import com.rainy.homebudgettracker.category.Category;
 import com.rainy.homebudgettracker.category.CategoryRequest;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ModelMapper {
     private final UserService userService;
-    private final S3Service s3Service;
+    private final CloudfrontService cloudfrontService;
 
     // DOESN'T INCLUDE MAPPING TransactionRequest TO Transaction
     @SuppressWarnings("unchecked")
@@ -79,7 +79,8 @@ public class ModelMapper {
                 .date(String.valueOf(transaction.getDate()))
                 .account(mapAccountToResponse(transaction.getAccount()))
                 .paymentMethod(transaction.getPaymentMethod().name())
-                .imageUrl(s3Service.createPresignedGetUrl(transaction.getImageFilePath()))
+                .imageUrl(transaction.getImageFilePath() != null && !transaction.getImageFilePath().isEmpty() ?
+                        cloudfrontService.createGetUrl(transaction.getImageFilePath()) : null)
                 .build();
     }
 
