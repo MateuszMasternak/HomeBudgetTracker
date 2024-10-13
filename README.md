@@ -54,7 +54,7 @@ Home Budget Tracker is a Java-based API designed to help users manage their pers
 > * cd HomeBudgetTracker
 2. Create the .env file and fill it up with the following environment variables:
 >JWT_SECRET_KEY_DEV=yoursecretkey  
-DB_NAME_DEV=yourdatabasename 
+DB_NAME_DEV=yourdatabasename  
 DB_USERNAME_DEV=yourusername  
 DB_PASSWORD_DEV=yourpassword  
 DB_HOST_DEV=postgres-hbt  
@@ -71,7 +71,7 @@ EXCHANGE_RATE_API_KEY=API_KEY // create an account at https://www.exchangerate-a
 > AWS_S3_BUCKET_DEV=your-bucket-name  
 > AWS_S3_PRESIGNED_URL_EXPIRATION_TIME_DEV=1234 // in seconds  
 > AWS_URL_TYPE_DEV=choice // either 's3' or 'cloudfront'  
-> AWS_CLOUDFRONT_URL_DEV=your-cloudfront-url // if you chose 'cloudfront' as AWS_URL_TYPE_DEV
+> AWS_CLOUDFRONT_URL_DEV=your-cloudfront-url // leave default if you want to share images directly via S3
 > * The profile should be configured in the ~/.aws/config file for example by aws configure sso through AWS CLI. Then you can login by aws sso login --profile your-profile-name. More info here: https://docs.aws.amazon.com/sdkref/latest/guide/access-sso.html. 
 
 ***Docker Setup***
