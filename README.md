@@ -76,7 +76,7 @@ EXCHANGE_RATE_API_KEY=API_KEY // create an account at https://www.exchangerate-a
 
 ***Docker Setup***
 1. Build and run Docker containers:
-> docker-compose up --build
+> docker-compose up --build -d
 > * The .env file is used by the Docker containers.
 2. The API will be available at http://localhost:8080.  
 3. Access the MailDev interface at http://localhost:1080 to view sent emails.
