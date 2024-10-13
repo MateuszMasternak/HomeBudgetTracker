@@ -5,8 +5,9 @@ application:
       expiration-time: 604800
   mailing:
     frontend:
-      activation-url: https://home-budget-tracker.vercel.app/activate-account
-      reset-url: https://home-budget-tracker.vercel.app/password-reset
+      activation-url: ${FRONTEND_URL}/activate-account
+      reset-url: ${FRONTEND_URL}/password-reset
+      url: ${FRONTEND_URL}
   exchange:
     rate:
       url: ${EXCHANGE_RATE_URL}
@@ -28,7 +29,6 @@ spring:
       hibernate:
         format_sql: true
     database: postgresql
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
   mail:
     host: smtp.gmail.com
     port: 587
