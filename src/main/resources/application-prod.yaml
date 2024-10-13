@@ -13,6 +13,16 @@ application:
       url: ${EXCHANGE_RATE_URL}
       api-key: ${EXCHANGE_RATE_API_KEY}
 
+aws:
+  profile: ${AWS_PROFILE}
+  s3:
+    region: ${AWS_S3_REGION}
+    bucket: ${AWS_S3_BUCKET}
+    expiration-time: ${AWS_S3_PRESIGNED_URL_EXPIRATION_TIME}
+  cloudfront:
+    url: ${AWS_CLOUDFRONT_URL}
+  transaction-response-url-type: ${AWS_URL_TYPE}
+
 server:
   port: ${PORT}
 
