@@ -25,6 +25,8 @@ public class S3Service {
 
     @Value("${aws.s3.bucket}")
     private String bucketName;
+    @Value("${aws.s3.expiration-time}")
+    private Long expirationTime;
 
     public String uploadFile(MultipartFile file, Long userId, Long transactionId) throws ImageUploadException {
         try {
@@ -46,7 +48,7 @@ public class S3Service {
 
         GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(bucketName).key(key).build();
         GetObjectPresignRequest getObjectPresignRequest = GetObjectPresignRequest.builder()
-                .signatureDuration(Duration.ofHours(1))
+                .signatureDuration(Duration.ofSeconds(expirationTime))
                 .getObjectRequest(getObjectRequest)
                 .build();
 

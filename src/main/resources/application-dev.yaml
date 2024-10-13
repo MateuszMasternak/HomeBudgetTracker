@@ -17,8 +17,10 @@ aws:
   s3:
     region: ${AWS_S3_REGION_DEV}
     bucket: ${AWS_S3_BUCKET_DEV}
+    expiration-time: ${AWS_S3_PRESIGNED_URL-EXPIRATION_TIME_DEV}
   cloudfront:
     url: ${AWS_CLOUDFRONT_URL_DEV}
+  transaction-response-url-type: ${AWS_URL_TYPE_DEV}
 
 server:
   port: 8080
