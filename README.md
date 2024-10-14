@@ -17,9 +17,9 @@ Home Budget Tracker is a Java-based API designed to help users manage their pers
 * Deployment on Heroku
 * Postgres database
 * Docker setup
-* Image upload for transaction to AWS S3 (done, but not merged yet - feature/images)
-* Presigned URL in image-related response (done, but not merged yet - feature/images)
-* Cloudfront with caching for images (done, but not merged yet - feature/images)
+* Image upload for transaction to AWS S3
+* Presigned URL in image-related response
+* Cloudfront with caching for images
 
 ## In Progress or Planned
 * Transaction details, including saving data related to the exchange
