@@ -6,8 +6,10 @@ import com.rainy.homebudgettracker.account.AccountResponse;
 import com.rainy.homebudgettracker.category.Category;
 import com.rainy.homebudgettracker.category.CategoryRequest;
 import com.rainy.homebudgettracker.category.CategoryResponse;
+import com.rainy.homebudgettracker.images.ImageService;
 import com.rainy.homebudgettracker.transaction.Transaction;
 import com.rainy.homebudgettracker.transaction.TransactionRequest;
+import com.rainy.homebudgettracker.transaction.TransactionResponse;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import com.rainy.homebudgettracker.transaction.enums.PaymentMethod;
 import com.rainy.homebudgettracker.user.Role;
@@ -31,6 +33,8 @@ class ModelMapperTest {
     ModelMapper modelMapper;
     @Mock
     UserService userService;
+    @Mock
+    ImageService imageService;
 
     @BeforeEach
     void setUp() {
@@ -44,6 +48,7 @@ class ModelMapperTest {
                 .build();
 
         when(userService.getCurrentUser()).thenReturn(user);
+        when(imageService.getImageUrl(any())).thenReturn(null);
     }
 
     @AfterEach
@@ -179,7 +184,7 @@ class ModelMapperTest {
     }
 
     @Test
-    public void TransactionRequestToTransaction() {
+    public void shouldMapTransactionRequestToTransaction1() {
         var user = User.builder()
                 .id(1L)
                 .email("mail@mail.com")
@@ -205,6 +210,7 @@ class ModelMapperTest {
                 .paymentMethod(PaymentMethod.CASH)
                 .category(CategoryRequest.builder().name("Food").build())
                 .currencyCode(CurrencyCode.USD)
+                .details("Details")
                 .build();
 
         var returnedTransaction = modelMapper.mapTransactionRequestToTransaction(transactionRequest, account, category);
@@ -216,6 +222,7 @@ class ModelMapperTest {
                 .account(account)
                 .paymentMethod(transactionRequest.getPaymentMethod())
                 .user(user)
+                .details(transactionRequest.getDetails())
                 .build();
 
         assertEquals(transaction, returnedTransaction);
@@ -236,7 +243,7 @@ class ModelMapperTest {
     }
 
     @Test
-    public void shouldMapTransactionRequestToTransaction() {
+    public void shouldMapTransactionRequestToTransaction2() {
         var user = User.builder()
                 .id(1L)
                 .email("mail@mail.com")
@@ -276,5 +283,62 @@ class ModelMapperTest {
                 .build();
 
         assertEquals(transaction, returnedTransaction);
+    }
+
+    @Test
+    public void shouldMapTransactionToTransactionResponse() {
+        var user = User.builder()
+                .id(1L)
+                .email("mail@mail.com")
+                .password("password")
+                .role(Role.USER)
+                .build();
+
+        var account = Account.builder()
+                .id(1L)
+                .name("Main")
+                .currencyCode(CurrencyCode.USD)
+                .user(user)
+                .build();
+        var category = Category.builder()
+                .id(1L)
+                .name("Food")
+                .user(user)
+                .build();
+
+        var transaction = Transaction.builder()
+                .id(1L)
+                .amount(BigDecimal.valueOf(100))
+                .date(LocalDate.now())
+                .paymentMethod(PaymentMethod.CASH)
+                .category(category)
+                .account(account)
+                .user(user)
+                .details("Details")
+                .build();
+
+        var returnedTransactionResponse = modelMapper.map(transaction, TransactionResponse.class);
+
+        var transactionResponse = TransactionResponse.builder()
+                .id(transaction.getId())
+                .amount(String.valueOf(transaction.getAmount()))
+                .category(CategoryResponse.builder()
+                        .id(1L)
+                        .name("Food")
+                        .build())
+                .date(String.valueOf(transaction.getDate()))
+                .account(AccountResponse.builder()
+                        .id(1L)
+                        .name("Main")
+                        .currencyCode(CurrencyCode.USD.name())
+                        .build())
+                .paymentMethod(transaction.getPaymentMethod().name())
+                .details("Details")
+                .build();
+
+        System.out.println(returnedTransactionResponse);
+        System.out.println(transactionResponse);
+
+        assertEquals(transactionResponse, returnedTransactionResponse);
     }
 }

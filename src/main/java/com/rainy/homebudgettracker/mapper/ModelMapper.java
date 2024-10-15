@@ -68,7 +68,7 @@ public class ModelMapper {
                 .account(account)
                 .paymentMethod(transactionRequest.getPaymentMethod())
                 .user(account.getUser())
-                .details(transactionRequest.getDetails() != null ? transactionRequest.getDetails() : "")
+                .details(transactionRequest.getDetails())
                 .build();
     }
 
@@ -81,7 +81,7 @@ public class ModelMapper {
                 .account(mapAccountToResponse(transaction.getAccount()))
                 .paymentMethod(transaction.getPaymentMethod().name())
                 .imageUrl(imageService.getImageUrl(transaction))
-                .details(transaction.getDetails() != null ? transaction.getDetails() : "")
+                .details(transaction.getDetails())
                 .build();
     }
 
