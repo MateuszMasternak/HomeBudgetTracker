@@ -33,6 +33,7 @@ public class S3Service {
             File tempFile = convertMultipartFileToCompressedFile(file);
             String key = createKeyForImage(userId, transactionId);
             s3Client.putObject(PutObjectRequest.builder().bucket(bucketName).key(key).build(), tempFile.toPath());
+            tempFile.delete();
             return key;
         } catch (IOException e) {
             throw new ImageUploadException("Failed to upload image");
@@ -44,16 +45,16 @@ public class S3Service {
     }
 
     public String createPresignedGetUrl(String key) {
-        S3Presigner presigner = S3Presigner.create();
+        try (S3Presigner presigner = S3Presigner.create()) {
+            GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(bucketName).key(key).build();
+            GetObjectPresignRequest getObjectPresignRequest = GetObjectPresignRequest.builder()
+                    .signatureDuration(Duration.ofSeconds(expirationTime))
+                    .getObjectRequest(getObjectRequest)
+                    .build();
 
-        GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(bucketName).key(key).build();
-        GetObjectPresignRequest getObjectPresignRequest = GetObjectPresignRequest.builder()
-                .signatureDuration(Duration.ofSeconds(expirationTime))
-                .getObjectRequest(getObjectRequest)
-                .build();
-
-        PresignedGetObjectRequest presignedGetObjectRequest = presigner.presignGetObject(getObjectPresignRequest);
-        return presignedGetObjectRequest.url().toExternalForm();
+            PresignedGetObjectRequest presignedGetObjectRequest = presigner.presignGetObject(getObjectPresignRequest);
+            return presignedGetObjectRequest.url().toExternalForm();
+        }
     }
 
     private String createKeyForImage(Long userId, Long transactionId) {
