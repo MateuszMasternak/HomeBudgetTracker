@@ -132,6 +132,7 @@ public class TransactionServiceImpl implements TransactionService {
             );
             String apiExchangeRate = exchangeResponse.getConversionRate();
             BigDecimal apiExchangeRateBG = new BigDecimal(apiExchangeRate);
+            addExchangeDetails(transactionRequest, targetCurrency.toString(), apiExchangeRate);
             convertCurrency(transactionRequest, apiExchangeRateBG, targetCurrency);
         }
 
@@ -282,5 +283,9 @@ public class TransactionServiceImpl implements TransactionService {
                 transaction.getAmount()
                         .multiply(rate));
         transaction.setCurrencyCode(targetCurrency);
+    }
+
+    private void addExchangeDetails(TransactionRequest transactionRequest, String targetCurrency, String apiExchangeRate) {
+        transactionRequest.setDetails(transactionRequest.getCurrencyCode() + "->" + targetCurrency + ": " + apiExchangeRate);
     }
 }
