@@ -54,10 +54,6 @@
             background-color: #aabfc8;
         }
 
-        .activation-code {
-            font-weight: bold;
-        }
-
         p {
             font-size: 1.2em;
         }
@@ -74,8 +70,7 @@
 
     <div class="container">
         <p th:text="'Hello ' + ${username} + ','"> </p>
-        <p>Thank you for registering! To activate your account, simply click the button below and enter the activation code: </p>
-        <p class="activation-code" th:text="${activationCode}"></p>
+        <p>Thank you for registering! To activate your account, click the button below: </p>
         <a class="button-link" th:href="${confirmationUrl}" target="_blank">Activate your account</a>
     </div>
 </body>

@@ -51,10 +51,8 @@ class EmailServiceTest {
         when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(eq(templateName), any(Context.class))).thenReturn("<html>email content</html>");
 
-        // Act
-        emailService.sendConfirmationEmail(to, username, EmailTemplateName.ACTIVATE_ACCOUNT, confirmationUrl, activationCode, subject);
+        emailService.sendConfirmationEmail(to, username, EmailTemplateName.ACTIVATE_ACCOUNT, confirmationUrl, subject);
 
-        // Assert
         verify(mailSender, times(1)).send(any(MimeMessage.class));
 
         var contextCaptor = ArgumentCaptor.forClass(Context.class);
@@ -74,7 +72,6 @@ class EmailServiceTest {
 
     @Test
     void shouldSendEmailWithCorrectTemplatePasswordResetEmail() throws MessagingException {
-        // Arrange
         String to = "test@example.com";
         String username = "JohnDoe";
         String resetUrl = "http://test.com/reset";
@@ -113,7 +110,7 @@ class EmailServiceTest {
         when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(eq(defaultTemplateName), any(Context.class))).thenReturn("<html>email content</html>");
 
-        emailService.sendConfirmationEmail(to, username, null, confirmationUrl, activationCode, subject);
+        emailService.sendConfirmationEmail(to, username, null, confirmationUrl, subject);
 
         verify(mailSender, times(1)).send(any(MimeMessage.class));
 

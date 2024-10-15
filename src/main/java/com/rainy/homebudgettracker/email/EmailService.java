@@ -28,7 +28,6 @@ public class EmailService {
             String username,
             EmailTemplateName emailTemplateName,
             String confirmationUrl,
-            String activationCode,
             String subject
     ) throws MessagingException {
         String templateName;
@@ -43,8 +42,7 @@ public class EmailService {
 
         Map<String, Object> properties = Map.of(
                 "username", username,
-                "confirmationUrl", confirmationUrl,
-                "activationCode", activationCode
+                "confirmationUrl", confirmationUrl
         );
 
         Context context = new Context();
