@@ -18,14 +18,12 @@ Home Budget Tracker is a Java-based API designed to help users manage their pers
 * Postgres database
 * Docker setup
 * Image upload for transaction to AWS S3
-* Presigned URL in image-related response
-* Cloudfront with caching for images
+* Cloudfront signed URL with caching in database for image-related response (Presigned S3 URL and Cloudfront default URL are also available by environment variable value)
 
 ## In Progress or Planned
 * Transaction details, including saving data related to the exchange
 * Import transactions from a file (probably CSV, maybe PDF)
 * More secure authentication
-* Signed Cloudfront URLs
 * Frontend (probably Vue + PrimeVue for UI - already have one in the other repository, but it has implemented only a few features and is not up to date)  
 ![hbt_fe_demo.gif](hbt_fe_demo.gif)
 
@@ -38,6 +36,8 @@ Home Budget Tracker is a Java-based API designed to help users manage their pers
 * Lombok
 * Apache Commons CSV
 * AWS SDK
+* AWS S3
+* AWS Cloudfront
 * Postgres
 * Docker
 * Heroku
@@ -70,9 +70,13 @@ EXCHANGE_RATE_API_KEY=API_KEY // create an account at https://www.exchangerate-a
 > AWS_S3_REGION_DEV=your-region  
 > AWS_S3_BUCKET_DEV=your-bucket-name  
 > AWS_S3_PRESIGNED_URL_EXPIRATION_TIME_DEV=1234 // in seconds  
-> AWS_URL_TYPE_DEV=choice // either 's3' or 'cloudfront'  
-> AWS_CLOUDFRONT_URL_DEV=your-cloudfront-url // leave default if you want to share images directly via S3
+> AWS_URL_TYPE_DEV=choice // either 's3' or 'cloudfront' or 'clodfront-signed'"  
+> AWS_CLOUDFRONT_URL_DEV=your-cloudfront-url // leave default if you want to share images directly via S3  
+> AWS_CLOUDFRONT_PUBLIC_KEY_PAIR_ID_DEV=cloud-front-public-key-id // leave default if you want to share images directly via S3 or default Cloudfront URL
+> AWS_CLOUDFRONT_PRIVATE_KEY_DEV=cloud-front-private-key // leave default if you want to share images directly via S3 or default Cloudfront URL  
 > * The profile should be configured in the ~/.aws/config file for example by aws configure sso through AWS CLI. Then you can login by aws sso login --profile your-profile-name. More info here: https://docs.aws.amazon.com/sdkref/latest/guide/access-sso.html. 
+> * You can generate the private key by openssl genpkey -algorithm RSA -out private_key.pem -pkeyopt rsa_keygen_bits:2048.
+> * You can generate the public key by openssl rsa -in private_key.pem -pubout -out public_key.pem.
 
 ***Docker Setup***
 1. Build and run Docker containers:
