@@ -152,6 +152,11 @@
             <artifactId>ssooidc</artifactId>
             <version>2.28.17</version>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>cloudfront</artifactId>
+            <version>2.28.21</version>
+        </dependency>
     </dependencies>
 
     <build>

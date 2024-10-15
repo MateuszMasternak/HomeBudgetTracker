@@ -4,6 +4,7 @@ import com.rainy.homebudgettracker.account.Account;
 import com.rainy.homebudgettracker.account.AccountRequest;
 import com.rainy.homebudgettracker.account.AccountResponse;
 import com.rainy.homebudgettracker.images.CloudfrontService;
+import com.rainy.homebudgettracker.images.ImageService;
 import com.rainy.homebudgettracker.images.S3Service;
 import com.rainy.homebudgettracker.user.UserService;
 import com.rainy.homebudgettracker.category.Category;
@@ -20,11 +21,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ModelMapper {
     private final UserService userService;
-    private final S3Service s3Service;
-    private final CloudfrontService cloudfrontService;
-
-    @Value("${aws.transaction-response-url-type}")
-    private String transactionResponseUrlType;
+    private final ImageService imageService;
 
     // DOESN'T INCLUDE MAPPING TransactionRequest TO Transaction
     @SuppressWarnings("unchecked")
@@ -85,22 +82,8 @@ public class ModelMapper {
                 .date(String.valueOf(transaction.getDate()))
                 .account(mapAccountToResponse(transaction.getAccount()))
                 .paymentMethod(transaction.getPaymentMethod().name())
-                .imageUrl(getImageUrl(transaction))
+                .imageUrl(imageService.getImageUrl(transaction))
                 .build();
-    }
-
-    private String getImageUrl(Transaction transaction) {
-        if (transaction.getImageFilePath() == null || transaction.getImageFilePath().isEmpty()) {
-            return null;
-        }
-
-        if (transactionResponseUrlType.equals("cloudfront")) {
-            return cloudfrontService.createGetUrl(transaction.getImageFilePath());
-        } else if (transactionResponseUrlType.equals("s3")) {
-            return s3Service.createPresignedGetUrl(transaction.getImageFilePath());
-        } else {
-            return null;
-        }
     }
 
     private CategoryResponse mapCategoryToResponse(Category category) {
