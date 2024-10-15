@@ -21,10 +21,9 @@ public class AccountController {
 
     @GetMapping("/{code}")
     public ResponseEntity<AccountResponse> getAccountByCurrentUserAndCurrencyCode(
-            @PathVariable("code") String code
+            @PathVariable() CurrencyCode code
     ) throws RecordDoesNotExistException {
-        CurrencyCode currencyCode = CurrencyCode.valueOf(code.toUpperCase());
-        return ResponseEntity.ok(accountService.findOneAsResponseByCurrentUserAndCurrencyCode(currencyCode));
+        return ResponseEntity.ok(accountService.findOneAsResponseByCurrentUserAndCurrencyCode(code));
     }
 
     @PostMapping

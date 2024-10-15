@@ -54,8 +54,8 @@ public class TransactionController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam CurrencyCode code,
-            @RequestParam String startDate,
-            @RequestParam String endDate
+            @RequestParam(name = "start-date") String startDate,
+            @RequestParam(name = "end-date") String endDate
     ) throws RecordDoesNotExistException {
         Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
         return ResponseEntity.ok(transactionService.findAllByCurrentUserAndAccountAndDateBetween(
@@ -68,8 +68,8 @@ public class TransactionController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam String code,
             @RequestParam String category,
-            @RequestParam String startDate,
-            @RequestParam String endDate
+            @RequestParam(name = "start-date") String startDate,
+            @RequestParam(name = "end-date") String endDate
     ) throws RecordDoesNotExistException {
         Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
         CurrencyCode currencyCode = CurrencyCode.valueOf(code.toUpperCase());
@@ -86,8 +86,8 @@ public class TransactionController {
     @PostMapping("/create-with-exchange-rate")
     public ResponseEntity<TransactionResponse> createTransactionForCurrentUser(
             @RequestBody @Valid TransactionRequest request,
-            @RequestParam String targetCurrency,
-            @RequestParam(required = false) String exchangeRate
+            @RequestParam(name = "target-currency") String targetCurrency,
+            @RequestParam(required = false, name = "exchange-rate") String exchangeRate
     ) throws RecordDoesNotExistException {
         CurrencyCode currencyCode = CurrencyCode.valueOf(targetCurrency.toUpperCase());
         BigDecimal rate = exchangeRate == null ? null : new BigDecimal(exchangeRate);
