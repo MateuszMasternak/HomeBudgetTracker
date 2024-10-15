@@ -1,1 +1,1 @@
-web: ./mvnw clean package; java -jargit  target/HomeBudgetTracker-0.0.1-SNAPSHOT.jar
+web: ./mvnw clean package; java -jar git  target/HomeBudgetTracker-0.0.1-SNAPSHOT.jar
