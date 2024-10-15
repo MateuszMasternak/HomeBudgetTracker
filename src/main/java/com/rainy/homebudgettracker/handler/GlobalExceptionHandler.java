@@ -68,11 +68,12 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(MessagingException.class)
     public ResponseEntity<ExceptionResponse> handleException(MessagingException e) {
+        log.error("Error sending email", e);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(
                         ExceptionResponse.builder()
-                                .error(e.getMessage())
+                                .businessErrorDescription("Error sending email. Contact support")
                                 .build()
                 );
     }

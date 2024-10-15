@@ -9,6 +9,7 @@ import com.rainy.homebudgettracker.handler.exception.InvalidConfirmationTokenExc
 import com.rainy.homebudgettracker.user.*;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,6 +22,7 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthenticationServiceImpl implements AuthenticationService {
@@ -40,6 +42,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public void register(RegisterRequest registerRequest) throws MessagingException, EmailAlreadyExistsException {
         if (userRepository.existsByEmail(registerRequest.getEmail())) {
+            log.info("Email already exists: {}", registerRequest.getEmail());
             throw new EmailAlreadyExistsException("Email already exists");
         }
 
@@ -62,8 +65,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 user.getEmail(),
                 user.getFullName(),
                 EmailTemplateName.ACTIVATE_ACCOUNT,
-                activationUrl,
-                newToken,
+                activationUrl + "?token=" + newToken,
                 "Account activation"
         );
     }
