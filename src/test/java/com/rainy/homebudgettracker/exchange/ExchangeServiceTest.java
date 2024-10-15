@@ -1,6 +1,5 @@
 package com.rainy.homebudgettracker.exchange;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.rainy.homebudgettracker.handler.exception.ExchangeRateApiException;
 import com.rainy.homebudgettracker.handler.exception.QuotaReachedException;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
@@ -25,8 +24,8 @@ class ExchangeServiceTest {
     RestClient restClient;
 
     @BeforeEach
-    void setUp() throws JsonProcessingException {
-        MockitoAnnotations.initMocks(this);
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
 
         ResponseEntity<ExchangeResponse> exchangeResponse = ResponseEntity.ok(ExchangeResponse.builder()
                 .result("success")

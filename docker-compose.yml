@@ -20,6 +20,7 @@ services:
       retries: 5
       start_period: 30s
       timeout: 10s
+
   mail-dev:
     image: maildev/maildev:2.1.0
     container_name: mail-dev-hbt
@@ -40,13 +41,12 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: spring-app-hbt
-    env_file: ".env"
+    env_file: .env
     ports:
       - 8080:8080
     depends_on:
       db:
         condition: service_healthy
-        restart: true
       mail-dev:
         condition: service_started
     networks:

@@ -1,11 +1,12 @@
 package com.rainy.homebudgettracker.config;
 
 import com.rainy.homebudgettracker.auth.JwtAuthenticationFilter;
+import com.rainy.homebudgettracker.limiter.RateLimitFilter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -19,7 +20,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -35,6 +35,7 @@ import static org.springframework.http.HttpHeaders.*;
 @SecurityRequirement(name = "bearerAuth")
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final RateLimitFilter rateLimitFilter;
     private final UserDetailsService userDetailsService;
     private static final String[] WHITE_LIST = {
             "/api/v1/auth/**",
@@ -43,10 +44,12 @@ public class SecurityConfig {
             "/swagger-ui/**",
     };
 
+    @Value("${application.mailing.frontend.url}")
+    private String frontendUrl;
+
     @Bean
     public SecurityFilterChain securityFilterChain(
-            HttpSecurity http,
-            JwtAuthenticationFilter jwtAuthenticationFilter
+            HttpSecurity http
     ) throws Exception {
         http
                 .cors(Customizer.withDefaults())
@@ -58,6 +61,7 @@ public class SecurityConfig {
                         .requestMatchers(WHITE_LIST).permitAll()
                         .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())
+                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -69,10 +73,8 @@ public class SecurityConfig {
         final var config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.setAllowedOrigins(Arrays.asList(
-                "http://localhost:8080",
                 "http://localhost:5173",
-                "https://home-budget-tracker.vercel.app",
-                "https://home-budget-tracker-6d3b2b68aff0.herokuapp.com"
+                frontendUrl
         ));
         config.setAllowedHeaders(Arrays.asList(
                 ORIGIN,

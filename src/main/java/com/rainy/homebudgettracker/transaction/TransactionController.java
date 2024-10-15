@@ -1,8 +1,10 @@
 package com.rainy.homebudgettracker.transaction;
 
 import com.rainy.homebudgettracker.category.CategoryRequest;
+import com.rainy.homebudgettracker.handler.exception.ImageUploadException;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
+import com.rainy.homebudgettracker.handler.exception.WrongFileTypeException;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +16,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -126,5 +129,19 @@ public class TransactionController {
         headers.setContentType(MediaType.parseMediaType("text/csv"));
         headers.setContentDispositionFormData("filename", "transactions.csv");
         return ResponseEntity.ok().headers(headers).body(content);
+    }
+
+    @PostMapping("/upload-image")
+    public ResponseEntity<TransactionResponse> uploadImageForTransaction(
+            @RequestParam Long id,
+            @RequestParam("file") MultipartFile file
+    ) throws RecordDoesNotExistException, UserIsNotOwnerException, ImageUploadException, WrongFileTypeException {
+        return ResponseEntity.accepted().body(transactionService.addImageToTransaction(id, file));
+    }
+
+    @PostMapping("/delete-image")
+    public ResponseEntity<TransactionResponse> deleteImageForTransaction(@RequestParam Long id)
+            throws RecordDoesNotExistException, UserIsNotOwnerException {
+        return ResponseEntity.accepted().body(transactionService.deleteImageFromTransaction(id));
     }
 }

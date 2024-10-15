@@ -15,4 +15,5 @@ public class TransactionResponse {
     private String date;
     private AccountResponse account;
     private String paymentMethod;
+    private String imageUrl;
 }

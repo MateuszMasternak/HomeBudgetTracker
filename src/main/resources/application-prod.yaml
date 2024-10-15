@@ -5,12 +5,25 @@ application:
       expiration-time: 604800
   mailing:
     frontend:
-      activation-url: https://home-budget-tracker.vercel.app/activate-account
-      reset-url: https://home-budget-tracker.vercel.app/password-reset
+      activation-url: ${FRONTEND_URL}/activate-account
+      reset-url: ${FRONTEND_URL}/password-reset
+      url: ${FRONTEND_URL}
   exchange:
     rate:
       url: ${EXCHANGE_RATE_URL}
       api-key: ${EXCHANGE_RATE_API_KEY}
+
+aws:
+  profile: ${AWS_PROFILE}
+  s3:
+    region: ${AWS_S3_REGION}
+    bucket: ${AWS_S3_BUCKET}
+    expiration-time: ${AWS_S3_PRESIGNED_URL_EXPIRATION_TIME}
+  cloudfront:
+    url: ${AWS_CLOUDFRONT_URL}
+    public-key-pair-id: ${AWS_CLOUDFRONT_PUBLIC_KEY_PAIR_ID}
+    private-key: ${AWS_CLOUDFRONT_PRIVATE_KEY}
+  transaction-response-url-type: ${AWS_URL_TYPE}
 
 server:
   port: ${PORT}
@@ -28,7 +41,6 @@ spring:
       hibernate:
         format_sql: true
     database: postgresql
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
   mail:
     host: smtp.gmail.com
     port: 587

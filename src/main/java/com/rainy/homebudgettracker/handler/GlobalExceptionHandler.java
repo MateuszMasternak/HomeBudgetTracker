@@ -14,6 +14,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.HashSet;
 
@@ -254,6 +255,45 @@ public class GlobalExceptionHandler {
                                 .businessErrorCode(INVALID_POST_REQUEST.getCode())
                                 .businessErrorDescription(INVALID_POST_REQUEST.getDescription())
                                 .error(e.getMessage())
+                                .build()
+                );
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(ImageUploadException.class)
+    public ResponseEntity<ExceptionResponse> handleException(ImageUploadException e) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(
+                        ExceptionResponse.builder()
+                                .businessErrorCode(FILE_UPLOAD_ERROR.getCode())
+                                .businessErrorDescription(FILE_UPLOAD_ERROR.getDescription())
+                                .build()
+                );
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(WrongFileTypeException.class)
+    public ResponseEntity<ExceptionResponse> handleException(WrongFileTypeException e) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(
+                        ExceptionResponse.builder()
+                                .businessErrorCode(INVALID_FILE.getCode())
+                                .businessErrorDescription(INVALID_FILE.getDescription())
+                                .build()
+                );
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ExceptionResponse> handleException(MaxUploadSizeExceededException e) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(
+                        ExceptionResponse.builder()
+                                .businessErrorCode(MAXIMUM_FILE_SIZE_EXCEEDED.getCode())
+                                .businessErrorDescription(MAXIMUM_FILE_SIZE_EXCEEDED.getDescription())
                                 .build()
                 );
     }
