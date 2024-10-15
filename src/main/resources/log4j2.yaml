@@ -1,10 +1,14 @@
 Configuration:
   Appenders:
     Console:
-      name: STDOUT
-      target: SYSTEM_OUT
-      PatternLayout:
-        Pattern: "%highlight{%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-level %c{1} - %msg%n}"
+      - name: STDOUT
+        target: SYSTEM_OUT
+        PatternLayout:
+          Pattern: "%highlight{[%-level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n}"
+      - name: HEROKU_CONSOLE
+        target: SYSTEM_OUT
+        PatternLayout:
+          Pattern: "%highlight{[%-level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n}"
     RollingFile:
       - name: RollingFile
         fileName: "logs/main.log"
@@ -41,6 +45,7 @@ Configuration:
         - ref: STDOUT
           level: WARN
         - ref: RollingFile
+        - ref: HEROKU_CONSOLE
     Logger:
       - name: com.rainy.homebudgettracker
         level: DEBUG
