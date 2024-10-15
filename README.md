@@ -4,21 +4,21 @@
 Home Budget Tracker is a Java-based API designed to help users manage their personal finances. It allows users to track their income and expenses, categorize transactions, and generate reports in CSV format.  
 
 ## Features
-* Simple JWT based user authentication and authorization
-* Email verification for new users and password reset
-* CRUD operations for accounts, categories and transactions
-* Export transactions to CSV file
-* Sum of positive or/and negative transactions
-* Filter transactions by date or/and category within an account
-* Get exchange rates via an external API when creating a new transaction if the currency is different from the account currency (you can also set the exchange rate manually)
-* Exception handling
-* Logging
-* Some unit tests
-* Deployment on Heroku
-* Postgres database
-* Docker setup
-* Image upload for transaction to AWS S3
-* Cloudfront signed URL with caching in database for image-related response (Presigned S3 URL and Cloudfront default URL are also available by environment variable value)
+* Simple JWT-based user authentication and authorization  
+* Email verification for new users and password resets  
+* CRUD operations for accounts, categories and transactions  
+* Export of transactions to CSV file  
+* Summing of positive and/or negative transactions  
+* Filtering of transactions by date and/or category within an account  
+* Retrieve exchange rates via external API when creating a new transaction if the currency differs from the account currency (you can also set the exchange rate manually)  
+* Exception handling  
+* Logging  
+* Unit tests  
+* Deployment on Heroku  
+* Postgres database  
+* Docker configuration  
+* Uploading images for transactions to AWS S3  
+* Signed Cloudfront URL with caching in the database for image-related responses (the pre-signed S3 URL and the default Cloudfront URL are also available via the value of an environment variable)  
 
 ## In Progress or Planned
 * Transaction details, including saving data related to the exchange
