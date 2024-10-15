@@ -27,4 +27,5 @@ public class TransactionRequest {
     CurrencyCode currencyCode;
     @NotNull(message = "Payment method is required")
     PaymentMethod paymentMethod;
+    String details;
 }

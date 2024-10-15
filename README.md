@@ -21,7 +21,6 @@ Home Budget Tracker is a Java-based API designed to help users manage their pers
 * Signed Cloudfront URL with caching in the database for image-related responses (the pre-signed S3 URL and the default Cloudfront URL are also available via the value of an environment variable)  
 
 ## In Progress or Planned
-* Transaction details, including saving data related to the exchange
 * Import transactions from a file (probably CSV, maybe PDF)
 * More secure authentication
 * Frontend (probably Vue + PrimeVue for UI - already have one in the other repository, but it has implemented only a few features and is not up to date)  

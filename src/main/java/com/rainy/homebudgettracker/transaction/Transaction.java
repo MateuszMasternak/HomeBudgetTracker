@@ -31,4 +31,5 @@ public class Transaction {
     private Account account;
     private PaymentMethod paymentMethod;
     private String imageFilePath;
+    private String details;
 }

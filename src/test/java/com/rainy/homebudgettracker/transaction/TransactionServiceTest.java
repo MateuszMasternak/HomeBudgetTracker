@@ -105,6 +105,17 @@ class TransactionServiceTest {
                 .user(user)
                 .build();
 
+        var transaction3 = Transaction.builder()
+                .id(1L)
+                .account(account2)
+                .category(category)
+                .amount(BigDecimal.valueOf(421).setScale(2))
+                .date(LocalDate.of(2024, 1, 1))
+                .paymentMethod(PaymentMethod.CASH)
+                .user(user)
+                .details("USD->PLN: 4.21")
+                .build();
+
         var transactionRequest = TransactionRequest.builder()
                 .amount(BigDecimal.valueOf(100))
                 .category(CategoryRequest.builder().name("Food").build())
@@ -119,6 +130,15 @@ class TransactionServiceTest {
                 .date(LocalDate.of(2024, 1, 1))
                 .currencyCode(CurrencyCode.PLN)
                 .paymentMethod(PaymentMethod.CASH)
+                .build();
+
+        var transactionRequest3 = TransactionRequest.builder()
+                .amount(BigDecimal.valueOf(421).setScale(2))
+                .category(CategoryRequest.builder().name("Food").build())
+                .date(LocalDate.of(2024, 1, 1))
+                .currencyCode(CurrencyCode.PLN)
+                .paymentMethod(PaymentMethod.CASH)
+                .details("USD->PLN: 4.21")
                 .build();
 
         var pageable = PageRequest.of(0, 10);
@@ -156,8 +176,26 @@ class TransactionServiceTest {
                         .name(transaction2.getCategory().getName())
                         .build())
                 .build());
+        when(modelMapper.map(transaction3, TransactionResponse.class)).thenReturn(TransactionResponse.builder()
+                .id(transaction3.getId())
+                .amount(String.valueOf(transaction3.getAmount()))
+                .date(String.valueOf(transaction3.getDate()))
+                .paymentMethod(transaction3.getPaymentMethod().toString())
+                .account(AccountResponse.builder()
+                        .id(transaction3.getAccount().getId())
+                        .name(transaction3.getAccount().getName())
+                        .currencyCode(transaction3.getAccount().getCurrencyCode().toString())
+                        .build())
+                .category(CategoryResponse.builder()
+                        .id(transaction3.getCategory().getId())
+                        .name(transaction3.getCategory().getName())
+                        .build())
+                .details(transaction3.getDetails())
+                .build());
+
         when(modelMapper.mapTransactionRequestToTransaction(transactionRequest, account, category)).thenReturn(transaction);
         when(modelMapper.mapTransactionRequestToTransaction(transactionRequest2, account2, category)).thenReturn(transaction2);
+        when(modelMapper.mapTransactionRequestToTransaction(transactionRequest3, account2, category)).thenReturn(transaction3);
 
         when(accountService.findOneByCurrentUserAndCurrencyCode(CurrencyCode.USD)).thenReturn(account);
         when(accountService.findOneByCurrentUserAndCurrencyCode(CurrencyCode.EUR)).thenThrow(
@@ -194,6 +232,7 @@ class TransactionServiceTest {
                 .thenReturn(transactionPage);
         when(transactionRepository.save(transaction)).thenReturn(transaction);
         when(transactionRepository.save(transaction2)).thenReturn(transaction2);
+        when(transactionRepository.save(transaction3)).thenReturn(transaction3);
         when(transactionRepository.findById(1L)).thenReturn(Optional.of(transaction));
         when(transactionRepository.findById(2L)).thenReturn(Optional.of(Transaction.builder()
                 .id(2L)
@@ -553,6 +592,7 @@ class TransactionServiceTest {
                         .name("PLN account")
                         .currencyCode("PLN")
                         .build())
+                .details("USD->PLN: 4.21")
                 .build();
 
         assertEquals(transactionResponse, returnedTransactionResponse);

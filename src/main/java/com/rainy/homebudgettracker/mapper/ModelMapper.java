@@ -3,9 +3,7 @@ package com.rainy.homebudgettracker.mapper;
 import com.rainy.homebudgettracker.account.Account;
 import com.rainy.homebudgettracker.account.AccountRequest;
 import com.rainy.homebudgettracker.account.AccountResponse;
-import com.rainy.homebudgettracker.images.CloudfrontService;
 import com.rainy.homebudgettracker.images.ImageService;
-import com.rainy.homebudgettracker.images.S3Service;
 import com.rainy.homebudgettracker.user.UserService;
 import com.rainy.homebudgettracker.category.Category;
 import com.rainy.homebudgettracker.category.CategoryRequest;
@@ -14,7 +12,6 @@ import com.rainy.homebudgettracker.transaction.Transaction;
 import com.rainy.homebudgettracker.transaction.TransactionRequest;
 import com.rainy.homebudgettracker.transaction.TransactionResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -71,6 +68,7 @@ public class ModelMapper {
                 .account(account)
                 .paymentMethod(transactionRequest.getPaymentMethod())
                 .user(account.getUser())
+                .details(transactionRequest.getDetails() != null ? transactionRequest.getDetails() : "")
                 .build();
     }
 
@@ -83,6 +81,7 @@ public class ModelMapper {
                 .account(mapAccountToResponse(transaction.getAccount()))
                 .paymentMethod(transaction.getPaymentMethod().name())
                 .imageUrl(imageService.getImageUrl(transaction))
+                .details(transaction.getDetails() != null ? transaction.getDetails() : "")
                 .build();
     }
 
