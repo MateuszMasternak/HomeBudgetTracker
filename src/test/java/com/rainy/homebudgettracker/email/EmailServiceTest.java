@@ -63,11 +63,9 @@ class EmailServiceTest {
 
         assertTrue(variableNames.contains("username"));
         assertTrue(variableNames.contains("confirmationUrl"));
-        assertTrue(variableNames.contains("activationCode"));
 
         assertEquals(username, capturedContext.getVariable("username"));
         assertEquals(confirmationUrl, capturedContext.getVariable("confirmationUrl"));
-        assertEquals(activationCode, capturedContext.getVariable("activationCode"));
     }
 
     @Test
@@ -103,7 +101,6 @@ class EmailServiceTest {
         String to = "test@example.com";
         String username = "JohnDoe";
         String confirmationUrl = "http://test.com/confirm";
-        String activationCode = "123456";
         String subject = "Confirm your email";
         String defaultTemplateName = "activate_account_message";
 
@@ -122,10 +119,8 @@ class EmailServiceTest {
 
         assertTrue(variableNames.contains("username"));
         assertTrue(variableNames.contains("confirmationUrl"));
-        assertTrue(variableNames.contains("activationCode"));
 
         assertEquals(username, capturedContext.getVariable("username"));
         assertEquals(confirmationUrl, capturedContext.getVariable("confirmationUrl"));
-        assertEquals(activationCode, capturedContext.getVariable("activationCode"));
     }
 }
