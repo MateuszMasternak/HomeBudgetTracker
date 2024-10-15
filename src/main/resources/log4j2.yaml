@@ -1,45 +1,48 @@
 Configuration:
-  status: WARN
-  name: dev
-  properties:
-    property:
-      name: filename
-      value: logs/hbt.log
-  appenders:
+  Appenders:
     Console:
       name: STDOUT
       target: SYSTEM_OUT
       PatternLayout:
-        Pattern: "%highlight{%d{HH:mm:ss.SSS} [%t] %-level %c{1} - %msg%n}"
-      Filters:
-        ThresholdFilter:
-          level: INFO
+        Pattern: "%highlight{%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-level %c{1} - %msg%n}"
     RollingFile:
-      name: RollingFile
-      fileName: logs/hbt-rolling.log
-      filePattern: logs/hbt-%d{yyy-MM-dd}-%i.log
-      PatternLayout:
+      - name: RollingFile
+        fileName: "logs/main.log"
+        filePattern: "logs/main-%d{yyyy-MM-dd}-%i.log"
+        append: true
+        PatternLayout:
           Pattern: "%highlight{[%-level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n}"
-      Filters:
-        ThresholdFilter:
-          level: DEBUG
-      Policies:
+        Policies:
           TimeBasedTriggeringPolicy:
             interval: 1
             modulate: true
           SizeBasedTriggeringPolicy:
             size: 10 MB
-      DefaultRolloverStrategy:
+        DefaultRolloverStrategy:
+          max: 60
+      - name : RollingFileDebug
+        fileName: "logs/debug.log"
+        filePattern: "logs/debug-%d{yyyy-MM-dd}-%i.log"
+        append: true
+        PatternLayout:
+          Pattern: "%highlight{[%-level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n}"
+        Policies:
+          TimeBasedTriggeringPolicy:
+            interval: 1
+            modulate: true
+          SizeBasedTriggeringPolicy:
+            size: 20 MB
+        DefaultRolloverStrategy:
           max: 60
   Loggers:
-    logger:
-      -
-        name: com.rainy.homebudgettracker
-        additivity: false
+    Root:
+      level: INFO
+      AppenderRef:
+        - ref: STDOUT
+          level: WARN
+        - ref: RollingFile
+    Logger:
+      - name: com.rainy.homebudgettracker
         level: DEBUG
         AppenderRef:
-          ref: RollingFile
-    Root:
-      level: DEBUG
-      AppenderRef:
-        ref: STDOUT
+          ref: RollingFileDebug
