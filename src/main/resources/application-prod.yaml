@@ -13,6 +13,7 @@ application:
       url: ${EXCHANGE_RATE_URL}
       api-key: ${EXCHANGE_RATE_API_KEY}
 
+
 aws:
   profile: ${AWS_PROFILE}
   s3:
@@ -51,3 +52,8 @@ spring:
     activate:
       on-profile: prod
     import: optional:file:.env[.properties]
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
