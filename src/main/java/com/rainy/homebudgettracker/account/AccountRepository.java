@@ -11,10 +11,8 @@ import java.util.Optional;
 
 public interface AccountRepository extends JpaRepository<Account, Long> {
     Iterable<Account> findAllByUser(User user);
-    Optional<Account> findByUserAndCurrencyCode(User user, CurrencyCode currencyCode);
     @Modifying
-    @Query("update Account a set a.name = :name where a.user = :user and a.currencyCode = :currencyCode")
-    void updateAccountName(User user, String name, CurrencyCode currencyCode);
-    boolean existsByUserAndCurrencyCode(User user, CurrencyCode currencyCode);
+    @Query("update Account a set a.name = :name where a.id = :id")
+    void updateAccountName(Long id, String name);
     void deleteAllByUser(User user);
 }

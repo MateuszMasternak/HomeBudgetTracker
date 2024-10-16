@@ -2,6 +2,7 @@ package com.rainy.homebudgettracker.account;
 
 import com.rainy.homebudgettracker.handler.exception.RecordAlreadyExistsException;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
+import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,27 +15,28 @@ import org.springframework.web.bind.annotation.*;
 public class AccountController {
     private final AccountService accountService;
 
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<Iterable<AccountResponse>> getAllAccountsByCurrentUser() {
-        return ResponseEntity.ok(accountService.findAllByCurrentUser());
+        return ResponseEntity.ok(accountService.findCurrentUserAccountsAsResponses());
     }
 
-    @GetMapping("/{code}")
+    @GetMapping("/{id}")
     public ResponseEntity<AccountResponse> getAccountByCurrentUserAndCurrencyCode(
-            @PathVariable() CurrencyCode code
-    ) throws RecordDoesNotExistException {
-        return ResponseEntity.ok(accountService.findOneAsResponseByCurrentUserAndCurrencyCode(code));
+            @PathVariable() Long id
+    ) throws RecordDoesNotExistException, UserIsNotOwnerException {
+        return ResponseEntity.ok(accountService.findCurrentUserAccountAsResponseById(id));
     }
 
     @PostMapping
     public ResponseEntity<AccountResponse> createAccountForCurrentUser(
-            @RequestBody @Valid AccountRequest accountRequest) throws RecordAlreadyExistsException {
-        return ResponseEntity.ok(accountService.createAccountForCurrentUser(accountRequest));
+            @RequestBody @Valid AccountRequest request) throws RecordAlreadyExistsException {
+        return ResponseEntity.ok(accountService.createAccountForCurrentUser(request));
     }
 
     @PatchMapping
     public ResponseEntity<AccountResponse> updateCurrentUserAccountName(
-            @RequestBody @Valid AccountRequest accountRequest) throws RecordDoesNotExistException {
-        return ResponseEntity.ok(accountService.updateCurrentUserAccountName(accountRequest));
+            @RequestBody @Valid AccountUpdateNameRequest request
+    ) throws RecordDoesNotExistException, UserIsNotOwnerException {
+        return ResponseEntity.ok(accountService.updateCurrentUserAccountName(request));
     }
 }
