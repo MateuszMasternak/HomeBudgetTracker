@@ -22,7 +22,7 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @GetMapping
-    public ResponseEntity<Page<CategoryResponse>> getAllCategoriesByCurrentUser(
+    public ResponseEntity<Page<CategoryResponse>> getCurrentUserCategories(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
@@ -31,7 +31,7 @@ public class CategoryController {
     }
 
     @GetMapping("/without-pagination")
-    public ResponseEntity<List<CategoryResponse>> getAllCategoriesByCurrentUserWithoutPagination() {
+    public ResponseEntity<List<CategoryResponse>> getCurrentUserCategoriesWithoutPagination() {
         return ResponseEntity.ok(categoryService.findCurrentUserCategoriesAsResponses());
     }
 

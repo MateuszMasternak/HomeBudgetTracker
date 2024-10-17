@@ -15,15 +15,15 @@ public class AccountController {
     private final AccountService accountService;
 
     @GetMapping("/all")
-    public ResponseEntity<Iterable<AccountResponse>> getAllAccountsByCurrentUser() {
+    public ResponseEntity<Iterable<AccountResponse>> getCurrentUserAccounts() {
         return ResponseEntity.ok(accountService.findCurrentUserAccountsAsResponses());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<AccountResponse> getAccountByCurrentUserAndCurrencyCode(
-            @PathVariable() Long id
+    public ResponseEntity<AccountResponse> getCurrentUserAccount(
+            @PathVariable(name = "id") Long accountId
     ) throws RecordDoesNotExistException, UserIsNotOwnerException {
-        return ResponseEntity.ok(accountService.findCurrentUserAccountAsResponse(id));
+        return ResponseEntity.ok(accountService.findCurrentUserAccountAsResponse(accountId));
     }
 
     @PostMapping

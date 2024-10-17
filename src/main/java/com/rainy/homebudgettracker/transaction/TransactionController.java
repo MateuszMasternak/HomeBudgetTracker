@@ -131,7 +131,7 @@ public class TransactionController {
     }
 
     @GetMapping("/sum")
-    public ResponseEntity<SumResponse> sumAmountByCurrentUserAndAccount(
+    public ResponseEntity<SumResponse> sumCurrentUserAmount(
             @RequestParam(name = "account-id") Long accountId
     ) throws RecordDoesNotExistException, UserIsNotOwnerException {
 
@@ -139,7 +139,7 @@ public class TransactionController {
     }
 
     @GetMapping("/export-csv")
-    public ResponseEntity<byte[]> exportTransactionsToCsv() throws IOException {
+    public ResponseEntity<byte[]> getCurrentUserTransactionsAsCSV() throws IOException {
 
         byte[] content = transactionService.generateCSVWithCurrentUserTransactions();
         HttpHeaders headers = new HttpHeaders();
@@ -149,7 +149,7 @@ public class TransactionController {
     }
 
     @PostMapping("/upload-image")
-    public ResponseEntity<TransactionResponse> uploadImageForTransaction(
+    public ResponseEntity<TransactionResponse> uploadImageForCurrentUserTransaction(
             @RequestParam(name = "id") Long transactionId,
             @RequestParam("file") MultipartFile file
     ) throws RecordDoesNotExistException, UserIsNotOwnerException, ImageUploadException, WrongFileTypeException {
@@ -159,7 +159,7 @@ public class TransactionController {
     }
 
     @PostMapping("/delete-image")
-    public ResponseEntity<TransactionResponse> deleteImageForTransaction(@RequestParam(name = "id") Long transactionId)
+    public ResponseEntity<TransactionResponse> deleteImageForCurrentUserTransaction(@RequestParam(name = "id") Long transactionId)
             throws RecordDoesNotExistException, UserIsNotOwnerException {
 
         return ResponseEntity.accepted().body(transactionService.deleteImageFromCurrentUserTransaction(transactionId));
