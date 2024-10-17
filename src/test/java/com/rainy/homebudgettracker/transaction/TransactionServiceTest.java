@@ -87,14 +87,14 @@ class TransactionServiceTest {
                 .build());
 
         Account account2 = Account.builder()
-                .id(2L)
+                .id(4L)
                 .name("PLN account")
                 .currencyCode(CurrencyCode.PLN)
                 .user(user)
                 .build();
         when(accountService.findCurrentUserAccount(4L)).thenReturn(account2);
         when(modelMapper.map(account2, AccountResponse.class)).thenReturn(AccountResponse.builder()
-                .id(2L)
+                .id(4L)
                 .name("PLN account")
                 .currencyCode("PLN")
                 .build());
@@ -204,7 +204,7 @@ class TransactionServiceTest {
                         .build())
                 .build();
 
-        when(modelMapper.mapTransactionRequestToTransaction(convertedTransactionRequest, account, category)).thenReturn(convertedTransaction);
+        when(modelMapper.mapTransactionRequestToTransaction(convertedTransactionRequest, account2, category)).thenReturn(convertedTransaction);
         when(modelMapper.map(convertedTransaction, TransactionResponse.class)).thenReturn(convertedTransactionResponse);
         when(transactionRepository.save(convertedTransaction)).thenReturn(convertedTransaction);
 
@@ -214,7 +214,7 @@ class TransactionServiceTest {
                 .date(LocalDate.of(2024, 1, 1))
                 .paymentMethod(PaymentMethod.CASH)
                 .category(category)
-                .account(account)
+                .account(account2)
                 .details("EUR->PLN: 4.21")
                 .build();
 
@@ -237,16 +237,54 @@ class TransactionServiceTest {
                         .name("Food")
                         .build())
                 .account(AccountResponse.builder()
-                        .id(1L)
+                        .id(4L)
                         .name("PLN account")
                         .currencyCode("PLN")
                         .build())
                 .details("EUR->PLN: 4.21")
                 .build();
 
-        when(modelMapper.mapTransactionRequestToTransaction(convertedTransactionRequest_2, account, category)).thenReturn(convertedTransaction_2);
+        when(modelMapper.mapTransactionRequestToTransaction(convertedTransactionRequest_2, account2, category)).thenReturn(convertedTransaction_2);
         when(modelMapper.map(convertedTransaction_2, TransactionResponse.class)).thenReturn(convertedTransactionResponse_2);
         when(transactionRepository.save(convertedTransaction_2)).thenReturn(convertedTransaction_2);
+        when(exchangeService.getExchangeRate(CurrencyCode.EUR, CurrencyCode.PLN)).thenReturn(ExchangeResponse.builder().conversionRate("4.21").build());
+
+                Transaction convertedTransaction_3 = Transaction.builder()
+                .id(1L)
+                .amount(BigDecimal.valueOf(421).setScale(2, RoundingMode.HALF_UP))
+                .date(LocalDate.of(2024, 1, 1))
+                .paymentMethod(PaymentMethod.CASH)
+                .category(category)
+                .account(account2)
+                .build();
+
+        TransactionRequest convertedTransactionRequest_3 = TransactionRequest.builder()
+                .amount(BigDecimal.valueOf(421).setScale(2, RoundingMode.HALF_UP))
+                .categoryName(CategoryRequest.builder().name("Food").build())
+                .date(LocalDate.of(2024, 1, 1))
+                .currencyCode(CurrencyCode.PLN)
+                .paymentMethod(PaymentMethod.CASH)
+                .build();
+
+        TransactionResponse convertedTransactionResponse_3 = TransactionResponse.builder()
+                .id(1L)
+                .amount("421.00")
+                .date("2024-01-01")
+                .paymentMethod("CASH")
+                .category(CategoryResponse.builder()
+                        .id(1L)
+                        .name("Food")
+                        .build())
+                .account(AccountResponse.builder()
+                        .id(4L)
+                        .name("PLN account")
+                        .currencyCode("PLN")
+                        .build())
+                .build();
+
+        when(modelMapper.mapTransactionRequestToTransaction(convertedTransactionRequest_3, account2, category)).thenReturn(convertedTransaction_3);
+        when(modelMapper.map(convertedTransaction_3, TransactionResponse.class)).thenReturn(convertedTransactionResponse_3);
+        when(transactionRepository.save(convertedTransaction_3)).thenReturn(convertedTransaction_3);
         when(exchangeService.getExchangeRate(CurrencyCode.EUR, CurrencyCode.PLN)).thenReturn(ExchangeResponse.builder().conversionRate("4.21").build());
 
         when(transactionRepository.sumPositiveAmountByAccount(account)).thenReturn(BigDecimal.valueOf(100.1));
@@ -440,7 +478,7 @@ class TransactionServiceTest {
                     .build();
 
             var returnedTransactionResponse = transactionService.createTransactionForCurrentUser(
-                    1L, CurrencyCode.PLN, BigDecimal.valueOf(4.21), transactionRequest);
+                    4L, BigDecimal.valueOf(4.21), transactionRequest);
 
             var transactionResponse = TransactionResponse.builder()
                     .id(1L)
@@ -452,7 +490,7 @@ class TransactionServiceTest {
                             .name("Food")
                             .build())
                     .account(AccountResponse.builder()
-                            .id(1L)
+                            .id(4L)
                             .name("PLN account")
                             .currencyCode("PLN")
                             .build())
@@ -481,7 +519,7 @@ class TransactionServiceTest {
                     .build();
 
             var returnedTransactionResponse = transactionService.createTransactionForCurrentUser(
-                    1L, CurrencyCode.PLN, null, transactionRequest);
+                    4L, null, transactionRequest);
 
             var transactionResponse = TransactionResponse.builder()
                     .id(1L)
@@ -493,7 +531,7 @@ class TransactionServiceTest {
                             .name("Food")
                             .build())
                     .account(AccountResponse.builder()
-                            .id(1L)
+                            .id(4L)
                             .name("PLN account")
                             .currencyCode("PLN")
                             .build())
@@ -539,7 +577,7 @@ class TransactionServiceTest {
         var sumPositiveAmount = transactionService.sumCurrentUserPositiveAmount(4L);
 
         AccountResponse account = AccountResponse.builder()
-                .id(2L)
+                .id(4L)
                 .name("PLN account")
                 .currencyCode("PLN")
                 .build();
@@ -564,7 +602,7 @@ class TransactionServiceTest {
         var sumPositiveAmount = transactionService.sumCurrentUserNegativeAmount(4L);
 
         AccountResponse account = AccountResponse.builder()
-                .id(2L)
+                .id(4L)
                 .name("PLN account")
                 .currencyCode("PLN")
                 .build();
@@ -588,7 +626,7 @@ class TransactionServiceTest {
         var sumPositiveAmount = transactionService.sumCurrentUserAmount(4L);
 
         AccountResponse account = AccountResponse.builder()
-                .id(2L)
+                .id(4L)
                 .name("PLN account")
                 .currencyCode("PLN")
                 .build();

@@ -45,7 +45,6 @@ public interface TransactionService {
 
     TransactionResponse createTransactionForCurrentUser(
             Long accountId,
-            CurrencyCode targetCurrency,
             BigDecimal exchangeRate,
             TransactionRequest transactionRequest)
             throws RecordDoesNotExistException, UserIsNotOwnerException;

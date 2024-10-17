@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 
 @RestController
@@ -96,14 +97,13 @@ public class TransactionController {
     public ResponseEntity<TransactionResponse> createTransactionForCurrentUser(
             @RequestBody @Valid TransactionRequest request,
             @RequestParam(name = "account-id") Long accountId,
-            @RequestParam(name = "target-currency") String targetCurrency,
             @RequestParam(required = false, name = "exchange-rate") String exchangeRate
     ) throws RecordDoesNotExistException, UserIsNotOwnerException {
 
-        CurrencyCode currencyCode = CurrencyCode.valueOf(targetCurrency.toUpperCase());
-        BigDecimal rate = exchangeRate == null ? null : new BigDecimal(exchangeRate);
+        BigDecimal rate = exchangeRate == null ? null : new BigDecimal(exchangeRate)
+                .setScale(2, RoundingMode.HALF_UP);
         return ResponseEntity.ok(
-                transactionService.createTransactionForCurrentUser(accountId, currencyCode, rate, request));
+                transactionService.createTransactionForCurrentUser(accountId, rate, request));
     }
 
     @DeleteMapping("/delete")

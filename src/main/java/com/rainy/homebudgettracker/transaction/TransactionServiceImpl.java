@@ -116,18 +116,20 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public TransactionResponse createTransactionForCurrentUser(Long accountId, TransactionRequest transactionRequest)
             throws RecordDoesNotExistException, UserIsNotOwnerException {
-        return saveTransactionForCurrentUser(accountId, transactionRequest);
+        Account account = accountService.findCurrentUserAccount(accountId);
+        return saveTransactionForCurrentUser(account, transactionRequest);
     }
 
     @Transactional
     @Override
     public TransactionResponse createTransactionForCurrentUser(
             Long accountId,
-            CurrencyCode targetCurrency,
             BigDecimal exchangeRate,
             TransactionRequest transactionRequest)
             throws RecordDoesNotExistException, UserIsNotOwnerException {
 
+        Account account = accountService.findCurrentUserAccount(accountId);
+        CurrencyCode targetCurrency = account.getCurrencyCode();
         TransactionRequest convertedTransactionRequest = getTransactionRequestWithUpdatedCurrency(
                 transactionRequest,
                 CurrencyConverter.convert(
@@ -148,15 +150,14 @@ public class TransactionServiceImpl implements TransactionService {
                 targetCurrency);
 
 
-        return saveTransactionForCurrentUser(accountId, convertedTransactionRequest);
+        return saveTransactionForCurrentUser(account, convertedTransactionRequest);
     }
 
-    private TransactionResponse saveTransactionForCurrentUser(Long accountId, TransactionRequest transactionRequest)
-            throws RecordDoesNotExistException, UserIsNotOwnerException {
+    private TransactionResponse saveTransactionForCurrentUser(Account account, TransactionRequest transactionRequest)
+            throws RecordDoesNotExistException {
 
         Category category = categoryService.findCurrentUserCategory(
                 transactionRequest.getCategoryName().getName());
-        Account account = accountService.findCurrentUserAccount(accountId);
 
         Transaction transaction = modelMapper.mapTransactionRequestToTransaction(transactionRequest, account, category);
         transaction = transactionRepository.save(transaction);
