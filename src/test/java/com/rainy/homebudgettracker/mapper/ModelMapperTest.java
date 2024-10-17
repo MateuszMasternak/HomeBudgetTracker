@@ -23,7 +23,9 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -41,7 +43,7 @@ class ModelMapperTest {
         MockitoAnnotations.openMocks(this);
 
         var user = User.builder()
-                .id(1L)
+                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                 .email("mail@mail.com")
                 .password("password")
                 .role(Role.USER)
@@ -58,10 +60,10 @@ class ModelMapperTest {
     @Test
     public void shouldMapCategoryToCategoryResponse() {
         var category = Category.builder()
-                .id(1L)
+                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                 .name("Food")
                 .user(User.builder()
-                        .id(1L)
+                        .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                         .email("mail@mail.com")
                         .password("password")
                         .role(Role.USER)
@@ -71,7 +73,7 @@ class ModelMapperTest {
         var returnedCategoryResponse = modelMapper.map(category, CategoryResponse.class);
 
         var categoryResponse = CategoryResponse.builder()
-                .id(1L)
+                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                 .name("Food")
                 .build();
 
@@ -96,7 +98,7 @@ class ModelMapperTest {
         var category = Category.builder()
                 .name("Food")
                 .user(User.builder()
-                        .id(1L)
+                        .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                         .email("mail@mail.com")
                         .password("password")
                         .role(Role.USER)
@@ -120,11 +122,11 @@ class ModelMapperTest {
     @Test
     public void shouldMapAccountToAccountResponse() {
         var account = Account.builder()
-                .id(1L)
+                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                 .name("Main")
                 .currencyCode(CurrencyCode.USD)
                 .user(User.builder()
-                        .id(1L)
+                        .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                         .email("mail@mail.com")
                         .password("password")
                         .role(Role.USER)
@@ -134,7 +136,7 @@ class ModelMapperTest {
         var returnedAccountResponse = modelMapper.map(account, AccountResponse.class);
 
         var accountResponse = AccountResponse.builder()
-                .id(1L)
+                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                 .name("Main")
                 .currencyCode(CurrencyCode.USD.name())
                 .build();
@@ -162,7 +164,7 @@ class ModelMapperTest {
                 .name("Main")
                 .currencyCode(CurrencyCode.USD)
                 .user(User.builder()
-                        .id(1L)
+                        .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                         .email("mail@mail.com")
                         .password("password")
                         .role(Role.USER)
@@ -186,20 +188,20 @@ class ModelMapperTest {
     @Test
     public void shouldMapTransactionRequestToTransaction1() {
         var user = User.builder()
-                .id(1L)
+                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                 .email("mail@mail.com")
                 .password("password")
                 .role(Role.USER)
                 .build();
 
         var account = Account.builder()
-                .id(1L)
+                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                 .name("Main")
                 .currencyCode(CurrencyCode.USD)
                 .user(user)
                 .build();
         var category = Category.builder()
-                .id(1L)
+                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                 .name("Food")
                 .user(user)
                 .build();
@@ -208,7 +210,7 @@ class ModelMapperTest {
                 .amount(BigDecimal.valueOf(100))
                 .date(LocalDate.now())
                 .paymentMethod(PaymentMethod.CASH)
-                .category(CategoryRequest.builder().name("Food").build())
+                .categoryName(CategoryRequest.builder().name("Food").build())
                 .currencyCode(CurrencyCode.USD)
                 .details("Details")
                 .build();
@@ -216,7 +218,7 @@ class ModelMapperTest {
         var returnedTransaction = modelMapper.mapTransactionRequestToTransaction(transactionRequest, account, category);
 
         var transaction = Transaction.builder()
-                .amount(transactionRequest.getAmount())
+                .amount(transactionRequest.getAmount().setScale(2, RoundingMode.HALF_UP))
                 .category(category)
                 .date(transactionRequest.getDate())
                 .account(account)
@@ -245,20 +247,20 @@ class ModelMapperTest {
     @Test
     public void shouldMapTransactionRequestToTransaction2() {
         var user = User.builder()
-                .id(1L)
+                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                 .email("mail@mail.com")
                 .password("password")
                 .role(Role.USER)
                 .build();
 
         var account = Account.builder()
-                .id(1L)
+                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                 .name("Main")
                 .currencyCode(CurrencyCode.USD)
                 .user(user)
                 .build();
         var category = Category.builder()
-                .id(1L)
+                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                 .name("Food")
                 .user(user)
                 .build();
@@ -267,14 +269,14 @@ class ModelMapperTest {
                 .amount(BigDecimal.valueOf(100))
                 .date(LocalDate.now())
                 .paymentMethod(PaymentMethod.CASH)
-                .category(CategoryRequest.builder().name("Food").build())
+                .categoryName(CategoryRequest.builder().name("Food").build())
                 .currencyCode(CurrencyCode.USD)
                 .build();
 
         var returnedTransaction = modelMapper.mapTransactionRequestToTransaction(transactionRequest, account, category);
 
         var transaction = Transaction.builder()
-                .amount(transactionRequest.getAmount())
+                .amount(transactionRequest.getAmount().setScale(2, RoundingMode.HALF_UP))
                 .category(category)
                 .date(transactionRequest.getDate())
                 .account(account)
@@ -288,26 +290,26 @@ class ModelMapperTest {
     @Test
     public void shouldMapTransactionToTransactionResponse() {
         var user = User.builder()
-                .id(1L)
+                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                 .email("mail@mail.com")
                 .password("password")
                 .role(Role.USER)
                 .build();
 
         var account = Account.builder()
-                .id(1L)
+                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                 .name("Main")
                 .currencyCode(CurrencyCode.USD)
                 .user(user)
                 .build();
         var category = Category.builder()
-                .id(1L)
+                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                 .name("Food")
                 .user(user)
                 .build();
 
         var transaction = Transaction.builder()
-                .id(1L)
+                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                 .amount(BigDecimal.valueOf(100))
                 .date(LocalDate.now())
                 .paymentMethod(PaymentMethod.CASH)
@@ -321,14 +323,14 @@ class ModelMapperTest {
 
         var transactionResponse = TransactionResponse.builder()
                 .id(transaction.getId())
-                .amount(String.valueOf(transaction.getAmount()))
+                .amount(transaction.getAmount() + ".00")
                 .category(CategoryResponse.builder()
-                        .id(1L)
+                        .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                         .name("Food")
                         .build())
                 .date(String.valueOf(transaction.getDate()))
                 .account(AccountResponse.builder()
-                        .id(1L)
+                        .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                         .name("Main")
                         .currencyCode(CurrencyCode.USD.name())
                         .build())

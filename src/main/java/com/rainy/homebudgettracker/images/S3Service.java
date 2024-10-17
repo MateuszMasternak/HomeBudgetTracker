@@ -28,7 +28,7 @@ public class S3Service {
     @Value("${aws.s3.expiration-time}")
     private Long expirationTime;
 
-    public String uploadFile(MultipartFile file, Long userId, Long transactionId) throws ImageUploadException {
+    public String uploadFile(MultipartFile file, UUID userId, UUID transactionId) throws ImageUploadException {
         try {
             File tempFile = convertMultipartFileToCompressedFile(file);
             String key = createKeyForImage(userId, transactionId);
@@ -57,7 +57,7 @@ public class S3Service {
         }
     }
 
-    private String createKeyForImage(Long userId, Long transactionId) {
+    private String createKeyForImage(UUID userId, UUID transactionId) {
         String name = userId + "_" + transactionId;
         return "images/" + UUID.nameUUIDFromBytes(name.getBytes());
     }

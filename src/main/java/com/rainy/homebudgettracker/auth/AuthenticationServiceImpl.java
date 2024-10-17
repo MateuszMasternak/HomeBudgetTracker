@@ -141,7 +141,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new ExpiredConfirmationTokenException(
                     "Token expired. New token has been sent to the same email address");
         }
-        var user = userRepository.findById(Math.toIntExact(savedToken.getUser().getId()))
+        var user = userRepository.findByEmail(savedToken.getUser().getEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         user.setEnabled(true);
         userRepository.save(user);
@@ -163,7 +163,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new ExpiredConfirmationTokenException(
                     "Token expired. New token has been sent to the same email address");
         }
-        var user = userRepository.findById(Math.toIntExact(savedToken.getUser().getId()))
+        var user = userRepository.findByEmail(savedToken.getUser().getEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         user.setPassword(passwordEncoder.encode(changePasswordRequest.getPassword()));
         userRepository.save(user);

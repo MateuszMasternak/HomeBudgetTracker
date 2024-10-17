@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/category")
@@ -22,17 +23,17 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @GetMapping
-    public ResponseEntity<Page<CategoryResponse>> getAllCategoriesByCurrentUser(
+    public ResponseEntity<Page<CategoryResponse>> getCurrentUserCategories(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("name"));
-        return ResponseEntity.ok(categoryService.findAllByCurrentUser(pageable));
+        return ResponseEntity.ok(categoryService.findCurrentUserCategoriesAsResponses(pageable));
     }
 
     @GetMapping("/without-pagination")
-    public ResponseEntity<List<CategoryResponse>> getAllCategoriesByCurrentUserWithoutPagination() {
-        return ResponseEntity.ok(categoryService.findAllByCurrentUser());
+    public ResponseEntity<List<CategoryResponse>> getCurrentUserCategoriesWithoutPagination() {
+        return ResponseEntity.ok(categoryService.findCurrentUserCategoriesAsResponses());
     }
 
 
@@ -44,7 +45,7 @@ public class CategoryController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCurrentUserCategory(@PathVariable Long id)
+    public ResponseEntity<Void> deleteCurrentUserCategory(@PathVariable UUID id)
             throws RecordDoesNotExistException, UserIsNotOwnerException, CategoryAssociatedWithTransactionException {
         categoryService.deleteCurrentUserCategory(id);
         return ResponseEntity.noContent().build();

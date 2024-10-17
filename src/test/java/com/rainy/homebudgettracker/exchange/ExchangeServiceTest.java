@@ -29,12 +29,6 @@ class ExchangeServiceTest {
 
         ResponseEntity<ExchangeResponse> exchangeResponse = ResponseEntity.ok(ExchangeResponse.builder()
                 .result("success")
-                .documentation("https://www.exchangerate-api.com/docs")
-                .termsOfUse("https://www.exchangerate-api.com/terms")
-                .timeLastUpdateUnix("1585267200")
-                .timeLastUpdateUtc("Fri, 27 Mar 2020 00:00:00 +0000")
-                .timeNextUpdateUnix("1585270800")
-                .timeNextUpdateUtc("Sat, 28 Mar 2020 01:00:00 +0000")
                 .baseCode("EUR")
                 .targetCode("GBP")
                 .conversionRate("0.8412")
@@ -68,34 +62,28 @@ class ExchangeServiceTest {
     }
 
     @Test
-    void getExchangeRate() {
+    void shouldReturnExchangeRate() {
         ExchangeResponse exchangeResponse = exchangeService.getExchangeRate(CurrencyCode.EUR, CurrencyCode.GBP);
         assertEquals("success", exchangeResponse.getResult());
-        assertEquals("https://www.exchangerate-api.com/docs", exchangeResponse.getDocumentation());
-        assertEquals("https://www.exchangerate-api.com/terms", exchangeResponse.getTermsOfUse());
-        assertEquals("1585267200", exchangeResponse.getTimeLastUpdateUnix());
-        assertEquals("Fri, 27 Mar 2020 00:00:00 +0000", exchangeResponse.getTimeLastUpdateUtc());
-        assertEquals("1585270800", exchangeResponse.getTimeNextUpdateUnix());
-        assertEquals("Sat, 28 Mar 2020 01:00:00 +0000", exchangeResponse.getTimeNextUpdateUtc());
         assertEquals("EUR", exchangeResponse.getBaseCode());
         assertEquals("GBP", exchangeResponse.getTargetCode());
         assertEquals("0.8412", exchangeResponse.getConversionRate());
     }
 
     @Test
-    void getExchangeRateQuotaReached() {
+    void shouldThrowExceptionWhenQuotaReached() {
         assertThrows(QuotaReachedException.class,
                 () -> exchangeService.getExchangeRate(CurrencyCode.EUR, CurrencyCode.JPY));
     }
 
     @Test
-    void getExchangeRateError() {
+    void shouldThrowExceptionWhenErrorOtherThanQuotaReached() {
         assertThrows(ExchangeRateApiException.class,
                 () -> exchangeService.getExchangeRate(CurrencyCode.EUR, CurrencyCode.USD));
     }
 
     @Test
-    void getExchangeRateNull() {
+    void shouldThrowExceptionWhenResponseIsNull() {
         assertThrows(ExchangeRateApiException.class,
                 () -> exchangeService.getExchangeRate(CurrencyCode.USD, CurrencyCode.JPY));
     }

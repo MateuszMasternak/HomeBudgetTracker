@@ -5,6 +5,8 @@ import com.rainy.homebudgettracker.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 @Builder
@@ -12,13 +14,10 @@ import lombok.*;
 @NoArgsConstructor
 @EqualsAndHashCode
 @Entity
-@Table(uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"currencyCode", "user_id"})
-})
 public class Account {
     @Id
-    @GeneratedValue
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
     private String name;
     private CurrencyCode currencyCode;
     @ManyToOne

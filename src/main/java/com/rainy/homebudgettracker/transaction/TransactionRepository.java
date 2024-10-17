@@ -10,32 +10,40 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Optional;
+import java.util.UUID;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
     Iterable<Transaction> findAllByUser(User user);
-    Page<Transaction> findAllByUserAndAccount(User user, Account account, Pageable pageable);
-    Page<Transaction> findAllByUserAndAccountAndCategory(
-            User user, Account account, Category category, Pageable pageable
-    );
-    Page<Transaction> findAllByUserAndAccountAndDateBetween(
-            User user, Account account, LocalDate startDate, LocalDate endDate, Pageable pageable
-    );
-    Page<Transaction> findAllByUserAndAccountAndCategoryAndDateBetween(
-            User user, Account account, Category category, LocalDate startDate, LocalDate endDate,
-            Pageable pageable
-    );
+
+    Page<Transaction> findAllByAccount(Account account, Pageable pageable);
+
+    Page<Transaction> findAllByAccountAndCategory(
+            Account account, Category category, Pageable pageable);
+
+    Page<Transaction> findAllByAccountAndDateBetween(
+            Account account, LocalDate startDate, LocalDate endDate, Pageable pageable);
+
+    Page<Transaction> findAllByAccountAndCategoryAndDateBetween(
+            Account account, Category category, LocalDate startDate, LocalDate endDate, Pageable pageable);
 
     boolean existsByCategory(Category category);
 
-    @Query("SELECT SUM(t.amount) FROM Transaction t " +
-            "WHERE t.user = :user AND t.amount > 0 AND t.account = :account")
-    BigDecimal sumPositiveAmountByUserAndAccount(User user, Account account);
-    @Query("SELECT SUM(t.amount) FROM Transaction t " +
-            "WHERE t.user = :user AND t.amount < 0 AND t.account = :account")
-    BigDecimal sumNegativeAmountByUserAndAccount(User user, Account account);
-    @Query("SELECT SUM(t.amount) FROM Transaction t " +
-            "WHERE t.user = :user AND t.account = :account")
-    BigDecimal sumAmountByUserAndAccount(User user, Account account);
-
     void deleteAllByUser(User user);
+
+    @Query("SELECT SUM(t.amount) FROM Transaction t " +
+            "WHERE t.amount > 0 AND t.account = :account")
+    BigDecimal sumPositiveAmountByAccount(Account account);
+
+    @Query("SELECT SUM(t.amount) FROM Transaction t " +
+            "WHERE t.amount < 0 AND t.account = :account")
+    BigDecimal sumNegativeAmountByAccount(Account account);
+
+    @Query("SELECT SUM(t.amount) FROM Transaction t " +
+            "WHERE t.account = :account")
+    BigDecimal sumAmountByAccount(Account account);
+
+    Optional<Transaction> findById(UUID transactionId);
+
+    void deleteById(UUID transactionId);
 }

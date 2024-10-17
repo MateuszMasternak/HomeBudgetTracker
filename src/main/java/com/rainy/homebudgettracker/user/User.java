@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.security.Principal;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -20,8 +21,8 @@ import java.util.List;
 @Table(name = "_user") // User is a reserved keyword in PostgreSQL which is going to be used as a production database
 public class User implements UserDetails, Principal {
     @Id
-    @GeneratedValue
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
     private String firstName;
     private String lastName;
     @Column(unique = true)

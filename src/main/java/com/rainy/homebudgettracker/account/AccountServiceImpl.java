@@ -1,10 +1,9 @@
 package com.rainy.homebudgettracker.account;
 
+import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.user.UserService;
-import com.rainy.homebudgettracker.handler.exception.RecordAlreadyExistsException;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
-import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import com.rainy.homebudgettracker.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -22,7 +21,7 @@ public class AccountServiceImpl implements AccountService {
     private final ModelMapper modelMapper;
 
     @Override
-    public List<AccountResponse> findAllByCurrentUser() {
+    public List<AccountResponse> findCurrentUserAccountsAsResponses() {
         User user = userService.getCurrentUser();
         Iterable<Account> accounts = accountRepository.findAllByUser(user);
 
@@ -32,53 +31,45 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public AccountResponse findOneAsResponseByCurrentUserAndCurrencyCode(CurrencyCode currencyCode)
-            throws RecordDoesNotExistException
-    {
+    public AccountResponse findCurrentUserAccountAsResponse(UUID id)
+            throws RecordDoesNotExistException, UserIsNotOwnerException {
             User user = userService.getCurrentUser();
-            Account account = accountRepository.findByUserAndCurrencyCode(user, currencyCode).orElseThrow(
-                    () -> new RecordDoesNotExistException("Account with currency code " + currencyCode + " does not exist."));
+
+            Account account = accountRepository.findById(id).orElseThrow(
+                    () -> new RecordDoesNotExistException("Account with id " + id + " does not exist."));
+            if (!account.getUser().equals(user))
+                throw new UserIsNotOwnerException("User is not the owner of the Account with id " + id + ".");
+
             return modelMapper.map(account, AccountResponse.class);
     }
 
     @Override
-    public Account findOneByCurrentUserAndCurrencyCode(CurrencyCode currencyCode)
-            throws RecordDoesNotExistException
-    {
+    public Account findCurrentUserAccount(UUID id)
+            throws RecordDoesNotExistException, UserIsNotOwnerException {
         User user = userService.getCurrentUser();
-        return accountRepository.findByUserAndCurrencyCode(user, currencyCode).orElseThrow(
-                () -> new RecordDoesNotExistException("Account with currency code " + currencyCode + " does not exist.")
-        );
+
+        Account account = accountRepository.findById(id).orElseThrow(
+                () -> new RecordDoesNotExistException("Account with id " + id + " does not exist."));
+        if (!account.getUser().equals(user))
+            throw new UserIsNotOwnerException("User is not the owner of the Account with id " + id + ".");
+
+        return account;
     }
 
     @Override
-    public AccountResponse createAccountForCurrentUser(AccountRequest accountRequest) throws RecordAlreadyExistsException {
-        User user = userService.getCurrentUser();
-        if (accountRepository.existsByUserAndCurrencyCode(user, accountRequest.getCurrencyCode())) {
-            throw new RecordAlreadyExistsException("Account with currency code " + accountRequest.getCurrencyCode() + " already exists.");
-        } else {
-            Account account = modelMapper.map(accountRequest, Account.class);
-            accountRepository.save(account);
-            return modelMapper.map(account, AccountResponse.class);
-        }
+    public AccountResponse createAccountForCurrentUser(AccountRequest request) {
+        Account account = modelMapper.map(request, Account.class);
+        accountRepository.save(account);
+        return modelMapper.map(account, AccountResponse.class);
     }
 
     @Transactional
     @Override
-    public AccountResponse updateCurrentUserAccountName(AccountRequest accountRequest)
-            throws RecordDoesNotExistException
-    {
-        User user = userService.getCurrentUser();
-        String name = accountRequest.getName();
-        CurrencyCode currencyCode = accountRequest.getCurrencyCode();
-        Optional<Account> account = accountRepository.findByUserAndCurrencyCode(user, currencyCode);
-        if (account.isEmpty()) {
-            throw new RecordDoesNotExistException("Account with currency code " + currencyCode + " does not exist.");
-        } else {
-            accountRepository.updateAccountName(user, name, currencyCode);
-            Account updatedAccount = account.get();
-            updatedAccount.setName(name);
-            return modelMapper.map(updatedAccount, AccountResponse.class);
-        }
+    public AccountResponse updateCurrentUserAccountName(AccountUpdateNameRequest request)
+            throws RecordDoesNotExistException, UserIsNotOwnerException {
+        Account account = findCurrentUserAccount(request.getId());
+        accountRepository.updateAccountName(request.getId(), request.getName());
+        account.setName(request.getName());
+        return modelMapper.map(account, AccountResponse.class);
     }
 }

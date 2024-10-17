@@ -15,40 +15,61 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 public interface TransactionService {
-    Page<TransactionResponse> findAllByCurrentUserAndAccount(CurrencyCode currencyCode, Pageable pageable)
-            throws RecordDoesNotExistException;
-    Page<TransactionResponse> findAllByCurrentUserAndAccountAndCategory(
-            CurrencyCode currencyCode, CategoryRequest categoryName, Pageable pageable
-    ) throws RecordDoesNotExistException;
-    Page<TransactionResponse> findAllByCurrentUserAndAccountAndDateBetween(
-            CurrencyCode currencyCode,
-            LocalDate startDate,
-            LocalDate endDate,
-            Pageable pageable
-    ) throws RecordDoesNotExistException;
-    Page<TransactionResponse> findAllByCurrentUserAndAccountAndCategoryAndDateBetween(
-            CurrencyCode currencyCode,
-            String categoryName,
-            LocalDate startDate,
-            LocalDate endDate,
-            Pageable pageable
-    ) throws RecordDoesNotExistException;
-    TransactionResponse createTransactionForCurrentUser(TransactionRequest transactionRequest)
-            throws RecordDoesNotExistException;
-    TransactionResponse createTransactionForCurrentUser(CurrencyCode targetCurrency, BigDecimal exchangeRate,
-                                                        TransactionRequest transactionRequest
-    ) throws RecordDoesNotExistException;
-    void deleteCurrentUserTransaction(Long transactionId)
+    Page<TransactionResponse> findCurrentUserTransactionsAsResponses(
+            UUID accountId, Pageable pageable)
             throws RecordDoesNotExistException, UserIsNotOwnerException;
-    SumResponse sumPositiveAmountByCurrentUserAndAccount(CurrencyCode currencyCode)
-            throws RecordDoesNotExistException;
-    SumResponse sumNegativeAmountByCurrentUserAndAccount(CurrencyCode currencyCode)
-            throws RecordDoesNotExistException;
-    SumResponse sumAmountByCurrentUserAndAccount(CurrencyCode currencyCode) throws RecordDoesNotExistException;
-    List<TransactionResponse> findAllByUser(User user);
-    byte[] generateCsvFileForCurrentUserTransactions() throws IOException;
-    TransactionResponse addImageToTransaction(Long id, MultipartFile file) throws RecordDoesNotExistException, UserIsNotOwnerException, ImageUploadException, WrongFileTypeException;
-    TransactionResponse deleteImageFromTransaction(Long id) throws RecordDoesNotExistException, UserIsNotOwnerException;
+
+    Page<TransactionResponse> findCurrentUserTransactionsAsResponses(
+            UUID accountId, CategoryRequest categoryName, Pageable pageable)
+            throws RecordDoesNotExistException, UserIsNotOwnerException;
+
+    Page<TransactionResponse> findCurrentUserTransactionsAsResponses(
+            UUID accountId,
+            LocalDate startDate,
+            LocalDate endDate,
+            Pageable pageable)
+            throws RecordDoesNotExistException, UserIsNotOwnerException;
+
+    Page<TransactionResponse> findCurrentUserTransactionsAsResponses(
+            UUID accountId,
+            CategoryRequest categoryName,
+            LocalDate startDate,
+            LocalDate endDate,
+            Pageable pageable)
+            throws RecordDoesNotExistException, UserIsNotOwnerException;
+
+    TransactionResponse createTransactionForCurrentUser(UUID accountId, TransactionRequest transactionRequest)
+            throws RecordDoesNotExistException, UserIsNotOwnerException;
+
+    TransactionResponse createTransactionForCurrentUser(
+            UUID accountId,
+            BigDecimal exchangeRate,
+            TransactionRequest transactionRequest)
+            throws RecordDoesNotExistException, UserIsNotOwnerException;
+
+    void deleteCurrentUserTransaction(UUID transactionId)
+            throws RecordDoesNotExistException, UserIsNotOwnerException;
+
+    List<TransactionResponse> findCurrentUserTransactionsAsResponses();
+
+    byte[] generateCSVWithCurrentUserTransactions()
+            throws IOException;
+
+    TransactionResponse addImageToCurrentUserTransaction(UUID id, MultipartFile file)
+            throws RecordDoesNotExistException, UserIsNotOwnerException, ImageUploadException, WrongFileTypeException;
+
+    TransactionResponse deleteImageFromCurrentUserTransaction(UUID id)
+            throws RecordDoesNotExistException, UserIsNotOwnerException;
+
+    SumResponse sumCurrentUserPositiveAmount(UUID accountId)
+            throws RecordDoesNotExistException, UserIsNotOwnerException;
+
+    SumResponse sumCurrentUserNegativeAmount(UUID accountId)
+            throws RecordDoesNotExistException, UserIsNotOwnerException;
+
+    SumResponse sumCurrentUserAmount(UUID accountId)
+            throws RecordDoesNotExistException, UserIsNotOwnerException;
 }

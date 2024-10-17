@@ -24,7 +24,9 @@ import static com.rainy.homebudgettracker.handler.BusinessErrorCodes.*;
 @Log4j2
 public class GlobalExceptionHandler {
 
-    @ResponseStatus(HttpStatus.UNAUTHORIZED) // For auto generating Swagger documentation
+    // ResponseStatus annotation is used for Swagger to generate the documentation
+
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(LockedException.class)
     public ResponseEntity<ExceptionResponse> handleException(LockedException e) {
         return ResponseEntity
@@ -33,7 +35,6 @@ public class GlobalExceptionHandler {
                         ExceptionResponse.builder()
                                 .businessErrorCode(ACCOUNT_LOCKED.getCode())
                                 .businessErrorDescription(ACCOUNT_LOCKED.getDescription())
-                                .error(e.getMessage())
                                 .build()
                 );
     }
@@ -47,7 +48,6 @@ public class GlobalExceptionHandler {
                         ExceptionResponse.builder()
                                 .businessErrorCode(ACCOUNT_DISABLED.getCode())
                                 .businessErrorDescription(ACCOUNT_DISABLED.getDescription())
-                                .error(e.getMessage())
                                 .build()
                 );
     }
@@ -169,25 +169,22 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.NOT_FOUND)
                 .body(
                         ExceptionResponse.builder()
-                                .businessErrorCode(INVALID_DELETE_REQUEST.getCode())
-                                .businessErrorDescription(INVALID_DELETE_REQUEST.getDescription())
-                                .error(
-                                        e.getMessage().contains("Account") || e.getMessage().contains("Category")
-                                                ? e.getMessage()
-                                                : null)
+                                .businessErrorCode(RECORD_IS_NOT_REACHABLE.getCode())
+                                .businessErrorDescription(RECORD_IS_NOT_REACHABLE.getDescription())
                                 .build()
                 );
     }
 
-    @ResponseStatus(HttpStatus.FORBIDDEN)
+    // The same what in the previous method to not let the user know if the record exists
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(UserIsNotOwnerException.class)
     public ResponseEntity<ExceptionResponse> handleException(UserIsNotOwnerException e) {
         return ResponseEntity
-                .status(HttpStatus.FORBIDDEN)
+                .status(HttpStatus.NOT_FOUND)
                 .body(
                         ExceptionResponse.builder()
-                                .businessErrorCode(INVALID_DELETE_REQUEST.getCode())
-                                .businessErrorDescription(INVALID_DELETE_REQUEST.getDescription())
+                                .businessErrorCode(RECORD_IS_NOT_REACHABLE.getCode())
+                                .businessErrorDescription(RECORD_IS_NOT_REACHABLE.getDescription())
                                 .build()
                 );
     }
@@ -199,8 +196,8 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .body(
                         ExceptionResponse.builder()
-                                .businessErrorCode(INVALID_POST_REQUEST.getCode())
-                                .businessErrorDescription(INVALID_POST_REQUEST.getDescription())
+                                .businessErrorCode(RECORD_ALREADY_EXISTS.getCode())
+                                .businessErrorDescription(RECORD_ALREADY_EXISTS.getDescription())
                                 .error(e.getMessage())
                                 .build()
                 );
@@ -253,8 +250,8 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .body(
                         ExceptionResponse.builder()
-                                .businessErrorCode(INVALID_POST_REQUEST.getCode())
-                                .businessErrorDescription(INVALID_POST_REQUEST.getDescription())
+                                .businessErrorCode(RECORD_ALREADY_EXISTS.getCode())
+                                .businessErrorDescription(RECORD_ALREADY_EXISTS.getDescription())
                                 .error(e.getMessage())
                                 .build()
                 );
@@ -269,6 +266,7 @@ public class GlobalExceptionHandler {
                         ExceptionResponse.builder()
                                 .businessErrorCode(FILE_UPLOAD_ERROR.getCode())
                                 .businessErrorDescription(FILE_UPLOAD_ERROR.getDescription())
+                                .error(e.getMessage())
                                 .build()
                 );
     }
@@ -282,6 +280,7 @@ public class GlobalExceptionHandler {
                         ExceptionResponse.builder()
                                 .businessErrorCode(INVALID_FILE.getCode())
                                 .businessErrorDescription(INVALID_FILE.getDescription())
+                                .error(e.getMessage())
                                 .build()
                 );
     }
@@ -289,6 +288,7 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ExceptionResponse> handleException(MaxUploadSizeExceededException e) {
+
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(

@@ -30,15 +30,11 @@ class CloudfrontServiceTest {
     }
 
     @Test
-    void getGetUrl() {
+    void shouldReturnGetUrl() {
         String key = "test-key";
         String actual = cloudfrontService.createGetUrl(key);
 
         String expected = "https://test.cloudfront.net/test-key";
         assertEquals(expected, actual);
-    }
-
-    @Test
-    void createSignedGetURL() {
     }
 }

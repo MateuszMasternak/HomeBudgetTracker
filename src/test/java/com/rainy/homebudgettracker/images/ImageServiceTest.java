@@ -34,7 +34,7 @@ class ImageServiceTest {
     }
 
     @Test
-    public void getS3ImageUrl() {
+    public void shouldReturnS3ImageUrl() {
         Transaction transaction = Transaction.builder()
                 .imageFilePath("test_s3.jpg")
                 .build();
@@ -46,7 +46,7 @@ class ImageServiceTest {
     }
 
     @Test
-    public void getCloudfrontImageUrl() {
+    public void shouldReturnCloudfrontImageUrl() {
         Transaction transaction = Transaction.builder()
                 .imageFilePath("test_cloudfront.jpg")
                 .build();
@@ -58,7 +58,7 @@ class ImageServiceTest {
     }
 
     @Test
-    public void getCloudfrontSignedImageUrl() {
+    public void shouldReturnCloudfrontSignedImageUrl() {
         Transaction transaction = Transaction.builder()
                 .imageFilePath("test_cloudfront_signed.jpg")
                 .build();

@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -26,21 +27,21 @@ public class CategoryServiceImpl implements  CategoryService {
     private final ModelMapper modelMapper;
 
     @Override
-    public Page<CategoryResponse> findAllByCurrentUser(Pageable pageable) {
+    public Page<CategoryResponse> findCurrentUserCategoriesAsResponses(Pageable pageable) {
         User user = userService.getCurrentUser();
         Page<Category> categories = categoryRepository.findAllByUser(user, pageable);
         return categories.map(category -> modelMapper.map(category, CategoryResponse.class));
     }
 
     @Override
-    public List<CategoryResponse> findAllByCurrentUser() {
+    public List<CategoryResponse> findCurrentUserCategoriesAsResponses() {
         User user = userService.getCurrentUser();
         Iterable<Category> categories = categoryRepository.findAllByUser(user);
         return mapIterableCategoryToResponseCategoryList(categories);
     }
 
     @Override
-    public CategoryResponse findOneAsResponseByCurrentUserAndName(String name) throws RecordDoesNotExistException {
+    public CategoryResponse findCurrentUserCategoryAsResponse(String name) throws RecordDoesNotExistException {
         User user = userService.getCurrentUser();
         Category category = categoryRepository.findByUserAndName(user, name).orElseThrow(
                 () -> new RecordDoesNotExistException("Category with name " + name + " does not exist.")
@@ -49,7 +50,7 @@ public class CategoryServiceImpl implements  CategoryService {
     }
 
     @Override
-    public Category findOneByCurrentUserAndName(String name) throws RecordDoesNotExistException {
+    public Category findCurrentUserCategory(String name) throws RecordDoesNotExistException {
         User user = userService.getCurrentUser();
         return categoryRepository.findByUserAndName(user, name).orElseThrow(
                 () -> new RecordDoesNotExistException("Category with name " + name + " does not exist.")
@@ -70,7 +71,7 @@ public class CategoryServiceImpl implements  CategoryService {
     }
 
     @Override
-    public void deleteCurrentUserCategory(Long categoryId) throws
+    public void deleteCurrentUserCategory(UUID categoryId) throws
             RecordDoesNotExistException,
             UserIsNotOwnerException,
             CategoryAssociatedWithTransactionException

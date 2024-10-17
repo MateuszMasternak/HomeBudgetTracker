@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class RsaPrivateKeyGeneratorTest {
 
     @Test
-    void generatePrivateKeyFromString() throws NoSuchAlgorithmException, InvalidKeySpecException {
+    void shouldReturnPrivateKeyFromString() throws NoSuchAlgorithmException, InvalidKeySpecException {
         String key = generatePemPrivateKey();
         RSAPrivateKey rsaPrivateKey = RsaPrivateKeyGenerator.generatePrivateKeyFromString(key);
 
@@ -25,7 +25,7 @@ class RsaPrivateKeyGeneratorTest {
     }
 
     @Test
-    void getRsaPrivateKey() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+    void shouldReturnRsaPrivateKey() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         String key = generatePemPrivateKey();
         String tempFilePath = savePrivateKeyToFile(key);
 
