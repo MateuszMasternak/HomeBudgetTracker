@@ -8,14 +8,18 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.math.BigDecimal;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface AccountRepository extends JpaRepository<Account, Long> {
     Iterable<Account> findAllByUser(User user);
 
     @Modifying
     @Query("update Account a set a.name = :name where a.id = :id")
-
-    void updateAccountName(Long id, String name);
+    void updateAccountName(UUID id, String name);
 
     void deleteAllByUser(User user);
+
+    Optional<Account> findById(UUID id);
+
+    Boolean existsById(UUID uuid);
 }

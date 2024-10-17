@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/transaction")
@@ -33,7 +34,7 @@ public class TransactionController {
     public ResponseEntity<Page<TransactionResponse>> getCurrentUserTransactions(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(name = "account-id") Long accountId
+            @RequestParam(name = "account-id") UUID accountId
     ) throws RecordDoesNotExistException, UserIsNotOwnerException {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
@@ -44,7 +45,7 @@ public class TransactionController {
     public ResponseEntity<Page<TransactionResponse>> getCurrentUserTransactions(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(name = "account-id") Long accountId,
+            @RequestParam(name = "account-id") UUID accountId,
             @RequestParam(name = "category-name") CategoryRequest category
     ) throws RecordDoesNotExistException, UserIsNotOwnerException {
 
@@ -57,7 +58,7 @@ public class TransactionController {
     public ResponseEntity<Page<TransactionResponse>> getCurrentUserTransactions(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(name = "account-id") Long accountId,
+            @RequestParam(name = "account-id") UUID accountId,
             @RequestParam(name = "start-date") String startDate,
             @RequestParam(name = "end-date") String endDate
     ) throws RecordDoesNotExistException, UserIsNotOwnerException {
@@ -72,7 +73,7 @@ public class TransactionController {
     public ResponseEntity<Page<TransactionResponse>> getCurrentUserTransactions(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(name = "account-id") Long accountId,
+            @RequestParam(name = "account-id") UUID accountId,
             @RequestParam(name = "category-name") CategoryRequest category,
             @RequestParam(name = "start-date") String startDate,
             @RequestParam(name = "end-date") String endDate
@@ -87,7 +88,7 @@ public class TransactionController {
     @PostMapping("/create")
     public ResponseEntity<TransactionResponse> createTransactionForCurrentUser(
             @RequestBody @Valid TransactionRequest request,
-            @RequestParam(name = "account-id") Long accountId)
+            @RequestParam(name = "account-id") UUID accountId)
             throws RecordDoesNotExistException, UserIsNotOwnerException {
 
         return ResponseEntity.ok(transactionService.createTransactionForCurrentUser(accountId, request));
@@ -96,7 +97,7 @@ public class TransactionController {
     @PostMapping("/create-with-exchange-rate")
     public ResponseEntity<TransactionResponse> createTransactionForCurrentUser(
             @RequestBody @Valid TransactionRequest request,
-            @RequestParam(name = "account-id") Long accountId,
+            @RequestParam(name = "account-id") UUID accountId,
             @RequestParam(required = false, name = "exchange-rate") String exchangeRate
     ) throws RecordDoesNotExistException, UserIsNotOwnerException {
 
@@ -107,7 +108,7 @@ public class TransactionController {
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<Void> deleteCurrentUserTransaction(@RequestParam(name = "id") Long transactionId)
+    public ResponseEntity<Void> deleteCurrentUserTransaction(@RequestParam(name = "id") UUID transactionId)
             throws RecordDoesNotExistException, UserIsNotOwnerException {
 
         transactionService.deleteCurrentUserTransaction(transactionId);
@@ -116,7 +117,7 @@ public class TransactionController {
 
     @GetMapping("/sum-positive")
     public ResponseEntity<SumResponse> sumCurrentUserPositiveAmount(
-            @RequestParam(name = "account-id") Long accountId
+            @RequestParam(name = "account-id") UUID accountId
     ) throws RecordDoesNotExistException, UserIsNotOwnerException {
 
         return ResponseEntity.ok(transactionService.sumCurrentUserPositiveAmount(accountId));
@@ -124,7 +125,7 @@ public class TransactionController {
 
     @GetMapping("/sum-negative")
     public ResponseEntity<SumResponse> sumCurrentUserNegativeAmount(
-            @RequestParam(name = "account-id") Long accountId
+            @RequestParam(name = "account-id") UUID accountId
     ) throws RecordDoesNotExistException, UserIsNotOwnerException {
 
         return ResponseEntity.ok(transactionService.sumCurrentUserNegativeAmount(accountId));
@@ -132,7 +133,7 @@ public class TransactionController {
 
     @GetMapping("/sum")
     public ResponseEntity<SumResponse> sumCurrentUserAmount(
-            @RequestParam(name = "account-id") Long accountId
+            @RequestParam(name = "account-id") UUID accountId
     ) throws RecordDoesNotExistException, UserIsNotOwnerException {
 
         return ResponseEntity.ok(transactionService.sumCurrentUserAmount(accountId));
@@ -150,7 +151,7 @@ public class TransactionController {
 
     @PostMapping("/upload-image")
     public ResponseEntity<TransactionResponse> uploadImageForCurrentUserTransaction(
-            @RequestParam(name = "id") Long transactionId,
+            @RequestParam(name = "id") UUID transactionId,
             @RequestParam("file") MultipartFile file
     ) throws RecordDoesNotExistException, UserIsNotOwnerException, ImageUploadException, WrongFileTypeException {
 
@@ -159,7 +160,8 @@ public class TransactionController {
     }
 
     @PostMapping("/delete-image")
-    public ResponseEntity<TransactionResponse> deleteImageForCurrentUserTransaction(@RequestParam(name = "id") Long transactionId)
+    public ResponseEntity<TransactionResponse> deleteImageForCurrentUserTransaction(
+            @RequestParam(name = "id") UUID transactionId)
             throws RecordDoesNotExistException, UserIsNotOwnerException {
 
         return ResponseEntity.accepted().body(transactionService.deleteImageFromCurrentUserTransaction(transactionId));

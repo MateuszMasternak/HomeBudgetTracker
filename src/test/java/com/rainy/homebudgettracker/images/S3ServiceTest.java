@@ -8,16 +8,9 @@ import org.mockito.*;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
-import software.amazon.awssdk.auth.token.credentials.SdkToken;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
-import software.amazon.awssdk.services.ssooidc.SsoOidcTokenProvider;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,17 +48,17 @@ class S3ServiceTest {
         try (MockedStatic<ImageCompressor> mockedStatic = mockStatic(ImageCompressor.class)) {
             mockedStatic.when(() -> ImageCompressor.compressImage(any())).thenReturn(new File("test.jpg"));
             MultipartFile file = new MockMultipartFile("test.png", "test.png", "image/png", new byte[100]);
-            Long userId = 1L;
-            Long transactionId = 1L;
+            UUID userId = UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903");
+            UUID transactionId = UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903");
             String key = s3Service.uploadFile(file, userId, transactionId);
-            String expectedKey = "images/" + UUID.nameUUIDFromBytes("1_1".getBytes());
+            String expectedKey = "images/" + UUID.nameUUIDFromBytes("b848bced-0daf-4ad7-b9c6-4c477ab5a903_b848bced-0daf-4ad7-b9c6-4c477ab5a903".getBytes());
             assertEquals(expectedKey, key);
         }
     }
 
     @Test
     void shouldDeleteImage() {
-        String key = "images/" + UUID.nameUUIDFromBytes("1_1".getBytes());
+        String key = "images/" + UUID.nameUUIDFromBytes("b848bced-0daf-4ad7-b9c6-4c477ab5a903_b848bced-0daf-4ad7-b9c6-4c477ab5a903".getBytes());
         s3Service.deleteFile(key);
         verify(s3Client, times(1)).deleteObject(any(DeleteObjectRequest.class));
     }

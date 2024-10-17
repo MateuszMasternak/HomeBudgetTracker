@@ -10,6 +10,8 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Optional;
+import java.util.UUID;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
     Iterable<Transaction> findAllByUser(User user);
@@ -40,4 +42,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     @Query("SELECT SUM(t.amount) FROM Transaction t " +
             "WHERE t.account = :account")
     BigDecimal sumAmountByAccount(Account account);
+
+    Optional<Transaction> findById(UUID transactionId);
+
+    void deleteById(UUID transactionId);
 }

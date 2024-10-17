@@ -5,14 +5,15 @@ import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface AccountService {
     List<AccountResponse> findCurrentUserAccountsAsResponses();
 
-    AccountResponse findCurrentUserAccountAsResponse(Long id)
+    AccountResponse findCurrentUserAccountAsResponse(UUID id)
             throws RecordDoesNotExistException, UserIsNotOwnerException;
 
-    Account findCurrentUserAccount(Long id)
+    Account findCurrentUserAccount(UUID id)
             throws RecordDoesNotExistException, UserIsNotOwnerException;
 
     AccountResponse createAccountForCurrentUser(AccountRequest request)

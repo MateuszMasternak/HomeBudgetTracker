@@ -4,12 +4,14 @@ import com.rainy.homebudgettracker.account.AccountResponse;
 import com.rainy.homebudgettracker.category.CategoryResponse;
 import lombok.*;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 @Builder
 @EqualsAndHashCode
 public class TransactionResponse {
-    private Long id;
+    private UUID id;
     private String amount;
     private CategoryResponse category;
     private String date;

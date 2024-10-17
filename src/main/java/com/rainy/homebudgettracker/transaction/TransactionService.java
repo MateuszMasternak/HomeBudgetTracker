@@ -15,41 +15,42 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 public interface TransactionService {
     Page<TransactionResponse> findCurrentUserTransactionsAsResponses(
-            Long accountId, Pageable pageable)
+            UUID accountId, Pageable pageable)
             throws RecordDoesNotExistException, UserIsNotOwnerException;
 
     Page<TransactionResponse> findCurrentUserTransactionsAsResponses(
-            Long accountId, CategoryRequest categoryName, Pageable pageable)
+            UUID accountId, CategoryRequest categoryName, Pageable pageable)
             throws RecordDoesNotExistException, UserIsNotOwnerException;
 
     Page<TransactionResponse> findCurrentUserTransactionsAsResponses(
-            Long accountId,
+            UUID accountId,
             LocalDate startDate,
             LocalDate endDate,
             Pageable pageable)
             throws RecordDoesNotExistException, UserIsNotOwnerException;
 
     Page<TransactionResponse> findCurrentUserTransactionsAsResponses(
-            Long accountId,
+            UUID accountId,
             CategoryRequest categoryName,
             LocalDate startDate,
             LocalDate endDate,
             Pageable pageable)
             throws RecordDoesNotExistException, UserIsNotOwnerException;
 
-    TransactionResponse createTransactionForCurrentUser(Long accountId, TransactionRequest transactionRequest)
+    TransactionResponse createTransactionForCurrentUser(UUID accountId, TransactionRequest transactionRequest)
             throws RecordDoesNotExistException, UserIsNotOwnerException;
 
     TransactionResponse createTransactionForCurrentUser(
-            Long accountId,
+            UUID accountId,
             BigDecimal exchangeRate,
             TransactionRequest transactionRequest)
             throws RecordDoesNotExistException, UserIsNotOwnerException;
 
-    void deleteCurrentUserTransaction(Long transactionId)
+    void deleteCurrentUserTransaction(UUID transactionId)
             throws RecordDoesNotExistException, UserIsNotOwnerException;
 
     List<TransactionResponse> findCurrentUserTransactionsAsResponses();
@@ -57,18 +58,18 @@ public interface TransactionService {
     byte[] generateCSVWithCurrentUserTransactions()
             throws IOException;
 
-    TransactionResponse addImageToCurrentUserTransaction(Long id, MultipartFile file)
+    TransactionResponse addImageToCurrentUserTransaction(UUID id, MultipartFile file)
             throws RecordDoesNotExistException, UserIsNotOwnerException, ImageUploadException, WrongFileTypeException;
 
-    TransactionResponse deleteImageFromCurrentUserTransaction(Long id)
+    TransactionResponse deleteImageFromCurrentUserTransaction(UUID id)
             throws RecordDoesNotExistException, UserIsNotOwnerException;
 
-    SumResponse sumCurrentUserPositiveAmount(Long accountId)
+    SumResponse sumCurrentUserPositiveAmount(UUID accountId)
             throws RecordDoesNotExistException, UserIsNotOwnerException;
 
-    SumResponse sumCurrentUserNegativeAmount(Long accountId)
+    SumResponse sumCurrentUserNegativeAmount(UUID accountId)
             throws RecordDoesNotExistException, UserIsNotOwnerException;
 
-    SumResponse sumCurrentUserAmount(Long accountId)
+    SumResponse sumCurrentUserAmount(UUID accountId)
             throws RecordDoesNotExistException, UserIsNotOwnerException;
 }

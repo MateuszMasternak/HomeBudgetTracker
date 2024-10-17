@@ -21,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -43,7 +44,7 @@ class CategoryServiceTest {
         MockitoAnnotations.openMocks(this);
 
         var user = User.builder()
-                .id(1L)
+                .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
                 .email("mail@mail.com")
                 .password("password")
                 .role(Role.USER)
@@ -51,7 +52,7 @@ class CategoryServiceTest {
         when(userService.getCurrentUser()).thenReturn(user);
 
         var category = Category.builder()
-                .id(1L)
+                .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
                 .name("Food")
                 .user(user)
                 .build();
@@ -87,24 +88,24 @@ class CategoryServiceTest {
         when(categoryRepository.save(Category.builder().name("Food").user(user).build())).thenReturn(category);
         when(categoryRepository.existsByUserAndName(user, "Food")).thenReturn(false);
         when(categoryRepository.existsByUserAndName(user, "Healthcare")).thenReturn(true);
-        doNothing().when(categoryRepository).deleteById(1L);
-        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
-        when(categoryRepository.findById(4L)).thenReturn(Optional.empty());
-        when(categoryRepository.findById(3L)).thenReturn(Optional.of(Category.builder()
-                .id(3L)
+        doNothing().when(categoryRepository).deleteById(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"));
+        when(categoryRepository.findById(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))).thenReturn(Optional.of(category));
+        when(categoryRepository.findById(UUID.fromString("cb5f0153-5b1e-4f4b-9886-ae6791284043"))).thenReturn(Optional.empty());
+        when(categoryRepository.findById(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))).thenReturn(Optional.of(Category.builder()
+                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                 .name("Healthcare")
                 .user(User.builder()
-                        .id(2L)
-                        .email("2lmail@mail.com")
+                        .id(UUID.fromString("c7e2fa7e-2267-4da5-ade1-5dc79948a773"))
+                        .email("11mail@mail.com")
                         .password("password")
                         .role(Role.USER)
                         .build()).build()));
         Category category2 = Category.builder()
-                .id(2L)
+                .id(UUID.fromString("c7e2fa7e-2267-4da5-ade1-5dc79948a773"))
                 .name("Healthcare")
                 .user(user)
                 .build();
-        when(categoryRepository.findById(2L)).thenReturn(Optional.of(category2));
+        when(categoryRepository.findById(UUID.fromString("c7e2fa7e-2267-4da5-ade1-5dc79948a773"))).thenReturn(Optional.of(category2));
         when(transactionRepository.existsByCategory(category2)).thenReturn(true);
     }
 
@@ -119,7 +120,7 @@ class CategoryServiceTest {
                 PageRequest.of(0, 10));
 
         var categoryResponse = CategoryResponse.builder()
-                .id(1L)
+                .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
                 .name("Food")
                 .build();
 
@@ -134,7 +135,7 @@ class CategoryServiceTest {
         var categoryList = categoryService.findCurrentUserCategoriesAsResponses();
 
         var categoryResponse = CategoryResponse.builder()
-                .id(1L)
+                .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
                 .name("Food")
                 .build();
 
@@ -149,7 +150,7 @@ class CategoryServiceTest {
         var returnedCategoryResponse = categoryService.findCurrentUserCategoryAsResponse("Food");
 
         var categoryResponse = CategoryResponse.builder()
-                .id(1L)
+                .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
                 .name("Food")
                 .build();
 
@@ -171,10 +172,10 @@ class CategoryServiceTest {
         var returnedCategory = categoryService.findCurrentUserCategory("Food");
 
         var category = Category.builder()
-                .id(1L)
+                .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
                 .name("Food")
                 .user(User.builder()
-                        .id(1L)
+                        .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
                         .email("mail@mail.com")
                         .password("password")
                         .role(Role.USER)
@@ -205,7 +206,7 @@ class CategoryServiceTest {
         var returnedCategoryResponse = categoryService.createCategoryForCurrentUser(categoryRequest);
 
         var categoryResponse = CategoryResponse.builder()
-                .id(1L)
+                .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
                 .name("Food")
                 .build();
 
@@ -228,24 +229,24 @@ class CategoryServiceTest {
 
     @Test
     void shouldDeleteCategory() {
-        assertDoesNotThrow(() -> categoryService.deleteCurrentUserCategory(1L));
+        assertDoesNotThrow(() -> categoryService.deleteCurrentUserCategory(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100")));
     }
 
     @Test
     void shouldThrowExceptionWhenCategoryIsAssociatedWithTransactionWhenDeleting() {
         assertThrows(CategoryAssociatedWithTransactionException.class,
-                () -> categoryService.deleteCurrentUserCategory(2L));
+                () -> categoryService.deleteCurrentUserCategory(UUID.fromString("c7e2fa7e-2267-4da5-ade1-5dc79948a773")));
     }
 
     @Test
     void shouldThrowExceptionWhenUserIsNotOwnerWhenDeleting() {
         assertThrows(UserIsNotOwnerException.class,
-                () -> categoryService.deleteCurrentUserCategory(3L));
+                () -> categoryService.deleteCurrentUserCategory(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903")));
     }
 
     @Test
     void shouldThrowExceptionWhenCategoryDoesNotExistWhenDeleting() {
         assertThrows(RecordDoesNotExistException.class,
-                () -> categoryService.deleteCurrentUserCategory(4L));
+                () -> categoryService.deleteCurrentUserCategory(UUID.fromString("cb5f0153-5b1e-4f4b-9886-ae6791284043")));
     }
 }

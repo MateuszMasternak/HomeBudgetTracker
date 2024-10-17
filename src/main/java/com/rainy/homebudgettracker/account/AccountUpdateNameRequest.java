@@ -8,13 +8,15 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 @Builder
 @EqualsAndHashCode
 public class AccountUpdateNameRequest {
     @NotNull(message = "Id is required")
-    private Long id;
+    private UUID id;
     @NotEmpty(message = "Name is required")
     @NotBlank(message = "Name is required")
     private String name;

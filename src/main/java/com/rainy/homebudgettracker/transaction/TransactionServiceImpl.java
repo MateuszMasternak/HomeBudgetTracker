@@ -33,10 +33,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -50,7 +47,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final S3Service s3Service;
 
     @Override
-    public Page<TransactionResponse> findCurrentUserTransactionsAsResponses(Long accountId, Pageable pageable)
+    public Page<TransactionResponse> findCurrentUserTransactionsAsResponses(UUID accountId, Pageable pageable)
             throws RecordDoesNotExistException, UserIsNotOwnerException {
 
         Account account = accountService.findCurrentUserAccount(accountId);
@@ -60,7 +57,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public Page<TransactionResponse> findCurrentUserTransactionsAsResponses(
-            Long accountId, CategoryRequest categoryName, Pageable pageable)
+            UUID accountId, CategoryRequest categoryName, Pageable pageable)
             throws RecordDoesNotExistException, UserIsNotOwnerException {
 
         Category category = categoryService.findCurrentUserCategory(categoryName.getName());
@@ -74,7 +71,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public Page<TransactionResponse> findCurrentUserTransactionsAsResponses(
-            Long accountId,
+            UUID accountId,
             LocalDate startDate,
             LocalDate endDate,
             Pageable pageable)
@@ -92,7 +89,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public Page<TransactionResponse> findCurrentUserTransactionsAsResponses(
-            Long accountId,
+            UUID accountId,
             CategoryRequest categoryName,
             LocalDate startDate,
             LocalDate endDate,
@@ -114,7 +111,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Transactional
     @Override
-    public TransactionResponse createTransactionForCurrentUser(Long accountId, TransactionRequest transactionRequest)
+    public TransactionResponse createTransactionForCurrentUser(UUID accountId, TransactionRequest transactionRequest)
             throws RecordDoesNotExistException, UserIsNotOwnerException {
         Account account = accountService.findCurrentUserAccount(accountId);
         return saveTransactionForCurrentUser(account, transactionRequest);
@@ -123,7 +120,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Transactional
     @Override
     public TransactionResponse createTransactionForCurrentUser(
-            Long accountId,
+            UUID accountId,
             BigDecimal exchangeRate,
             TransactionRequest transactionRequest)
             throws RecordDoesNotExistException, UserIsNotOwnerException {
@@ -189,7 +186,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public void deleteCurrentUserTransaction(Long transactionId) throws
+    public void deleteCurrentUserTransaction(UUID transactionId) throws
             RecordDoesNotExistException,
             UserIsNotOwnerException {
 
@@ -205,7 +202,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public SumResponse sumCurrentUserPositiveAmount(Long accountId)
+    public SumResponse sumCurrentUserPositiveAmount(UUID accountId)
             throws RecordDoesNotExistException, UserIsNotOwnerException {
 
         Account account = accountService.findCurrentUserAccount(accountId);
@@ -218,7 +215,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public SumResponse sumCurrentUserNegativeAmount(Long accountId)
+    public SumResponse sumCurrentUserNegativeAmount(UUID accountId)
             throws RecordDoesNotExistException, UserIsNotOwnerException {
 
         Account account = accountService.findCurrentUserAccount(accountId);
@@ -231,7 +228,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public SumResponse sumCurrentUserAmount(Long accountId)
+    public SumResponse sumCurrentUserAmount(UUID accountId)
             throws RecordDoesNotExistException, UserIsNotOwnerException {
 
         Account account = accountService.findCurrentUserAccount(accountId);
@@ -285,7 +282,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public TransactionResponse addImageToCurrentUserTransaction(Long transactionId, MultipartFile file)
+    public TransactionResponse addImageToCurrentUserTransaction(UUID transactionId, MultipartFile file)
             throws RecordDoesNotExistException,
             UserIsNotOwnerException,
             ImageUploadException,
@@ -311,7 +308,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public TransactionResponse deleteImageFromCurrentUserTransaction(Long transactionId)
+    public TransactionResponse deleteImageFromCurrentUserTransaction(UUID transactionId)
             throws RecordDoesNotExistException, UserIsNotOwnerException {
         User user = userService.getCurrentUser();
         Optional<Transaction> transaction = transactionRepository.findById(transactionId);

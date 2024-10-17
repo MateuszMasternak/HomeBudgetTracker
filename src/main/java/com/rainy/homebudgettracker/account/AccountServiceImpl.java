@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +31,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public AccountResponse findCurrentUserAccountAsResponse(Long id)
+    public AccountResponse findCurrentUserAccountAsResponse(UUID id)
             throws RecordDoesNotExistException, UserIsNotOwnerException {
             User user = userService.getCurrentUser();
 
@@ -43,7 +44,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public Account findCurrentUserAccount(Long id)
+    public Account findCurrentUserAccount(UUID id)
             throws RecordDoesNotExistException, UserIsNotOwnerException {
         User user = userService.getCurrentUser();
 

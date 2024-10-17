@@ -32,6 +32,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -57,7 +58,7 @@ class TransactionServiceTest {
         MockitoAnnotations.openMocks(this);
 
         User user = User.builder()
-                .id(1L)
+                .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                 .email("test@mail.com")
                 .password("password")
                 .role(Role.USER)
@@ -65,49 +66,49 @@ class TransactionServiceTest {
         when(userService.getCurrentUser()).thenReturn(user);
 
         User user2 = User.builder()
-                .id(2L)
+                .id(UUID.fromString("77f57e8c-f7a4-4ff3-bb18-bd448b7a3019"))
                 .email("test2@mail.com")
                 .password("password")
                 .role(Role.USER)
                 .build();
 
         Account account = Account.builder()
-                .id(1L)
+                .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                 .name("USD account")
                 .currencyCode(CurrencyCode.USD)
                 .user(user)
                 .build();
-        when(accountService.findCurrentUserAccount(1L)).thenReturn(account);
-        when(accountService.findCurrentUserAccount(2L)).thenThrow(UserIsNotOwnerException.class);
-        when(accountService.findCurrentUserAccount(3L)).thenThrow(RecordDoesNotExistException.class);
+        when(accountService.findCurrentUserAccount(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))).thenReturn(account);
+        when(accountService.findCurrentUserAccount(UUID.fromString("77f57e8c-f7a4-4ff3-bb18-bd448b7a3019"))).thenThrow(UserIsNotOwnerException.class);
+        when(accountService.findCurrentUserAccount(UUID.fromString("4f23541e-b244-4e18-a17e-620e5d6feb1a"))).thenThrow(RecordDoesNotExistException.class);
         when(modelMapper.map(account, AccountResponse.class)).thenReturn(AccountResponse.builder()
-                .id(1L)
+                .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                 .name("USD account")
                 .currencyCode("USD")
                 .build());
 
         Account account2 = Account.builder()
-                .id(4L)
+                .id(UUID.fromString("43823673-fa1b-45fd-900f-374505b9a454"))
                 .name("PLN account")
                 .currencyCode(CurrencyCode.PLN)
                 .user(user)
                 .build();
-        when(accountService.findCurrentUserAccount(4L)).thenReturn(account2);
+        when(accountService.findCurrentUserAccount(UUID.fromString("43823673-fa1b-45fd-900f-374505b9a454"))).thenReturn(account2);
         when(modelMapper.map(account2, AccountResponse.class)).thenReturn(AccountResponse.builder()
-                .id(4L)
+                .id(UUID.fromString("43823673-fa1b-45fd-900f-374505b9a454"))
                 .name("PLN account")
                 .currencyCode("PLN")
                 .build());
 
         Category category = Category.builder()
-                .id(1L)
+                .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                 .name("Food")
                 .build();
         when(categoryService.findCurrentUserCategory("Food")).thenReturn(category);
         when(categoryService.findCurrentUserCategory("Healthcare")).thenThrow(RecordDoesNotExistException.class);
 
         Transaction transaction = Transaction.builder()
-                .id(1L)
+                .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                 .user(user)
                 .amount(BigDecimal.valueOf(100, 2))
                 .date(LocalDate.of(2024, 1, 1))
@@ -117,7 +118,7 @@ class TransactionServiceTest {
                 .build();
 
         Transaction transaction2 = Transaction.builder()
-                .id(2L)
+                .id(UUID.fromString("77f57e8c-f7a4-4ff3-bb18-bd448b7a3019"))
                 .user(user2)
                 .amount(BigDecimal.valueOf(100, 2))
                 .date(LocalDate.of(2024, 1, 1))
@@ -126,9 +127,9 @@ class TransactionServiceTest {
                 .account(account)
                 .build();
 
-        when(transactionRepository.findById(1L)).thenReturn(Optional.of(transaction));
-        when(transactionRepository.findById(2L)).thenReturn(Optional.of(transaction2));
-        when(transactionRepository.findById(3L)).thenReturn(Optional.empty());
+        when(transactionRepository.findById(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))).thenReturn(Optional.of(transaction));
+        when(transactionRepository.findById(UUID.fromString("77f57e8c-f7a4-4ff3-bb18-bd448b7a3019"))).thenReturn(Optional.of(transaction2));
+        when(transactionRepository.findById(UUID.fromString("4f23541e-b244-4e18-a17e-620e5d6feb1a"))).thenReturn(Optional.empty());
 
         var pageable1 = PageRequest.of(0, 10);
         when(transactionRepository.findAllByAccount(account, pageable1)).thenReturn(new PageImpl<>(List.of(transaction)));
@@ -143,16 +144,16 @@ class TransactionServiceTest {
         when(transactionRepository.findAllByAccountAndCategoryAndDateBetween(account, category, LocalDate.of(2024, 1, 1), LocalDate.of(2024, 1, 31), pageable2)).thenReturn(Page.empty());
 
         TransactionResponse transactionResponse = TransactionResponse.builder()
-                .id(1L)
+                .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                 .amount("100.00")
                 .date("2024-01-01")
                 .paymentMethod("CASH")
                 .category(CategoryResponse.builder()
-                        .id(1L)
+                        .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                         .name("Food")
                         .build())
                 .account(AccountResponse.builder()
-                        .id(1L)
+                        .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                         .name("USD account")
                         .currencyCode("USD")
                         .build())
@@ -169,10 +170,10 @@ class TransactionServiceTest {
         when(modelMapper.mapTransactionRequestToTransaction(transactionRequest, account, category)).thenReturn(transaction);
 
         when(transactionRepository.save(transaction)).thenReturn(transaction);
-        when(transactionRepository.findById(1L)).thenReturn(Optional.of(transaction));
+        when(transactionRepository.findById(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))).thenReturn(Optional.of(transaction));
 
         Transaction convertedTransaction = Transaction.builder()
-                .id(1L)
+                .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                 .amount(BigDecimal.valueOf(421).setScale(2, RoundingMode.HALF_UP))
                 .date(LocalDate.of(2024, 1, 1))
                 .paymentMethod(PaymentMethod.CASH)
@@ -189,16 +190,16 @@ class TransactionServiceTest {
                 .build();
 
         TransactionResponse convertedTransactionResponse = TransactionResponse.builder()
-                .id(1L)
+                .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                 .amount("421.00")
                 .date("2024-01-01")
                 .paymentMethod("CASH")
                 .category(CategoryResponse.builder()
-                        .id(1L)
+                        .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                         .name("Food")
                         .build())
                 .account(AccountResponse.builder()
-                        .id(1L)
+                        .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                         .name("PLN account")
                         .currencyCode("PLN")
                         .build())
@@ -209,7 +210,7 @@ class TransactionServiceTest {
         when(transactionRepository.save(convertedTransaction)).thenReturn(convertedTransaction);
 
         Transaction convertedTransaction_2 = Transaction.builder()
-                .id(1L)
+                .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                 .amount(BigDecimal.valueOf(421).setScale(2, RoundingMode.HALF_UP))
                 .date(LocalDate.of(2024, 1, 1))
                 .paymentMethod(PaymentMethod.CASH)
@@ -228,16 +229,16 @@ class TransactionServiceTest {
                 .build();
 
         TransactionResponse convertedTransactionResponse_2 = TransactionResponse.builder()
-                .id(1L)
+                .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                 .amount("421.00")
                 .date("2024-01-01")
                 .paymentMethod("CASH")
                 .category(CategoryResponse.builder()
-                        .id(1L)
+                        .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                         .name("Food")
                         .build())
                 .account(AccountResponse.builder()
-                        .id(4L)
+                        .id(UUID.fromString("43823673-fa1b-45fd-900f-374505b9a454"))
                         .name("PLN account")
                         .currencyCode("PLN")
                         .build())
@@ -250,7 +251,7 @@ class TransactionServiceTest {
         when(exchangeService.getExchangeRate(CurrencyCode.EUR, CurrencyCode.PLN)).thenReturn(ExchangeResponse.builder().conversionRate("4.21").build());
 
                 Transaction convertedTransaction_3 = Transaction.builder()
-                .id(1L)
+                .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                 .amount(BigDecimal.valueOf(421).setScale(2, RoundingMode.HALF_UP))
                 .date(LocalDate.of(2024, 1, 1))
                 .paymentMethod(PaymentMethod.CASH)
@@ -267,16 +268,16 @@ class TransactionServiceTest {
                 .build();
 
         TransactionResponse convertedTransactionResponse_3 = TransactionResponse.builder()
-                .id(1L)
+                .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                 .amount("421.00")
                 .date("2024-01-01")
                 .paymentMethod("CASH")
                 .category(CategoryResponse.builder()
-                        .id(1L)
+                        .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                         .name("Food")
                         .build())
                 .account(AccountResponse.builder()
-                        .id(4L)
+                        .id(UUID.fromString("43823673-fa1b-45fd-900f-374505b9a454"))
                         .name("PLN account")
                         .currencyCode("PLN")
                         .build())
@@ -309,7 +310,7 @@ class TransactionServiceTest {
     @Test
     void shouldReturnPageWithTransactionResponse() throws RecordDoesNotExistException, UserIsNotOwnerException {
         var pageable = PageRequest.of(0, 10);
-        var returnedTransactionResponses = transactionService.findCurrentUserTransactionsAsResponses(1L, pageable);
+        var returnedTransactionResponses = transactionService.findCurrentUserTransactionsAsResponses(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"), pageable);
 
         assertEquals(1, returnedTransactionResponses.getTotalElements());
     }
@@ -317,7 +318,7 @@ class TransactionServiceTest {
     @Test
     void shouldReturnEmptyPageWhenPageOneIsEmpty() throws RecordDoesNotExistException, UserIsNotOwnerException {
         var pageable = PageRequest.of(1, 10);
-        var transactionResponses = transactionService.findCurrentUserTransactionsAsResponses(1L, pageable);
+        var transactionResponses = transactionService.findCurrentUserTransactionsAsResponses(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"), pageable);
 
         assertEquals(0, transactionResponses.getTotalElements());
     }
@@ -327,7 +328,7 @@ class TransactionServiceTest {
         var pageable = PageRequest.of(0, 10);
 
         assertThrows(UserIsNotOwnerException.class,
-                () -> transactionService.findCurrentUserTransactionsAsResponses(2L, pageable));
+                () -> transactionService.findCurrentUserTransactionsAsResponses(UUID.fromString("77f57e8c-f7a4-4ff3-bb18-bd448b7a3019"), pageable));
     }
 
     @Test
@@ -335,7 +336,7 @@ class TransactionServiceTest {
         var pageable = PageRequest.of(0, 10);
 
         assertThrows(RecordDoesNotExistException.class,
-                () -> transactionService.findCurrentUserTransactionsAsResponses(3L, pageable));
+                () -> transactionService.findCurrentUserTransactionsAsResponses(UUID.fromString("4f23541e-b244-4e18-a17e-620e5d6feb1a"), pageable));
     }
 
     @Test
@@ -343,7 +344,7 @@ class TransactionServiceTest {
         var pageable = PageRequest.of(0, 10);
         var categoryRequest = CategoryRequest.builder().name("Food").build();
         var returnedTransactionResponses = transactionService.findCurrentUserTransactionsAsResponses(
-                1L, categoryRequest, pageable);
+                UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"), categoryRequest, pageable);
 
         assertEquals(1, returnedTransactionResponses.getTotalElements());
     }
@@ -354,7 +355,7 @@ class TransactionServiceTest {
         var categoryRequest = CategoryRequest.builder().name("Healthcare").build();
 
         assertThrows(RecordDoesNotExistException.class,
-                () -> transactionService.findCurrentUserTransactionsAsResponses(1L, categoryRequest, pageable));
+                () -> transactionService.findCurrentUserTransactionsAsResponses(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"), categoryRequest, pageable));
     }
 
 
@@ -364,7 +365,7 @@ class TransactionServiceTest {
         var startDate = LocalDate.of(2024, 1, 1);
         var endDate = LocalDate.of(2024, 1, 31);
         var returnedTransactionResponses = transactionService.findCurrentUserTransactionsAsResponses(
-                1L, startDate, endDate, pageable);
+                UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"), startDate, endDate, pageable);
 
         assertEquals(1, returnedTransactionResponses.getTotalElements());
     }
@@ -378,7 +379,7 @@ class TransactionServiceTest {
         var startDate = LocalDate.of(2024, 1, 1);
         var endDate = LocalDate.of(2024, 1, 31);
         var transactionResponses = transactionService.findCurrentUserTransactionsAsResponses(
-                1L, startDate, endDate, pageable);
+                UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"), startDate, endDate, pageable);
 
         assertEquals(0, transactionResponses.getTotalElements());
     }
@@ -392,7 +393,7 @@ class TransactionServiceTest {
         var endDate = LocalDate.of(2024, 1, 31);
         var categoryRequest = CategoryRequest.builder().name("Food").build();
         var returnedTransactionResponses = transactionService.findCurrentUserTransactionsAsResponses(
-               1L, categoryRequest, startDate, endDate, pageable);
+               UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"), categoryRequest, startDate, endDate, pageable);
 
         assertEquals(1, returnedTransactionResponses.getTotalElements());
     }
@@ -409,19 +410,19 @@ class TransactionServiceTest {
                 .paymentMethod(PaymentMethod.CASH)
                 .build();
 
-        var returnedTransactionResponse = transactionService.createTransactionForCurrentUser(1L, transactionRequest);
+        var returnedTransactionResponse = transactionService.createTransactionForCurrentUser(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"), transactionRequest);
 
         var transactionResponse = TransactionResponse.builder()
-                .id(1L)
+                .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                 .amount("100.00")
                 .date("2024-01-01")
                 .paymentMethod("CASH")
                 .category(CategoryResponse.builder()
-                        .id(1L)
+                        .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                         .name("Food")
                         .build())
                 .account(AccountResponse.builder()
-                        .id(1L)
+                        .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                         .name("USD account")
                         .currencyCode("USD")
                         .build())
@@ -437,7 +438,7 @@ class TransactionServiceTest {
                 .categoryName(CategoryRequest.builder().name("Food").build())
                 .build();
         assertThrows(RecordDoesNotExistException.class,
-                () -> transactionService.createTransactionForCurrentUser(3L, transactionRequest));
+                () -> transactionService.createTransactionForCurrentUser(UUID.fromString("4f23541e-b244-4e18-a17e-620e5d6feb1a"), transactionRequest));
 
     }
 
@@ -447,7 +448,7 @@ class TransactionServiceTest {
                 .categoryName(CategoryRequest.builder().name("Healthcare").build())
                 .build();
         assertThrows(RecordDoesNotExistException.class,
-                () -> transactionService.createTransactionForCurrentUser(1L, transactionRequest));
+                () -> transactionService.createTransactionForCurrentUser(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"), transactionRequest));
     }
 
     @Test
@@ -456,7 +457,7 @@ class TransactionServiceTest {
                 .categoryName(CategoryRequest.builder().name("Food").build())
                 .build();
         assertThrows(UserIsNotOwnerException.class,
-                () -> transactionService.createTransactionForCurrentUser(2L, transactionRequest));
+                () -> transactionService.createTransactionForCurrentUser(UUID.fromString("77f57e8c-f7a4-4ff3-bb18-bd448b7a3019"), transactionRequest));
     }
 
     @Test
@@ -478,19 +479,19 @@ class TransactionServiceTest {
                     .build();
 
             var returnedTransactionResponse = transactionService.createTransactionForCurrentUser(
-                    4L, BigDecimal.valueOf(4.21), transactionRequest);
+                    UUID.fromString("43823673-fa1b-45fd-900f-374505b9a454"), BigDecimal.valueOf(4.21), transactionRequest);
 
             var transactionResponse = TransactionResponse.builder()
-                    .id(1L)
+                    .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                     .amount("421.00")
                     .date("2024-01-01")
                     .paymentMethod("CASH")
                     .category(CategoryResponse.builder()
-                            .id(1L)
+                            .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                             .name("Food")
                             .build())
                     .account(AccountResponse.builder()
-                            .id(4L)
+                            .id(UUID.fromString("43823673-fa1b-45fd-900f-374505b9a454"))
                             .name("PLN account")
                             .currencyCode("PLN")
                             .build())
@@ -519,19 +520,19 @@ class TransactionServiceTest {
                     .build();
 
             var returnedTransactionResponse = transactionService.createTransactionForCurrentUser(
-                    4L, null, transactionRequest);
+                    UUID.fromString("43823673-fa1b-45fd-900f-374505b9a454"), null, transactionRequest);
 
             var transactionResponse = TransactionResponse.builder()
-                    .id(1L)
+                    .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                     .amount("421.00")
                     .date("2024-01-01")
                     .paymentMethod("CASH")
                     .category(CategoryResponse.builder()
-                            .id(1L)
+                            .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                             .name("Food")
                             .build())
                     .account(AccountResponse.builder()
-                            .id(4L)
+                            .id(UUID.fromString("43823673-fa1b-45fd-900f-374505b9a454"))
                             .name("PLN account")
                             .currencyCode("PLN")
                             .build())
@@ -544,27 +545,27 @@ class TransactionServiceTest {
 
     @Test
     void shouldDeleteTransaction() {
-        assertDoesNotThrow(() -> transactionService.deleteCurrentUserTransaction(1L));
+        assertDoesNotThrow(() -> transactionService.deleteCurrentUserTransaction(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad")));
     }
 
     @Test
     void shouldThrowExceptionWhenTransactionDoesNotExist() {
         assertThrows(RecordDoesNotExistException.class,
-                () -> transactionService.deleteCurrentUserTransaction(3L));
+                () -> transactionService.deleteCurrentUserTransaction(UUID.fromString("4f23541e-b244-4e18-a17e-620e5d6feb1a")));
     }
 
     @Test
     void shouldThrowExceptionWhenUserIsNotOwnerWhenDeleting() {
         assertThrows(UserIsNotOwnerException.class,
-                () -> transactionService.deleteCurrentUserTransaction(2L));
+                () -> transactionService.deleteCurrentUserTransaction(UUID.fromString("77f57e8c-f7a4-4ff3-bb18-bd448b7a3019")));
     }
 
     @Test
     void shouldReturnSumPositiveAmount() throws RecordDoesNotExistException, UserIsNotOwnerException {
-        var sumPositiveAmount = transactionService.sumCurrentUserPositiveAmount(1L);
+        var sumPositiveAmount = transactionService.sumCurrentUserPositiveAmount(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"));
 
         AccountResponse account = AccountResponse.builder()
-                .id(1L)
+                .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                 .name("USD account")
                 .currencyCode("USD")
                 .build();
@@ -574,10 +575,10 @@ class TransactionServiceTest {
 
     @Test
     void shouldReturnSumAs0PositiveAmount() throws RecordDoesNotExistException, UserIsNotOwnerException {
-        var sumPositiveAmount = transactionService.sumCurrentUserPositiveAmount(4L);
+        var sumPositiveAmount = transactionService.sumCurrentUserPositiveAmount(UUID.fromString("43823673-fa1b-45fd-900f-374505b9a454"));
 
         AccountResponse account = AccountResponse.builder()
-                .id(4L)
+                .id(UUID.fromString("43823673-fa1b-45fd-900f-374505b9a454"))
                 .name("PLN account")
                 .currencyCode("PLN")
                 .build();
@@ -587,10 +588,10 @@ class TransactionServiceTest {
 
     @Test
     void shouldReturnSumNegativeAmount() throws RecordDoesNotExistException, UserIsNotOwnerException {
-        var sumNegativeAmount = transactionService.sumCurrentUserNegativeAmount(1L);
+        var sumNegativeAmount = transactionService.sumCurrentUserNegativeAmount(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"));
 
         AccountResponse account = AccountResponse.builder()
-                .id(1L)
+                .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                 .name("USD account")
                 .currencyCode("USD")
                 .build();
@@ -599,10 +600,10 @@ class TransactionServiceTest {
 
     @Test
     void shouldReturnSumAs0NegativeAmount() throws RecordDoesNotExistException, UserIsNotOwnerException {
-        var sumPositiveAmount = transactionService.sumCurrentUserNegativeAmount(4L);
+        var sumPositiveAmount = transactionService.sumCurrentUserNegativeAmount(UUID.fromString("43823673-fa1b-45fd-900f-374505b9a454"));
 
         AccountResponse account = AccountResponse.builder()
-                .id(4L)
+                .id(UUID.fromString("43823673-fa1b-45fd-900f-374505b9a454"))
                 .name("PLN account")
                 .currencyCode("PLN")
                 .build();
@@ -611,10 +612,10 @@ class TransactionServiceTest {
 
     @Test
     void shouldReturnSumAllAmount() throws RecordDoesNotExistException, UserIsNotOwnerException {
-        var sumAllAmount = transactionService.sumCurrentUserAmount(1L);
+        var sumAllAmount = transactionService.sumCurrentUserAmount(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"));
 
         AccountResponse account = AccountResponse.builder()
-                .id(1L)
+                .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                 .name("USD account")
                 .currencyCode("USD")
                 .build();
@@ -623,10 +624,10 @@ class TransactionServiceTest {
 
     @Test
     void shouldReturnSumAs0AllAmount() throws RecordDoesNotExistException, UserIsNotOwnerException {
-        var sumPositiveAmount = transactionService.sumCurrentUserAmount(4L);
+        var sumPositiveAmount = transactionService.sumCurrentUserAmount(UUID.fromString("43823673-fa1b-45fd-900f-374505b9a454"));
 
         AccountResponse account = AccountResponse.builder()
-                .id(4L)
+                .id(UUID.fromString("43823673-fa1b-45fd-900f-374505b9a454"))
                 .name("PLN account")
                 .currencyCode("PLN")
                 .build();
@@ -646,7 +647,7 @@ class TransactionServiceTest {
         var csv = transactionService.generateCSVWithCurrentUserTransactions();
         var expectedCsv = "sep=,\n" +
                 "ID,Amount,Category,Date,Currency code,Payment method\n" +
-                "1,100.00,Food,2024-01-01,USD,CASH\n";
+                "212a0e7e-24c3-4774-a46b-741d89072fad,100.00,Food,2024-01-01,USD,CASH\n";
         var expectedCsvAsBytes = expectedCsv.getBytes();
 
         assertArrayEquals(expectedCsvAsBytes, csv);

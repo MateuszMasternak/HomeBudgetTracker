@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/category")
@@ -44,7 +45,7 @@ public class CategoryController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCurrentUserCategory(@PathVariable Long id)
+    public ResponseEntity<Void> deleteCurrentUserCategory(@PathVariable UUID id)
             throws RecordDoesNotExistException, UserIsNotOwnerException, CategoryAssociatedWithTransactionException {
         categoryService.deleteCurrentUserCategory(id);
         return ResponseEntity.noContent().build();

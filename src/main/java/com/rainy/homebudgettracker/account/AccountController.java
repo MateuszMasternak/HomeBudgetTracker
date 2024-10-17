@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/v1/account")
 @RequiredArgsConstructor
@@ -21,7 +23,7 @@ public class AccountController {
 
     @GetMapping("/{id}")
     public ResponseEntity<AccountResponse> getCurrentUserAccount(
-            @PathVariable(name = "id") Long accountId
+            @PathVariable(name = "id") UUID accountId
     ) throws RecordDoesNotExistException, UserIsNotOwnerException {
         return ResponseEntity.ok(accountService.findCurrentUserAccountAsResponse(accountId));
     }

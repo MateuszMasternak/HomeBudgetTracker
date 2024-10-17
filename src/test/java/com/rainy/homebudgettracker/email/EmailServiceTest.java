@@ -44,7 +44,6 @@ class EmailServiceTest {
         String to = "test@example.com";
         String username = "JohnDoe";
         String confirmationUrl = "http://test.com/confirm";
-        String activationCode = "123456";
         String subject = "Confirm your email";
         String templateName = "activate_account_message";
 

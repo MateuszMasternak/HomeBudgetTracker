@@ -9,6 +9,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -19,8 +20,8 @@ import java.time.LocalDate;
 @Entity
 public class Transaction {
     @Id
-    @GeneratedValue
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
     private BigDecimal amount;
     @ManyToOne
     private Category category;

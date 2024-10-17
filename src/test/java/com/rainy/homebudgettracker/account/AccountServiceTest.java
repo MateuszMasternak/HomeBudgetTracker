@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -34,7 +35,7 @@ class AccountServiceTest {
         MockitoAnnotations.openMocks(this);
 
         var user = User.builder()
-                .id(1L)
+                .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
                 .email("mail@mail.com")
                 .password("password")
                 .role(Role.USER)
@@ -42,35 +43,35 @@ class AccountServiceTest {
         when(userService.getCurrentUser()).thenReturn(user);
 
         var user2 = User.builder()
-                .id(2L)
+                .id(UUID.fromString("c7e2fa7e-2267-4da5-ade1-5dc79948a773"))
                 .email("other-mail@mail.com")
                 .password("password")
                 .role(Role.USER)
                 .build();
 
         var account = Account.builder()
-                .id(1L)
+                .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
                 .name("USD account")
                 .currencyCode(CurrencyCode.USD)
                 .user(user)
                 .build();
 
         var account2 = Account.builder()
-                .id(2L)
+                .id(UUID.fromString("c7e2fa7e-2267-4da5-ade1-5dc79948a773"))
                 .name("EUR account")
                 .currencyCode(CurrencyCode.EUR)
                 .user(user)
                 .build();
 
         var account3 = Account.builder()
-                .id(1L)
+                .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
                 .name("Changed name")
                 .currencyCode(CurrencyCode.USD)
                 .user(user)
                 .build();
 
         var account4 = Account.builder()
-                .id(2L)
+                .id(UUID.fromString("c7e2fa7e-2267-4da5-ade1-5dc79948a773"))
                 .name("USD account")
                 .currencyCode(CurrencyCode.USD)
                 .user(user2)
@@ -105,13 +106,13 @@ class AccountServiceTest {
         when(modelMapper.map(accountRequest2, Account.class)).thenReturn(account2);
 
         when(accountRepository.findAllByUser(user)).thenReturn(List.of(account));
-        when(accountRepository.findById(1L)).thenReturn(java.util.Optional.of(account));
-        when(accountRepository.findById(2L)).thenReturn(java.util.Optional.of(account4));
-        when(accountRepository.findById(3L)).thenReturn(java.util.Optional.empty());
-        when(accountRepository.existsById(1L)).thenReturn(true);
-        when(accountRepository.existsById(2L)).thenReturn(false);
+        when(accountRepository.findById(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))).thenReturn(java.util.Optional.of(account));
+        when(accountRepository.findById(UUID.fromString("c7e2fa7e-2267-4da5-ade1-5dc79948a773"))).thenReturn(java.util.Optional.of(account4));
+        when(accountRepository.findById(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))).thenReturn(java.util.Optional.empty());
+        when(accountRepository.existsById(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))).thenReturn(true);
+        when(accountRepository.existsById(UUID.fromString("c7e2fa7e-2267-4da5-ade1-5dc79948a773"))).thenReturn(false);
         when(accountRepository.save(account2)).thenReturn(account2);
-        doNothing().when(accountRepository).updateAccountName(1L, "Changed name");
+        doNothing().when(accountRepository).updateAccountName(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"), "Changed name");
     }
 
     @AfterEach
@@ -124,7 +125,7 @@ class AccountServiceTest {
         var accountResponses = accountService.findCurrentUserAccountsAsResponses();
 
         var account = Account.builder()
-                .id(1L)
+                .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
                 .name("USD account")
                 .currencyCode(CurrencyCode.USD)
                 .build();
@@ -141,10 +142,10 @@ class AccountServiceTest {
 
     @Test
     void shouldReturnAccountResponse() throws RecordDoesNotExistException, UserIsNotOwnerException {
-        var accountResponse = accountService.findCurrentUserAccountAsResponse(1L);
+        var accountResponse = accountService.findCurrentUserAccountAsResponse(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"));
 
         var account = Account.builder()
-                .id(1L)
+                .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
                 .name("USD account")
                 .currencyCode(CurrencyCode.USD)
                 .build();
@@ -157,29 +158,28 @@ class AccountServiceTest {
     @Test
     void shouldThrowRecordDoesNotExistExceptionAccountResponse() {
         assertThrows(RecordDoesNotExistException.class,
-                () -> accountService.findCurrentUserAccountAsResponse(3L));
+                () -> accountService.findCurrentUserAccountAsResponse(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903")));
     }
 
     @Test
     void shouldThrowUserIsNotOwnerException() {
         assertThrows(UserIsNotOwnerException.class,
-                () -> accountService.findCurrentUserAccountAsResponse(2L));
+                () -> accountService.findCurrentUserAccountAsResponse(UUID.fromString("c7e2fa7e-2267-4da5-ade1-5dc79948a773")));
     }
 
     @Test
     void shouldReturnAccount() throws RecordDoesNotExistException, UserIsNotOwnerException {
-//        var returnedAccount = accountService.findOneByCurrentUserAndCurrencyCode(CurrencyCode.USD);
-        var returnedAccount = accountService.findCurrentUserAccount(1L);
+        var returnedAccount = accountService.findCurrentUserAccount(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"));
 
         var user = User.builder()
-                .id(1L)
+                .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
                 .email("mail@mail.com")
                 .password("password")
                 .role(Role.USER)
                 .build();
 
         var account = Account.builder()
-                .id(1L)
+                .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
                 .name("USD account")
                 .currencyCode(CurrencyCode.USD)
                 .user(user)
@@ -191,7 +191,7 @@ class AccountServiceTest {
     @Test
     void shouldThrowRecordDoesNotExistExceptionAccount() {
         assertThrows(RecordDoesNotExistException.class,
-                () -> accountService.findCurrentUserAccount(3L));
+                () -> accountService.findCurrentUserAccount(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903")));
     }
 
     @Test
@@ -204,7 +204,7 @@ class AccountServiceTest {
         var accountResponse = accountService.createAccountForCurrentUser(accountRequest);
 
         var account = Account.builder()
-                .id(2L)
+                .id(UUID.fromString("c7e2fa7e-2267-4da5-ade1-5dc79948a773"))
                 .name("EUR account")
                 .currencyCode(CurrencyCode.EUR)
                 .build();
@@ -219,10 +219,10 @@ class AccountServiceTest {
             throws RecordDoesNotExistException, UserIsNotOwnerException {
 
         var accountResponse = accountService.updateCurrentUserAccountName(
-                AccountUpdateNameRequest.builder().id(1L).name("Changed name").build());
+                AccountUpdateNameRequest.builder().id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100")).name("Changed name").build());
 
         var account = Account.builder()
-                .id(1L)
+                .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
                 .name("Changed name")
                 .currencyCode(CurrencyCode.USD)
                 .build();
@@ -236,6 +236,6 @@ class AccountServiceTest {
     void shouldThrowRecordDoesNotExistExceptionWhenUpdatingName() {
         assertThrows(RecordDoesNotExistException.class,
                 () -> accountService.updateCurrentUserAccountName(
-                        AccountUpdateNameRequest.builder().id(3L).name("Changed name").build()));
+                        AccountUpdateNameRequest.builder().id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903")).name("Changed name").build()));
     }
 }
