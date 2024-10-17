@@ -7,7 +7,6 @@ import lombok.*;
 @Setter
 @Builder
 @EqualsAndHashCode
-@ToString
 public class SumResponse {
     private String amount;
     private AccountResponse account;

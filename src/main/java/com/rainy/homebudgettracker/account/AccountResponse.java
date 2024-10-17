@@ -6,7 +6,6 @@ import lombok.*;
 @Setter
 @Builder
 @EqualsAndHashCode
-@ToString
 public class AccountResponse {
     private Long id;
     private String name;
