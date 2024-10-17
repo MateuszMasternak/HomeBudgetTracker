@@ -23,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -216,7 +217,7 @@ class ModelMapperTest {
         var returnedTransaction = modelMapper.mapTransactionRequestToTransaction(transactionRequest, account, category);
 
         var transaction = Transaction.builder()
-                .amount(transactionRequest.getAmount())
+                .amount(transactionRequest.getAmount().setScale(2, RoundingMode.HALF_UP))
                 .category(category)
                 .date(transactionRequest.getDate())
                 .account(account)
@@ -274,7 +275,7 @@ class ModelMapperTest {
         var returnedTransaction = modelMapper.mapTransactionRequestToTransaction(transactionRequest, account, category);
 
         var transaction = Transaction.builder()
-                .amount(transactionRequest.getAmount())
+                .amount(transactionRequest.getAmount().setScale(2, RoundingMode.HALF_UP))
                 .category(category)
                 .date(transactionRequest.getDate())
                 .account(account)
@@ -321,7 +322,7 @@ class ModelMapperTest {
 
         var transactionResponse = TransactionResponse.builder()
                 .id(transaction.getId())
-                .amount(String.valueOf(transaction.getAmount()))
+                .amount(transaction.getAmount() + ".00")
                 .category(CategoryResponse.builder()
                         .id(1L)
                         .name("Food")
