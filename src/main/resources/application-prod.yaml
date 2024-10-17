@@ -2,7 +2,7 @@ application:
   security:
     jwt:
       secret-key: ${JWT_SECRET_KEY}
-      expiration-time: 604800
+      expiration-time: ${JWT_EXPIRATION_TIME}
   mailing:
     frontend:
       activation-url: ${FRONTEND_URL}/activate-account
