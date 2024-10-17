@@ -27,12 +27,12 @@ public class CategoryController {
             @RequestParam(defaultValue = "10") int size
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("name"));
-        return ResponseEntity.ok(categoryService.findAllByCurrentUser(pageable));
+        return ResponseEntity.ok(categoryService.findCurrentUserCategoriesAsResponses(pageable));
     }
 
     @GetMapping("/without-pagination")
     public ResponseEntity<List<CategoryResponse>> getAllCategoriesByCurrentUserWithoutPagination() {
-        return ResponseEntity.ok(categoryService.findAllByCurrentUser());
+        return ResponseEntity.ok(categoryService.findCurrentUserCategoriesAsResponses());
     }
 
 

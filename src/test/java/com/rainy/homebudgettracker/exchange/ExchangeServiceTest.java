@@ -68,7 +68,7 @@ class ExchangeServiceTest {
     }
 
     @Test
-    void getExchangeRate() {
+    void shouldReturnExchangeRate() {
         ExchangeResponse exchangeResponse = exchangeService.getExchangeRate(CurrencyCode.EUR, CurrencyCode.GBP);
         assertEquals("success", exchangeResponse.getResult());
         assertEquals("https://www.exchangerate-api.com/docs", exchangeResponse.getDocumentation());
@@ -83,19 +83,19 @@ class ExchangeServiceTest {
     }
 
     @Test
-    void getExchangeRateQuotaReached() {
+    void shouldThrowExceptionWhenQuotaReached() {
         assertThrows(QuotaReachedException.class,
                 () -> exchangeService.getExchangeRate(CurrencyCode.EUR, CurrencyCode.JPY));
     }
 
     @Test
-    void getExchangeRateError() {
+    void shouldThrowExceptionWhenErrorOtherThanQuotaReached() {
         assertThrows(ExchangeRateApiException.class,
                 () -> exchangeService.getExchangeRate(CurrencyCode.EUR, CurrencyCode.USD));
     }
 
     @Test
-    void getExchangeRateNull() {
+    void shouldThrowExceptionWhenResponseIsNull() {
         assertThrows(ExchangeRateApiException.class,
                 () -> exchangeService.getExchangeRate(CurrencyCode.USD, CurrencyCode.JPY));
     }

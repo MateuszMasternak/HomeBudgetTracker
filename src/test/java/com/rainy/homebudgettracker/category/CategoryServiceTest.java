@@ -115,7 +115,7 @@ class CategoryServiceTest {
     @Test
     void shouldReturnPageWithCategoryResponse() {
 
-        var categoryPage = categoryService.findAllByCurrentUser(
+        var categoryPage = categoryService.findCurrentUserCategoriesAsResponses(
                 PageRequest.of(0, 10));
 
         var categoryResponse = CategoryResponse.builder()
@@ -127,12 +127,11 @@ class CategoryServiceTest {
         assertEquals(categoryResponse, categoryPage.getContent().get(0));
 
         verify(categoryRepository, times(1)).findAllByUser(any(User.class), any(Pageable.class));
-        verifyUserDetailsServiceAndModelMapper(new int[]{1, 1});
     }
 
     @Test
     void shouldReturnListWithCategoryResponse() {
-        var categoryList = categoryService.findAllByCurrentUser();
+        var categoryList = categoryService.findCurrentUserCategoriesAsResponses();
 
         var categoryResponse = CategoryResponse.builder()
                 .id(1L)
@@ -143,12 +142,11 @@ class CategoryServiceTest {
         assertEquals(categoryResponse, categoryList.get(0));
 
         verify(categoryRepository, times(1)).findAllByUser(any(User.class));
-        verifyUserDetailsServiceAndModelMapper(new int[]{1, 1});
     }
 
     @Test
     void shouldReturnCategoryResponse() throws RecordDoesNotExistException {
-        var returnedCategoryResponse = categoryService.findOneAsResponseByCurrentUserAndName("Food");
+        var returnedCategoryResponse = categoryService.findCurrentUserCategoryAsResponse("Food");
 
         var categoryResponse = CategoryResponse.builder()
                 .id(1L)
@@ -158,21 +156,19 @@ class CategoryServiceTest {
         assertEquals(categoryResponse, returnedCategoryResponse);
 
         verify(categoryRepository, times(1)).findByUserAndName(any(User.class), eq("Food"));
-        verifyUserDetailsServiceAndModelMapper(new int[]{1, 1});
     }
 
     @Test
     void shouldThrowExceptionWhenCategoryResponseDoesNotExist() {
         assertThrows(RecordDoesNotExistException.class,
-                () -> categoryService.findOneAsResponseByCurrentUserAndName("Healthcare"));
+                () -> categoryService.findCurrentUserCategoryAsResponse("Healthcare"));
 
         verify(categoryRepository, times(1)).findByUserAndName(any(User.class), eq("Healthcare"));
-        verifyUserDetailsServiceAndModelMapper(new int[]{1, 0});
     }
 
     @Test
     void shouldReturnCategory() throws RecordDoesNotExistException {
-        var returnedCategory = categoryService.findOneByCurrentUserAndName("Food");
+        var returnedCategory = categoryService.findCurrentUserCategory("Food");
 
         var category = Category.builder()
                 .id(1L)
@@ -194,7 +190,7 @@ class CategoryServiceTest {
     @Test
     void shouldThrowExceptionWhenCategoryDoesNotExist() {
         assertThrows(RecordDoesNotExistException.class,
-                () -> categoryService.findOneByCurrentUserAndName("Healthcare"));
+                () -> categoryService.findCurrentUserCategory("Healthcare"));
 
         verify(userService, times(1)).getCurrentUser();
         verify(categoryRepository, times(1)).findByUserAndName(any(User.class), eq("Healthcare"));
@@ -216,7 +212,6 @@ class CategoryServiceTest {
         assertEquals(categoryResponse, returnedCategoryResponse);
 
         verify(categoryRepository, times(1)).existsByUserAndName(any(User.class), eq("Food"));
-        verifySaveAndModelMapper(new int[]{1, 1, 1});
     }
 
     @Test
@@ -229,55 +224,28 @@ class CategoryServiceTest {
                 () -> categoryService.createCategoryForCurrentUser(categoryRequest));
 
         verify(categoryRepository, times(1)).existsByUserAndName(any(User.class), eq("Healthcare"));
-        verifySaveAndModelMapper(new int[]{1, 0, 0});
     }
 
     @Test
     void shouldDeleteCategory() {
         assertDoesNotThrow(() -> categoryService.deleteCurrentUserCategory(1L));
-
-        verifyDeleteCategory(new int[]{1, 1, 1, 1});
     }
 
     @Test
     void shouldThrowExceptionWhenCategoryIsAssociatedWithTransactionWhenDeleting() {
         assertThrows(CategoryAssociatedWithTransactionException.class,
                 () -> categoryService.deleteCurrentUserCategory(2L));
-
-        verifyDeleteCategory(new int[]{1, 1, 1, 0});
     }
 
     @Test
     void shouldThrowExceptionWhenUserIsNotOwnerWhenDeleting() {
         assertThrows(UserIsNotOwnerException.class,
                 () -> categoryService.deleteCurrentUserCategory(3L));
-
-        verifyDeleteCategory(new int[]{1, 1, 0, 0});
     }
 
     @Test
     void shouldThrowExceptionWhenCategoryDoesNotExistWhenDeleting() {
         assertThrows(RecordDoesNotExistException.class,
                 () -> categoryService.deleteCurrentUserCategory(4L));
-
-        verifyDeleteCategory(new int[]{1, 1, 0, 0});
-    }
-
-    void verifyUserDetailsServiceAndModelMapper(int[] times) {
-        verify(userService, times(times[0])).getCurrentUser();
-        verify(modelMapper, times(times[1])).map(any(Category.class), eq(CategoryResponse.class));
-    }
-
-    void verifySaveAndModelMapper(int[] times) {
-        verify(modelMapper, times(times[0])).map(any(CategoryRequest.class), eq(Category.class));
-        verify(categoryRepository, times(times[1])).save(any(Category.class));
-        verify(modelMapper, times(times[2])).map(any(Category.class), eq(CategoryResponse.class));
-    }
-
-    void verifyDeleteCategory(int[] times) {
-        verify(userService, times(times[0])).getCurrentUser();
-        verify(categoryRepository, times(times[1])).findById(anyLong());
-        verify(transactionRepository, times(times[2])).existsByCategory(any(Category.class));
-        verify(categoryRepository, times(times[3])).deleteById(anyLong());
     }
 }

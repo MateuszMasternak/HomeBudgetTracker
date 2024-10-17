@@ -93,8 +93,8 @@ class TransactionServiceTest {
                 .id(1L)
                 .name("Food")
                 .build();
-        when(categoryService.findOneByCurrentUserAndName("Food")).thenReturn(category);
-        when(categoryService.findOneByCurrentUserAndName("Healthcare")).thenThrow(RecordDoesNotExistException.class);
+        when(categoryService.findCurrentUserCategory("Food")).thenReturn(category);
+        when(categoryService.findCurrentUserCategory("Healthcare")).thenThrow(RecordDoesNotExistException.class);
 
         Transaction transaction = Transaction.builder()
                 .id(1L)

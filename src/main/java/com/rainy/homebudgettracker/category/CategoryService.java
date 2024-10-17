@@ -10,10 +10,10 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 public interface CategoryService {
-    Page<CategoryResponse> findAllByCurrentUser(Pageable pageable);
-    List<CategoryResponse> findAllByCurrentUser();
-    CategoryResponse findOneAsResponseByCurrentUserAndName(String name) throws RecordDoesNotExistException;
-    Category findOneByCurrentUserAndName(String name) throws RecordDoesNotExistException;
+    Page<CategoryResponse> findCurrentUserCategoriesAsResponses(Pageable pageable);
+    List<CategoryResponse> findCurrentUserCategoriesAsResponses();
+    CategoryResponse findCurrentUserCategoryAsResponse(String name) throws RecordDoesNotExistException;
+    Category findCurrentUserCategory(String name) throws RecordDoesNotExistException;
     CategoryResponse createCategoryForCurrentUser(CategoryRequest categoryRequest) throws RecordAlreadyExistsException;
     void deleteCurrentUserCategory(Long categoryId) throws
             RecordDoesNotExistException,

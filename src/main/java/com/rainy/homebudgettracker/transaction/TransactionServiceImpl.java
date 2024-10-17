@@ -62,7 +62,7 @@ public class TransactionServiceImpl implements TransactionService {
             Long accountId, CategoryRequest categoryName, Pageable pageable)
             throws RecordDoesNotExistException, UserIsNotOwnerException {
 
-        Category category = categoryService.findOneByCurrentUserAndName(categoryName.getName());
+        Category category = categoryService.findCurrentUserCategory(categoryName.getName());
         Account account = accountService.findCurrentUserAccount(accountId);
 
         Page<Transaction> transactions = transactionRepository.findAllByAccountAndCategory(
@@ -98,7 +98,7 @@ public class TransactionServiceImpl implements TransactionService {
             Pageable pageable)
             throws RecordDoesNotExistException, UserIsNotOwnerException {
 
-        Category category = categoryService.findOneByCurrentUserAndName(categoryName.getName());
+        Category category = categoryService.findCurrentUserCategory(categoryName.getName());
         Account account = accountService.findCurrentUserAccount(accountId);
 
         Page<Transaction> transactions = transactionRepository.findAllByAccountAndCategoryAndDateBetween(
@@ -153,7 +153,7 @@ public class TransactionServiceImpl implements TransactionService {
     private TransactionResponse saveTransactionForCurrentUser(Long accountId, TransactionRequest transactionRequest)
             throws RecordDoesNotExistException, UserIsNotOwnerException {
 
-        Category category = categoryService.findOneByCurrentUserAndName(
+        Category category = categoryService.findCurrentUserCategory(
                 transactionRequest.getCategoryName().getName());
         Account account = accountService.findCurrentUserAccount(accountId);
 
