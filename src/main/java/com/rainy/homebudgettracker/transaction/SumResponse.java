@@ -1,16 +1,14 @@
 package com.rainy.homebudgettracker.transaction;
 
-import jakarta.validation.constraints.NotNull;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import com.rainy.homebudgettracker.account.AccountResponse;
+import lombok.*;
 
 @Getter
 @Setter
 @Builder
 @EqualsAndHashCode
+@ToString
 public class SumResponse {
-    @NotNull(message = "Amount is required.")
     private String amount;
+    private AccountResponse account;
 }

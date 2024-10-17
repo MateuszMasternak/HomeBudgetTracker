@@ -80,6 +80,11 @@ class TransactionServiceTest {
         when(accountService.findCurrentUserAccount(1L)).thenReturn(account);
         when(accountService.findCurrentUserAccount(2L)).thenThrow(UserIsNotOwnerException.class);
         when(accountService.findCurrentUserAccount(3L)).thenThrow(RecordDoesNotExistException.class);
+        when(modelMapper.map(account, AccountResponse.class)).thenReturn(AccountResponse.builder()
+                .id(1L)
+                .name("USD account")
+                .currencyCode("USD")
+                .build());
 
         Account account2 = Account.builder()
                 .id(2L)
@@ -88,6 +93,11 @@ class TransactionServiceTest {
                 .user(user)
                 .build();
         when(accountService.findCurrentUserAccount(4L)).thenReturn(account2);
+        when(modelMapper.map(account2, AccountResponse.class)).thenReturn(AccountResponse.builder()
+                .id(2L)
+                .name("PLN account")
+                .currencyCode("PLN")
+                .build());
 
         Category category = Category.builder()
                 .id(1L)
@@ -515,14 +525,25 @@ class TransactionServiceTest {
     void shouldReturnSumPositiveAmount() throws RecordDoesNotExistException, UserIsNotOwnerException {
         var sumPositiveAmount = transactionService.sumCurrentUserPositiveAmount(1L);
 
-        assertEquals(SumResponse.builder().amount("100.10").build(), sumPositiveAmount);
+        AccountResponse account = AccountResponse.builder()
+                .id(1L)
+                .name("USD account")
+                .currencyCode("USD")
+                .build();
+
+        assertEquals(SumResponse.builder().amount("100.10").account(account).build(), sumPositiveAmount);
     }
 
     @Test
     void shouldReturnSumAs0PositiveAmount() throws RecordDoesNotExistException, UserIsNotOwnerException {
         var sumPositiveAmount = transactionService.sumCurrentUserPositiveAmount(4L);
 
-        assertEquals(SumResponse.builder().amount("0.00").build(), sumPositiveAmount);
+        AccountResponse account = AccountResponse.builder()
+                .id(2L)
+                .name("PLN account")
+                .currencyCode("PLN")
+                .build();
+        assertEquals(SumResponse.builder().amount("0.00").account(account).build(), sumPositiveAmount);
 
     }
 
@@ -530,28 +551,48 @@ class TransactionServiceTest {
     void shouldReturnSumNegativeAmount() throws RecordDoesNotExistException, UserIsNotOwnerException {
         var sumNegativeAmount = transactionService.sumCurrentUserNegativeAmount(1L);
 
-        assertEquals(SumResponse.builder().amount("100.10").build(), sumNegativeAmount);
+        AccountResponse account = AccountResponse.builder()
+                .id(1L)
+                .name("USD account")
+                .currencyCode("USD")
+                .build();
+        assertEquals(SumResponse.builder().amount("100.10").account(account).build(), sumNegativeAmount);
     }
 
     @Test
     void shouldReturnSumAs0NegativeAmount() throws RecordDoesNotExistException, UserIsNotOwnerException {
         var sumPositiveAmount = transactionService.sumCurrentUserNegativeAmount(4L);
 
-        assertEquals(SumResponse.builder().amount("0.00").build(), sumPositiveAmount);
+        AccountResponse account = AccountResponse.builder()
+                .id(2L)
+                .name("PLN account")
+                .currencyCode("PLN")
+                .build();
+        assertEquals(SumResponse.builder().amount("0.00").account(account).build(), sumPositiveAmount);
     }
 
     @Test
     void shouldReturnSumAllAmount() throws RecordDoesNotExistException, UserIsNotOwnerException {
         var sumAllAmount = transactionService.sumCurrentUserAmount(1L);
 
-        assertEquals(SumResponse.builder().amount("100.10").build(), sumAllAmount);
+        AccountResponse account = AccountResponse.builder()
+                .id(1L)
+                .name("USD account")
+                .currencyCode("USD")
+                .build();
+        assertEquals(SumResponse.builder().amount("100.10").account(account).build(), sumAllAmount);
     }
 
     @Test
     void shouldReturnSumAs0AllAmount() throws RecordDoesNotExistException, UserIsNotOwnerException {
         var sumPositiveAmount = transactionService.sumCurrentUserAmount(4L);
 
-        assertEquals(SumResponse.builder().amount("0.00").build(), sumPositiveAmount);
+        AccountResponse account = AccountResponse.builder()
+                .id(2L)
+                .name("PLN account")
+                .currencyCode("PLN")
+                .build();
+        assertEquals(SumResponse.builder().amount("0.00").account(account).build(), sumPositiveAmount);
     }
 
     @Test

@@ -1,6 +1,7 @@
 package com.rainy.homebudgettracker.transaction;
 
 import com.rainy.homebudgettracker.account.Account;
+import com.rainy.homebudgettracker.account.AccountResponse;
 import com.rainy.homebudgettracker.account.AccountService;
 import com.rainy.homebudgettracker.category.Category;
 import com.rainy.homebudgettracker.category.CategoryRequest;
@@ -209,7 +210,10 @@ public class TransactionServiceImpl implements TransactionService {
         Account account = accountService.findCurrentUserAccount(accountId);
         BigDecimal sum = transactionRepository.sumPositiveAmountByAccount(account).setScale(
                 2, RoundingMode.HALF_UP);
-        return modelMapper.map(sum, SumResponse.class);
+        SumResponse response = modelMapper.map(sum, SumResponse.class);
+        response.setAccount(modelMapper.map(account, AccountResponse.class));
+
+        return response;
     }
 
     @Override
@@ -219,7 +223,10 @@ public class TransactionServiceImpl implements TransactionService {
         Account account = accountService.findCurrentUserAccount(accountId);
         BigDecimal sum = transactionRepository.sumNegativeAmountByAccount(account).setScale(
                 2, RoundingMode.HALF_UP);
-        return modelMapper.map(sum, SumResponse.class);
+        SumResponse response = modelMapper.map(sum, SumResponse.class);
+        response.setAccount(modelMapper.map(account, AccountResponse.class));
+
+        return response;
     }
 
     @Override
@@ -229,7 +236,10 @@ public class TransactionServiceImpl implements TransactionService {
         Account account = accountService.findCurrentUserAccount(accountId);
         BigDecimal sum = transactionRepository.sumAmountByAccount(account).setScale(
                 2, RoundingMode.HALF_UP);
-        return modelMapper.map(sum, SumResponse.class);
+        SumResponse response = modelMapper.map(sum, SumResponse.class);
+        response.setAccount(modelMapper.map(account, AccountResponse.class));
+
+        return response;
     }
 
     @Override
