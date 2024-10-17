@@ -40,7 +40,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
-    database: postgresql
+    open-in-view: false
   mail:
     host: ${EMAIL_HOST_DEV}
     port: 1025

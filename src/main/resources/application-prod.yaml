@@ -41,7 +41,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
-    database: postgresql
+    open-in-view: false
   mail:
     host: smtp.gmail.com
     port: 587
