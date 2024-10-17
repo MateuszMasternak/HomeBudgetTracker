@@ -2,7 +2,6 @@ package com.rainy.homebudgettracker.account;
 
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.user.UserService;
-import com.rainy.homebudgettracker.handler.exception.RecordAlreadyExistsException;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
@@ -42,6 +41,13 @@ class AccountServiceTest {
                 .build();
         when(userService.getCurrentUser()).thenReturn(user);
 
+        var user2 = User.builder()
+                .id(2L)
+                .email("other-mail@mail.com")
+                .password("password")
+                .role(Role.USER)
+                .build();
+
         var account = Account.builder()
                 .id(1L)
                 .name("USD account")
@@ -61,6 +67,13 @@ class AccountServiceTest {
                 .name("Changed name")
                 .currencyCode(CurrencyCode.USD)
                 .user(user)
+                .build();
+
+        var account4 = Account.builder()
+                .id(2L)
+                .name("USD account")
+                .currencyCode(CurrencyCode.USD)
+                .user(user2)
                 .build();
 
         var accountRequest = AccountRequest.builder()
@@ -93,7 +106,8 @@ class AccountServiceTest {
 
         when(accountRepository.findAllByUser(user)).thenReturn(List.of(account));
         when(accountRepository.findById(1L)).thenReturn(java.util.Optional.of(account));
-        when(accountRepository.findById(2L)).thenReturn(java.util.Optional.empty());
+        when(accountRepository.findById(2L)).thenReturn(java.util.Optional.of(account4));
+        when(accountRepository.findById(3L)).thenReturn(java.util.Optional.empty());
         when(accountRepository.existsById(1L)).thenReturn(true);
         when(accountRepository.existsById(2L)).thenReturn(false);
         when(accountRepository.save(account2)).thenReturn(account2);
@@ -127,8 +141,7 @@ class AccountServiceTest {
 
     @Test
     void shouldReturnAccountResponse() throws RecordDoesNotExistException, UserIsNotOwnerException {
-//        var accountResponse = accountService.findOneAsResponseByCurrentUserAndCurrencyCode(CurrencyCode.USD);
-        var accountResponse = accountService.findCurrentUserAccountAsResponseById(1L);
+        var accountResponse = accountService.findCurrentUserAccountAsResponse(1L);
 
         var account = Account.builder()
                 .id(1L)
@@ -144,28 +157,19 @@ class AccountServiceTest {
     @Test
     void shouldThrowRecordDoesNotExistExceptionAccountResponse() {
         assertThrows(RecordDoesNotExistException.class,
-                () -> accountService.findCurrentUserAccountAsResponseById(3L));
+                () -> accountService.findCurrentUserAccountAsResponse(3L));
     }
 
     @Test
     void shouldThrowUserIsNotOwnerException() {
         assertThrows(UserIsNotOwnerException.class,
-                () -> accountService.findCurrentUserAccountAsResponseById(2L));
+                () -> accountService.findCurrentUserAccountAsResponse(2L));
     }
-
-//    @Test
-//    void shouldThrowRecordDoesNotExistExceptionAccountResponse() {
-//        assertThrows(RecordDoesNotExistException.class,
-//                () -> accountService.findOneAsResponseByCurrentUserAndCurrencyCode(CurrencyCode.EUR));
-//
-//        verifyGetOne(new int[]{1, 1});
-//        verify(modelMapper, times(0)).map(any(Account.class), eq(AccountResponse.class));
-//    }
 
     @Test
     void shouldReturnAccount() throws RecordDoesNotExistException, UserIsNotOwnerException {
 //        var returnedAccount = accountService.findOneByCurrentUserAndCurrencyCode(CurrencyCode.USD);
-        var returnedAccount = accountService.findCurrentUserAccountById(1L);
+        var returnedAccount = accountService.findCurrentUserAccount(1L);
 
         var user = User.builder()
                 .id(1L)
@@ -187,7 +191,7 @@ class AccountServiceTest {
     @Test
     void shouldThrowRecordDoesNotExistExceptionAccount() {
         assertThrows(RecordDoesNotExistException.class,
-                () -> accountService.findCurrentUserAccountById(1L));
+                () -> accountService.findCurrentUserAccount(3L));
     }
 
     @Test
@@ -209,17 +213,6 @@ class AccountServiceTest {
         assertEquals(account.getName(), accountResponse.getName());
         assertEquals(account.getCurrencyCode().name(), accountResponse.getCurrencyCode());
     }
-
-//    @Test
-//    void shouldThrowRecordAlreadyExistsExceptionWhenAccountAlreadyExists() {
-//        var accountRequest = AccountRequest.builder()
-//                .name("USD account")
-//                .currencyCode(CurrencyCode.USD)
-//                .build();
-//
-//        assertThrows(RecordAlreadyExistsException.class,
-//                () -> accountService.createAccountForCurrentUser(accountRequest));
-//    }
 
     @Test
     void shouldReturnAccountResponseWhenAccountNameIsUpdated()
@@ -243,6 +236,6 @@ class AccountServiceTest {
     void shouldThrowRecordDoesNotExistExceptionWhenUpdatingName() {
         assertThrows(RecordDoesNotExistException.class,
                 () -> accountService.updateCurrentUserAccountName(
-                        AccountUpdateNameRequest.builder().id(2L).name("Changed name").build()));
+                        AccountUpdateNameRequest.builder().id(3L).name("Changed name").build()));
     }
 }

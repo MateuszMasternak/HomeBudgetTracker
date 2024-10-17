@@ -4,6 +4,7 @@ import com.rainy.homebudgettracker.account.Account;
 import com.rainy.homebudgettracker.account.AccountRequest;
 import com.rainy.homebudgettracker.account.AccountResponse;
 import com.rainy.homebudgettracker.images.ImageService;
+import com.rainy.homebudgettracker.transaction.SumResponse;
 import com.rainy.homebudgettracker.user.UserService;
 import com.rainy.homebudgettracker.category.Category;
 import com.rainy.homebudgettracker.category.CategoryRequest;
@@ -13,6 +14,9 @@ import com.rainy.homebudgettracker.transaction.TransactionRequest;
 import com.rainy.homebudgettracker.transaction.TransactionResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @Component
 @RequiredArgsConstructor
@@ -54,6 +58,13 @@ public class ModelMapper {
                 else
                     throw new UnsupportedOperationException("Mapping not supported");
             }
+            case "SumResponse": {
+                if (source instanceof BigDecimal sum) {
+                    yield (T) SumResponse.builder().amount(sum.toString()).build();
+                }
+                else
+                    throw new UnsupportedOperationException("Mapping not supported");
+            }
             default:
                 throw new UnsupportedOperationException("Mapping not supported");
         };
@@ -62,7 +73,7 @@ public class ModelMapper {
     public Transaction mapTransactionRequestToTransaction(
             TransactionRequest transactionRequest, Account account, Category category) {
         return Transaction.builder()
-                .amount(transactionRequest.getAmount())
+                .amount(transactionRequest.getAmount().setScale(2, RoundingMode.HALF_UP))
                 .category(category)
                 .date(transactionRequest.getDate())
                 .account(account)
@@ -75,7 +86,7 @@ public class ModelMapper {
     private TransactionResponse mapTransactionToResponse(Transaction transaction) {
         return TransactionResponse.builder()
                 .id(transaction.getId())
-                .amount(String.valueOf(transaction.getAmount()))
+                .amount(String.valueOf(transaction.getAmount().setScale(2, RoundingMode.HALF_UP)))
                 .category(mapCategoryToResponse(transaction.getCategory()))
                 .date(String.valueOf(transaction.getDate()))
                 .account(mapAccountToResponse(transaction.getAccount()))

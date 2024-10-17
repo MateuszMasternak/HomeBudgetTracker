@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class ImageCompressorTest {
 
     @Test
-    void compressImage() throws IOException {
+    void shouldReturnCompressedImage() throws IOException {
         File inputFile = new File("src/test/resources/test.png");
         File outputFile = ImageCompressor.compressImage(inputFile);
 

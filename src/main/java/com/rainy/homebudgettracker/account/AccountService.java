@@ -8,12 +8,16 @@ import java.util.List;
 
 public interface AccountService {
     List<AccountResponse> findCurrentUserAccountsAsResponses();
-    AccountResponse findCurrentUserAccountAsResponseById(Long id)
+
+    AccountResponse findCurrentUserAccountAsResponse(Long id)
             throws RecordDoesNotExistException, UserIsNotOwnerException;
-    Account findCurrentUserAccountById(Long id)
+
+    Account findCurrentUserAccount(Long id)
             throws RecordDoesNotExistException, UserIsNotOwnerException;
+
     AccountResponse createAccountForCurrentUser(AccountRequest request)
             throws RecordAlreadyExistsException;
+
     AccountResponse updateCurrentUserAccountName(AccountUpdateNameRequest request)
             throws RecordDoesNotExistException, UserIsNotOwnerException;
 }

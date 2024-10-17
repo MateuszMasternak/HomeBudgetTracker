@@ -8,7 +8,6 @@ import lombok.*;
 @Setter
 @Builder
 @EqualsAndHashCode
-@ToString
 public class TransactionResponse {
     private Long id;
     private String amount;

@@ -30,7 +30,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public AccountResponse findCurrentUserAccountAsResponseById(Long id)
+    public AccountResponse findCurrentUserAccountAsResponse(Long id)
             throws RecordDoesNotExistException, UserIsNotOwnerException {
             User user = userService.getCurrentUser();
 
@@ -43,7 +43,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public Account findCurrentUserAccountById(Long id)
+    public Account findCurrentUserAccount(Long id)
             throws RecordDoesNotExistException, UserIsNotOwnerException {
         User user = userService.getCurrentUser();
 
@@ -66,7 +66,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public AccountResponse updateCurrentUserAccountName(AccountUpdateNameRequest request)
             throws RecordDoesNotExistException, UserIsNotOwnerException {
-        Account account = findCurrentUserAccountById(request.getId());
+        Account account = findCurrentUserAccount(request.getId());
         accountRepository.updateAccountName(request.getId(), request.getName());
         account.setName(request.getName());
         return modelMapper.map(account, AccountResponse.class);

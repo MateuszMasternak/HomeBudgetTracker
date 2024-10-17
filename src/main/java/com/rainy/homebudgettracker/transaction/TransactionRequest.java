@@ -4,10 +4,7 @@ import com.rainy.homebudgettracker.category.CategoryRequest;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import com.rainy.homebudgettracker.transaction.enums.PaymentMethod;
 import jakarta.validation.constraints.NotNull;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -18,14 +15,14 @@ import java.time.LocalDate;
 @EqualsAndHashCode
 public class TransactionRequest {
     @NotNull(message = "Amount is required")
-    BigDecimal amount;
-    @NotNull(message = "Category is required")
-    CategoryRequest category;
+    private BigDecimal amount;
+    @NotNull(message = "Category name is required")
+    private CategoryRequest categoryName;
     @NotNull(message = "Date is required")
-    LocalDate date;
+    private LocalDate date;
     @NotNull(message = "Currency code is required")
-    CurrencyCode currencyCode;
+    private CurrencyCode currencyCode;
     @NotNull(message = "Payment method is required")
-    PaymentMethod paymentMethod;
-    String details;
+    private PaymentMethod paymentMethod;
+    private String details;
 }

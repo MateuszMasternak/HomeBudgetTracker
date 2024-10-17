@@ -3,7 +3,6 @@ package com.rainy.homebudgettracker.account;
 import com.rainy.homebudgettracker.handler.exception.RecordAlreadyExistsException;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
-import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +23,7 @@ public class AccountController {
     public ResponseEntity<AccountResponse> getAccountByCurrentUserAndCurrencyCode(
             @PathVariable() Long id
     ) throws RecordDoesNotExistException, UserIsNotOwnerException {
-        return ResponseEntity.ok(accountService.findCurrentUserAccountAsResponseById(id));
+        return ResponseEntity.ok(accountService.findCurrentUserAccountAsResponse(id));
     }
 
     @PostMapping

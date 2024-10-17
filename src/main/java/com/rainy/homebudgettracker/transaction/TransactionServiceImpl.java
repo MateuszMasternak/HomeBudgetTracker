@@ -5,6 +5,7 @@ import com.rainy.homebudgettracker.account.AccountService;
 import com.rainy.homebudgettracker.category.Category;
 import com.rainy.homebudgettracker.category.CategoryRequest;
 import com.rainy.homebudgettracker.category.CategoryService;
+import com.rainy.homebudgettracker.exchange.CurrencyConverter;
 import com.rainy.homebudgettracker.exchange.ExchangeResponse;
 import com.rainy.homebudgettracker.exchange.ExchangeService;
 import com.rainy.homebudgettracker.handler.exception.ImageUploadException;
@@ -26,12 +27,14 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -46,40 +49,38 @@ public class TransactionServiceImpl implements TransactionService {
     private final S3Service s3Service;
 
     @Override
-    public Page<TransactionResponse> findAllByCurrentUserAndAccount(CurrencyCode currencyCode, Pageable pageable)
-            throws RecordDoesNotExistException {
-        User user = userService.getCurrentUser();
-        Account account = accountService.findOneByCurrentUserAndCurrencyCode(currencyCode);
-        Page<Transaction> transactions = transactionRepository.findAllByUserAndAccount(user, account, pageable);
+    public Page<TransactionResponse> findCurrentUserTransactionsAsResponses(Long accountId, Pageable pageable)
+            throws RecordDoesNotExistException, UserIsNotOwnerException {
+
+        Account account = accountService.findCurrentUserAccount(accountId);
+        Page<Transaction> transactions = transactionRepository.findAllByAccount(account, pageable);
         return transactions.map(t -> modelMapper.map(t, TransactionResponse.class));
     }
 
     @Override
-    public Page<TransactionResponse> findAllByCurrentUserAndAccountAndCategory(
-            CurrencyCode currencyCode, CategoryRequest categoryName, Pageable pageable
-    ) throws RecordDoesNotExistException {
-        User user = userService.getCurrentUser();
+    public Page<TransactionResponse> findCurrentUserTransactionsAsResponses(
+            Long accountId, CategoryRequest categoryName, Pageable pageable)
+            throws RecordDoesNotExistException, UserIsNotOwnerException {
+
         Category category = categoryService.findOneByCurrentUserAndName(categoryName.getName());
+        Account account = accountService.findCurrentUserAccount(accountId);
 
-        Account account = accountService.findOneByCurrentUserAndCurrencyCode(currencyCode);
-
-        Page<Transaction> transactions = transactionRepository.findAllByUserAndAccountAndCategory(
-                user, account, category, pageable
+        Page<Transaction> transactions = transactionRepository.findAllByAccountAndCategory(
+                account, category, pageable
         );
         return transactions.map(t -> modelMapper.map(t, TransactionResponse.class));
     }
 
     @Override
-    public Page<TransactionResponse> findAllByCurrentUserAndAccountAndDateBetween(
-            CurrencyCode currencyCode,
+    public Page<TransactionResponse> findCurrentUserTransactionsAsResponses(
+            Long accountId,
             LocalDate startDate,
             LocalDate endDate,
-            Pageable pageable
-    ) throws RecordDoesNotExistException {
-        User user = userService.getCurrentUser();
-        Account account = accountService.findOneByCurrentUserAndCurrencyCode(currencyCode);
-        Page<Transaction> transactions = transactionRepository.findAllByUserAndAccountAndDateBetween(
-                user,
+            Pageable pageable)
+            throws RecordDoesNotExistException, UserIsNotOwnerException {
+
+        Account account = accountService.findCurrentUserAccount(accountId);
+        Page<Transaction> transactions = transactionRepository.findAllByAccountAndDateBetween(
                 account,
                 startDate,
                 endDate,
@@ -89,19 +90,18 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public Page<TransactionResponse> findAllByCurrentUserAndAccountAndCategoryAndDateBetween(
-            CurrencyCode currencyCode,
-            String categoryName,
+    public Page<TransactionResponse> findCurrentUserTransactionsAsResponses(
+            Long accountId,
+            CategoryRequest categoryName,
             LocalDate startDate,
             LocalDate endDate,
-            Pageable pageable
-    ) throws RecordDoesNotExistException {
-        User user = userService.getCurrentUser();
-        Category category = categoryService.findOneByCurrentUserAndName(categoryName);
-        Account account = accountService.findOneByCurrentUserAndCurrencyCode(currencyCode);
+            Pageable pageable)
+            throws RecordDoesNotExistException, UserIsNotOwnerException {
 
-        Page<Transaction> transactions = transactionRepository.findAllByUserAndAccountAndCategoryAndDateBetween(
-                user,
+        Category category = categoryService.findOneByCurrentUserAndName(categoryName.getName());
+        Account account = accountService.findCurrentUserAccount(accountId);
+
+        Page<Transaction> transactions = transactionRepository.findAllByAccountAndCategoryAndDateBetween(
                 account,
                 category,
                 startDate,
@@ -113,36 +113,84 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Transactional
     @Override
-    public TransactionResponse createTransactionForCurrentUser(TransactionRequest transactionRequest)
-            throws RecordDoesNotExistException {
-        return saveTransactionForCurrentUser(transactionRequest);
+    public TransactionResponse createTransactionForCurrentUser(Long accountId, TransactionRequest transactionRequest)
+            throws RecordDoesNotExistException, UserIsNotOwnerException {
+        return saveTransactionForCurrentUser(accountId, transactionRequest);
     }
 
     @Transactional
     @Override
-    public TransactionResponse createTransactionForCurrentUser(CurrencyCode targetCurrency, BigDecimal exchangeRate,
-                                                               TransactionRequest transactionRequest
-    ) throws RecordDoesNotExistException {
-        if (exchangeRate != null) {
-            convertCurrency(transactionRequest, exchangeRate, targetCurrency);
-        } else {
-            ExchangeResponse exchangeResponse = exchangeService.getExchangeRate(
-                    transactionRequest.getCurrencyCode(),
-                    targetCurrency
-            );
-            String apiExchangeRate = exchangeResponse.getConversionRate();
-            BigDecimal apiExchangeRateBG = new BigDecimal(apiExchangeRate);
-            addExchangeDetails(transactionRequest, targetCurrency.toString(), apiExchangeRate);
-            convertCurrency(transactionRequest, apiExchangeRateBG, targetCurrency);
-        }
+    public TransactionResponse createTransactionForCurrentUser(
+            Long accountId,
+            CurrencyCode targetCurrency,
+            BigDecimal exchangeRate,
+            TransactionRequest transactionRequest)
+            throws RecordDoesNotExistException, UserIsNotOwnerException {
 
-        return saveTransactionForCurrentUser(transactionRequest);
+        TransactionRequest convertedTransactionRequest = getTransactionRequestWithUpdatedCurrency(
+                transactionRequest,
+                CurrencyConverter.convert(
+                        transactionRequest.getAmount(),
+                        Objects.requireNonNullElseGet(
+                                exchangeRate,
+                                () -> {
+                                    BigDecimal currencyRate = getCurrencyRate(
+                                            transactionRequest.getCurrencyCode(),
+                                            targetCurrency);
+                                    addExchangeDetails(
+                                            transactionRequest,
+                                            targetCurrency.name(),
+                                            currencyRate.toString());
+                                    return currencyRate;
+                                }).setScale(2, RoundingMode.HALF_UP),
+                        2),
+                targetCurrency);
+
+
+        return saveTransactionForCurrentUser(accountId, convertedTransactionRequest);
+    }
+
+    private TransactionResponse saveTransactionForCurrentUser(Long accountId, TransactionRequest transactionRequest)
+            throws RecordDoesNotExistException, UserIsNotOwnerException {
+
+        Category category = categoryService.findOneByCurrentUserAndName(
+                transactionRequest.getCategoryName().getName());
+        Account account = accountService.findCurrentUserAccount(accountId);
+
+        Transaction transaction = modelMapper.mapTransactionRequestToTransaction(transactionRequest, account, category);
+        transaction = transactionRepository.save(transaction);
+        return modelMapper.map(transactionRepository.save(transaction), TransactionResponse.class);
+    }
+
+    private TransactionRequest getTransactionRequestWithUpdatedCurrency(
+            TransactionRequest transactionRequest, BigDecimal newValue, CurrencyCode targetCurrency) {
+
+        return TransactionRequest.builder()
+                .amount(newValue)
+                .categoryName(transactionRequest.getCategoryName())
+                .date(transactionRequest.getDate())
+                .currencyCode(targetCurrency)
+                .paymentMethod(transactionRequest.getPaymentMethod())
+                .details(transactionRequest.getDetails())
+                .build();
+    }
+
+    private BigDecimal getCurrencyRate(CurrencyCode sourceCurrency, CurrencyCode targetCurrency) {
+        ExchangeResponse exchangeResponse = exchangeService.getExchangeRate(sourceCurrency, targetCurrency);
+        return new BigDecimal(exchangeResponse.getConversionRate()).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private void addExchangeDetails(
+            TransactionRequest transactionRequest, String targetCurrency, String apiExchangeRate) {
+        transactionRequest.setDetails(
+                transactionRequest.getCurrencyCode() + "->" + targetCurrency + ": " + apiExchangeRate);
     }
 
     @Override
     public void deleteCurrentUserTransaction(Long transactionId) throws
             RecordDoesNotExistException,
             UserIsNotOwnerException {
+
         User user = userService.getCurrentUser();
         Optional<Transaction> transaction = transactionRepository.findById(transactionId);
         if (transaction.isEmpty()) {
@@ -155,36 +203,38 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public SumResponse sumPositiveAmountByCurrentUserAndAccount(CurrencyCode currencyCode)
-            throws RecordDoesNotExistException {
-        User user = userService.getCurrentUser();
-        Account account = accountService.findOneByCurrentUserAndCurrencyCode(currencyCode);
-        BigDecimal sum = transactionRepository.sumPositiveAmountByUserAndAccount(user, account);
-        String amount = sum == null ? "0" : sum.toString();
-        return SumResponse.builder().amount(amount).build();
+    public SumResponse sumCurrentUserPositiveAmount(Long accountId)
+            throws RecordDoesNotExistException, UserIsNotOwnerException {
+
+        Account account = accountService.findCurrentUserAccount(accountId);
+        BigDecimal sum = transactionRepository.sumPositiveAmountByAccount(account).setScale(
+                2, RoundingMode.HALF_UP);
+        return modelMapper.map(sum, SumResponse.class);
     }
 
     @Override
-    public SumResponse sumNegativeAmountByCurrentUserAndAccount(CurrencyCode currencyCode)
-            throws RecordDoesNotExistException {
-        User user = userService.getCurrentUser();
-        Account account = accountService.findOneByCurrentUserAndCurrencyCode(currencyCode);
-        BigDecimal sum = transactionRepository.sumNegativeAmountByUserAndAccount(user, account);
-        String amount = sum == null ? "0" : sum.toString();
-        return SumResponse.builder().amount(amount).build();
+    public SumResponse sumCurrentUserNegativeAmount(Long accountId)
+            throws RecordDoesNotExistException, UserIsNotOwnerException {
+
+        Account account = accountService.findCurrentUserAccount(accountId);
+        BigDecimal sum = transactionRepository.sumNegativeAmountByAccount(account).setScale(
+                2, RoundingMode.HALF_UP);
+        return modelMapper.map(sum, SumResponse.class);
     }
 
     @Override
-    public SumResponse sumAmountByCurrentUserAndAccount(CurrencyCode currencyCode) throws RecordDoesNotExistException {
-        User user = userService.getCurrentUser();
-        Account account = accountService.findOneByCurrentUserAndCurrencyCode(currencyCode);
-        BigDecimal sum = transactionRepository.sumAmountByUserAndAccount(user, account);
-        String amount = sum == null ? "0" : sum.toString();
-        return SumResponse.builder().amount(amount).build();
+    public SumResponse sumCurrentUserAmount(Long accountId)
+            throws RecordDoesNotExistException, UserIsNotOwnerException {
+
+        Account account = accountService.findCurrentUserAccount(accountId);
+        BigDecimal sum = transactionRepository.sumAmountByAccount(account).setScale(
+                2, RoundingMode.HALF_UP);
+        return modelMapper.map(sum, SumResponse.class);
     }
 
     @Override
-    public List<TransactionResponse> findAllByUser(User user) {
+    public List<TransactionResponse> findCurrentUserTransactionsAsResponses() {
+        User user = userService.getCurrentUser();
         Iterable<Transaction> transactions = transactionRepository.findAllByUser(user);
         List<TransactionResponse> transactionResponses = new ArrayList<>();
         transactions.forEach(t -> transactionResponses.add(modelMapper.map(t, TransactionResponse.class)));
@@ -192,9 +242,9 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public byte[] generateCsvFileForCurrentUserTransactions() throws IOException {
+    public byte[] generateCSVWithCurrentUserTransactions() throws IOException {
         User user = userService.getCurrentUser();
-        List<TransactionResponse> transactionResponses = findAllByUser(user);
+        List<TransactionResponse> transactionResponses = findCurrentUserTransactionsAsResponses();
 
         Path csvFilePath = Paths.get("temp_transactions_" + user.getId() + "_" + LocalDate.now() + ".csv");
 
@@ -224,20 +274,24 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public TransactionResponse addImageToTransaction(Long id, MultipartFile file)
-            throws RecordDoesNotExistException, UserIsNotOwnerException, ImageUploadException, WrongFileTypeException {
+    public TransactionResponse addImageToCurrentUserTransaction(Long transactionId, MultipartFile file)
+            throws RecordDoesNotExistException,
+            UserIsNotOwnerException,
+            ImageUploadException,
+            WrongFileTypeException {
+
         User user = userService.getCurrentUser();
-        Optional<Transaction> transaction = transactionRepository.findById(id);
+        Optional<Transaction> transaction = transactionRepository.findById(transactionId);
 
         if (transaction.isEmpty()) {
-            throw new RecordDoesNotExistException("Transaction with id " + id + " does not exist.");
+            throw new RecordDoesNotExistException("Transaction with id " + transactionId + " does not exist.");
         } else if (!transaction.get().getUser().getEmail().equals(user.getEmail())) {
-            throw new UserIsNotOwnerException("Transaction with id " + id + " does not belong to the user.");
+            throw new UserIsNotOwnerException("Transaction with id " + transactionId + " does not belong to the user.");
         } else if (file.getContentType() == null || !file.getContentType().startsWith("image")) {
             throw new WrongFileTypeException("Invalid file type. Only images are allowed.");
         }
 
-        String key = s3Service.uploadFile(file, user.getId(), id);
+        String key = s3Service.uploadFile(file, user.getId(), transactionId);
 
         transaction.get().setImageFilePath(key);
 
@@ -246,14 +300,15 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public TransactionResponse deleteImageFromTransaction(Long id) throws RecordDoesNotExistException, UserIsNotOwnerException {
+    public TransactionResponse deleteImageFromCurrentUserTransaction(Long transactionId)
+            throws RecordDoesNotExistException, UserIsNotOwnerException {
         User user = userService.getCurrentUser();
-        Optional<Transaction> transaction = transactionRepository.findById(id);
+        Optional<Transaction> transaction = transactionRepository.findById(transactionId);
 
         if (transaction.isEmpty()) {
-            throw new RecordDoesNotExistException("Transaction with id " + id + " does not exist.");
+            throw new RecordDoesNotExistException("Transaction with id " + transactionId + " does not exist.");
         } else if (!transaction.get().getUser().getEmail().equals(user.getEmail())) {
-            throw new UserIsNotOwnerException("Transaction with id " + id + " does not belong to the user.");
+            throw new UserIsNotOwnerException("Transaction with id " + transactionId + " does not belong to the user.");
         }
 
         String key = transaction.get().getImageFilePath();
@@ -263,29 +318,5 @@ public class TransactionServiceImpl implements TransactionService {
 
         transactionRepository.save(transaction.get());
         return modelMapper.map(transaction.get(), TransactionResponse.class);
-    }
-
-    private TransactionResponse saveTransactionForCurrentUser(TransactionRequest transactionRequest)
-            throws RecordDoesNotExistException {
-        Category category = categoryService.findOneByCurrentUserAndName(
-                transactionRequest.getCategory().getName());
-        Account account = accountService.findOneByCurrentUserAndCurrencyCode(transactionRequest.getCurrencyCode());
-
-        Transaction transaction = modelMapper.mapTransactionRequestToTransaction(transactionRequest, account, category);
-
-        transaction = transactionRepository.save(transaction);
-
-        return modelMapper.map(transaction, TransactionResponse.class);
-    }
-
-    private void convertCurrency(TransactionRequest transaction, BigDecimal rate, CurrencyCode targetCurrency) {
-        transaction.setAmount(
-                transaction.getAmount()
-                        .multiply(rate));
-        transaction.setCurrencyCode(targetCurrency);
-    }
-
-    private void addExchangeDetails(TransactionRequest transactionRequest, String targetCurrency, String apiExchangeRate) {
-        transactionRequest.setDetails(transactionRequest.getCurrencyCode() + "->" + targetCurrency + ": " + apiExchangeRate);
     }
 }

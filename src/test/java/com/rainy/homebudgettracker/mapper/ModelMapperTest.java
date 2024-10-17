@@ -208,7 +208,7 @@ class ModelMapperTest {
                 .amount(BigDecimal.valueOf(100))
                 .date(LocalDate.now())
                 .paymentMethod(PaymentMethod.CASH)
-                .category(CategoryRequest.builder().name("Food").build())
+                .categoryName(CategoryRequest.builder().name("Food").build())
                 .currencyCode(CurrencyCode.USD)
                 .details("Details")
                 .build();
@@ -267,7 +267,7 @@ class ModelMapperTest {
                 .amount(BigDecimal.valueOf(100))
                 .date(LocalDate.now())
                 .paymentMethod(PaymentMethod.CASH)
-                .category(CategoryRequest.builder().name("Food").build())
+                .categoryName(CategoryRequest.builder().name("Food").build())
                 .currencyCode(CurrencyCode.USD)
                 .build();
 

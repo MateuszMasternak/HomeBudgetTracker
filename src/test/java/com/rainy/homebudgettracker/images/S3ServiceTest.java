@@ -51,7 +51,7 @@ class S3ServiceTest {
     }
 
     @Test
-    void getKey() throws ImageUploadException {
+    void shouldReturnKey() throws ImageUploadException {
         try (MockedStatic<ImageCompressor> mockedStatic = mockStatic(ImageCompressor.class)) {
             mockedStatic.when(() -> ImageCompressor.compressImage(any())).thenReturn(new File("test.jpg"));
             MultipartFile file = new MockMultipartFile("test.png", "test.png", "image/png", new byte[100]);
@@ -64,7 +64,7 @@ class S3ServiceTest {
     }
 
     @Test
-    void deleteFile() {
+    void shouldDeleteImage() {
         String key = "images/" + UUID.nameUUIDFromBytes("1_1".getBytes());
         s3Service.deleteFile(key);
         verify(s3Client, times(1)).deleteObject(any(DeleteObjectRequest.class));
