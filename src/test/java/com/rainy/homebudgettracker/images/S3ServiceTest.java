@@ -48,9 +48,9 @@ class S3ServiceTest {
         try (MockedStatic<ImageCompressor> mockedStatic = mockStatic(ImageCompressor.class)) {
             mockedStatic.when(() -> ImageCompressor.compressImage(any())).thenReturn(new File("test.jpg"));
             MultipartFile file = new MockMultipartFile("test.png", "test.png", "image/png", new byte[100]);
-            UUID userId = UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903");
+            String userSub = "b848bced-0daf-4ad7-b9c6-4c477ab5a903";
             UUID transactionId = UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903");
-            String key = s3Service.uploadFile(file, userId, transactionId);
+            String key = s3Service.uploadFile(file, userSub, transactionId);
             String expectedKey = "images/" + UUID.nameUUIDFromBytes("b848bced-0daf-4ad7-b9c6-4c477ab5a903_b848bced-0daf-4ad7-b9c6-4c477ab5a903".getBytes());
             assertEquals(expectedKey, key);
         }

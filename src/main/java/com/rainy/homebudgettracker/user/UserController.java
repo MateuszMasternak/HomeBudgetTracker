@@ -13,8 +13,8 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/delete")
-    public ResponseEntity<?> deleteUser() {
-        userService.deleteUser();
+    public ResponseEntity<?> deleteUserData() {
+        userService.deleteUserData();
         return ResponseEntity.ok().build();
     }
 }

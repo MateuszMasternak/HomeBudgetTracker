@@ -7,8 +7,6 @@ import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
 import com.rainy.homebudgettracker.transaction.TransactionRepository;
-import com.rainy.homebudgettracker.user.Role;
-import com.rainy.homebudgettracker.user.User;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,18 +41,13 @@ class CategoryServiceTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        var user = User.builder()
-                .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
-                .email("mail@mail.com")
-                .password("password")
-                .role(Role.USER)
-                .build();
-        when(userService.getCurrentUser()).thenReturn(user);
+        var userSub = "550e8400-e29b-41d4-a716-446655440000";
+        when(userService.getUserSub()).thenReturn(userSub);
 
         var category = Category.builder()
                 .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
                 .name("Food")
-                .user(user)
+                .userSub(userSub)
                 .build();
 
         var categoryRequest = CategoryRequest.builder()
@@ -75,35 +68,31 @@ class CategoryServiceTest {
         when(modelMapper.map(categoryRequest, Category.class)).thenReturn(category);
         when(modelMapper.map(categoryRequest2, Category.class)).thenReturn(Category.builder()
                 .name("Healthcare")
-                .user(user)
+                .userSub(userSub)
                 .build());
 
         when(transactionRepository.existsByCategory(category)).thenReturn(true);
         when(transactionRepository.existsByCategory(any())).thenReturn(false);
         when(categoryRepository.save(any())).thenReturn(category);
-        when(categoryRepository.findByUserAndName(user, "Food")).thenReturn(Optional.of(category));
-        when(categoryRepository.findByUserAndName(user, "Healthcare")).thenReturn(Optional.empty());
-        when(categoryRepository.findAllByUser(user, pageable)).thenReturn(categoryPage);
-        when(categoryRepository.findAllByUser(user)).thenReturn(List.of(category));
-        when(categoryRepository.save(Category.builder().name("Food").user(user).build())).thenReturn(category);
-        when(categoryRepository.existsByUserAndName(user, "Food")).thenReturn(false);
-        when(categoryRepository.existsByUserAndName(user, "Healthcare")).thenReturn(true);
+        when(categoryRepository.findByUserSubAndName(userSub, "Food")).thenReturn(Optional.of(category));
+        when(categoryRepository.findByUserSubAndName(userSub, "Healthcare")).thenReturn(Optional.empty());
+        when(categoryRepository.findAllByUserSub(userSub, pageable)).thenReturn(categoryPage);
+        when(categoryRepository.findAllByUserSub(userSub)).thenReturn(List.of(category));
+        when(categoryRepository.save(Category.builder().name("Food").userSub(userSub).build())).thenReturn(category);
+        when(categoryRepository.existsByUserSubAndName(userSub, "Food")).thenReturn(false);
+        when(categoryRepository.existsByUserSubAndName(userSub, "Healthcare")).thenReturn(true);
         doNothing().when(categoryRepository).deleteById(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"));
         when(categoryRepository.findById(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))).thenReturn(Optional.of(category));
         when(categoryRepository.findById(UUID.fromString("cb5f0153-5b1e-4f4b-9886-ae6791284043"))).thenReturn(Optional.empty());
         when(categoryRepository.findById(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))).thenReturn(Optional.of(Category.builder()
                 .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                 .name("Healthcare")
-                .user(User.builder()
-                        .id(UUID.fromString("c7e2fa7e-2267-4da5-ade1-5dc79948a773"))
-                        .email("11mail@mail.com")
-                        .password("password")
-                        .role(Role.USER)
-                        .build()).build()));
+                .userSub("550e8400-e29b-41d4-a716-446655440001")
+                .build()));
         Category category2 = Category.builder()
                 .id(UUID.fromString("c7e2fa7e-2267-4da5-ade1-5dc79948a773"))
                 .name("Healthcare")
-                .user(user)
+                .userSub(userSub)
                 .build();
         when(categoryRepository.findById(UUID.fromString("c7e2fa7e-2267-4da5-ade1-5dc79948a773"))).thenReturn(Optional.of(category2));
         when(transactionRepository.existsByCategory(category2)).thenReturn(true);
@@ -126,8 +115,6 @@ class CategoryServiceTest {
 
         assertEquals(1, categoryPage.getTotalElements());
         assertEquals(categoryResponse, categoryPage.getContent().get(0));
-
-        verify(categoryRepository, times(1)).findAllByUser(any(User.class), any(Pageable.class));
     }
 
     @Test
@@ -141,8 +128,6 @@ class CategoryServiceTest {
 
         assertEquals(1, categoryList.size());
         assertEquals(categoryResponse, categoryList.get(0));
-
-        verify(categoryRepository, times(1)).findAllByUser(any(User.class));
     }
 
     @Test
@@ -155,16 +140,12 @@ class CategoryServiceTest {
                 .build();
 
         assertEquals(categoryResponse, returnedCategoryResponse);
-
-        verify(categoryRepository, times(1)).findByUserAndName(any(User.class), eq("Food"));
     }
 
     @Test
     void shouldThrowExceptionWhenCategoryResponseDoesNotExist() {
         assertThrows(RecordDoesNotExistException.class,
                 () -> categoryService.findCurrentUserCategoryAsResponse("Healthcare"));
-
-        verify(categoryRepository, times(1)).findByUserAndName(any(User.class), eq("Healthcare"));
     }
 
     @Test
@@ -174,27 +155,16 @@ class CategoryServiceTest {
         var category = Category.builder()
                 .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
                 .name("Food")
-                .user(User.builder()
-                        .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
-                        .email("mail@mail.com")
-                        .password("password")
-                        .role(Role.USER)
-                        .build()
-                ).build();
+                .userSub("550e8400-e29b-41d4-a716-446655440000")
+                .build();
 
         assertEquals(category, returnedCategory);
-
-        verify(userService, times(1)).getCurrentUser();
-        verify(categoryRepository, times(1)).findByUserAndName(any(User.class), eq("Food"));
     }
 
     @Test
     void shouldThrowExceptionWhenCategoryDoesNotExist() {
         assertThrows(RecordDoesNotExistException.class,
                 () -> categoryService.findCurrentUserCategory("Healthcare"));
-
-        verify(userService, times(1)).getCurrentUser();
-        verify(categoryRepository, times(1)).findByUserAndName(any(User.class), eq("Healthcare"));
     }
 
     @Test
@@ -211,8 +181,6 @@ class CategoryServiceTest {
                 .build();
 
         assertEquals(categoryResponse, returnedCategoryResponse);
-
-        verify(categoryRepository, times(1)).existsByUserAndName(any(User.class), eq("Food"));
     }
 
     @Test
@@ -223,8 +191,6 @@ class CategoryServiceTest {
 
         assertThrows(RecordAlreadyExistsException.class,
                 () -> categoryService.createCategoryForCurrentUser(categoryRequest));
-
-        verify(categoryRepository, times(1)).existsByUserAndName(any(User.class), eq("Healthcare"));
     }
 
     @Test

@@ -24,6 +24,8 @@ aws:
     public-key-pair-id: ${AWS_CLOUDFRONT_PUBLIC_KEY_PAIR_ID_DEV}
     private-key: ${AWS_CLOUDFRONT_PRIVATE_KEY_DEV}
   transaction-response-url-type: ${AWS_URL_TYPE_DEV}
+  cognito:
+    jwks-url: ${AWS_COGNITO_PUBLIC_KEY_DEV}
 
 server:
   port: 8080

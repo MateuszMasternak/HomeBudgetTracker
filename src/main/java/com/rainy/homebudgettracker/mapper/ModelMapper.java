@@ -78,7 +78,7 @@ public class ModelMapper {
                 .date(transactionRequest.getDate())
                 .account(account)
                 .paymentMethod(transactionRequest.getPaymentMethod())
-                .user(account.getUser())
+                .userSub(userService.getUserSub())
                 .details(transactionRequest.getDetails())
                 .build();
     }
@@ -106,7 +106,7 @@ public class ModelMapper {
     private Category mapCategoryRequestToCategory(CategoryRequest categoryRequest) {
         return Category.builder()
                 .name(categoryRequest.getName())
-                .user(userService.getCurrentUser())
+                .userSub(userService.getUserSub())
                 .build();
     }
 
@@ -122,7 +122,7 @@ public class ModelMapper {
         return Account.builder()
                 .name(accountRequest.getName())
                 .currencyCode(accountRequest.getCurrencyCode())
-                .user(userService.getCurrentUser())
+                .userSub(userService.getUserSub())
                 .build();
     }
 }

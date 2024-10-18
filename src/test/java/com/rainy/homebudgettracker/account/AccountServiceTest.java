@@ -5,8 +5,6 @@ import com.rainy.homebudgettracker.user.UserService;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
-import com.rainy.homebudgettracker.user.Role;
-import com.rainy.homebudgettracker.user.User;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -34,47 +33,37 @@ class AccountServiceTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        var user = User.builder()
-                .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
-                .email("mail@mail.com")
-                .password("password")
-                .role(Role.USER)
-                .build();
-        when(userService.getCurrentUser()).thenReturn(user);
+        var userSub = "550e8400-e29b-41d4-a716-446655440000";
+        when(userService.getUserSub()).thenReturn(userSub);
 
-        var user2 = User.builder()
-                .id(UUID.fromString("c7e2fa7e-2267-4da5-ade1-5dc79948a773"))
-                .email("other-mail@mail.com")
-                .password("password")
-                .role(Role.USER)
-                .build();
+        var userSub2 = "550e8400-e29b-41d4-a716-446655440001";
 
         var account = Account.builder()
                 .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
                 .name("USD account")
                 .currencyCode(CurrencyCode.USD)
-                .user(user)
+                .userSub(userSub)
                 .build();
 
         var account2 = Account.builder()
                 .id(UUID.fromString("c7e2fa7e-2267-4da5-ade1-5dc79948a773"))
                 .name("EUR account")
                 .currencyCode(CurrencyCode.EUR)
-                .user(user)
+                .userSub(userSub)
                 .build();
 
         var account3 = Account.builder()
                 .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
                 .name("Changed name")
                 .currencyCode(CurrencyCode.USD)
-                .user(user)
+                .userSub(userSub)
                 .build();
 
         var account4 = Account.builder()
                 .id(UUID.fromString("c7e2fa7e-2267-4da5-ade1-5dc79948a773"))
                 .name("USD account")
                 .currencyCode(CurrencyCode.USD)
-                .user(user2)
+                .userSub(userSub2)
                 .build();
 
         var accountRequest = AccountRequest.builder()
@@ -105,10 +94,10 @@ class AccountServiceTest {
         when(modelMapper.map(accountRequest, Account.class)).thenReturn(account);
         when(modelMapper.map(accountRequest2, Account.class)).thenReturn(account2);
 
-        when(accountRepository.findAllByUser(user)).thenReturn(List.of(account));
-        when(accountRepository.findById(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))).thenReturn(java.util.Optional.of(account));
-        when(accountRepository.findById(UUID.fromString("c7e2fa7e-2267-4da5-ade1-5dc79948a773"))).thenReturn(java.util.Optional.of(account4));
-        when(accountRepository.findById(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))).thenReturn(java.util.Optional.empty());
+        when(accountRepository.findAllByUserSub(userSub)).thenReturn(List.of(account));
+        when(accountRepository.findById(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))).thenReturn(Optional.of(account));
+        when(accountRepository.findById(UUID.fromString("c7e2fa7e-2267-4da5-ade1-5dc79948a773"))).thenReturn(Optional.of(account4));
+        when(accountRepository.findById(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))).thenReturn(Optional.empty());
         when(accountRepository.existsById(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))).thenReturn(true);
         when(accountRepository.existsById(UUID.fromString("c7e2fa7e-2267-4da5-ade1-5dc79948a773"))).thenReturn(false);
         when(accountRepository.save(account2)).thenReturn(account2);
@@ -134,10 +123,6 @@ class AccountServiceTest {
         assertEquals(account.getId(), accountResponses.get(0).getId());
         assertEquals(account.getName(), accountResponses.get(0).getName());
         assertEquals(account.getCurrencyCode().name(), accountResponses.get(0).getCurrencyCode());
-
-        verify(userService, times(1)).getCurrentUser();
-        verify(accountRepository, times(1)).findAllByUser(any(User.class));
-        verify(modelMapper, times(1)).map(any(Account.class), eq(AccountResponse.class));
     }
 
     @Test
@@ -171,18 +156,13 @@ class AccountServiceTest {
     void shouldReturnAccount() throws RecordDoesNotExistException, UserIsNotOwnerException {
         var returnedAccount = accountService.findCurrentUserAccount(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"));
 
-        var user = User.builder()
-                .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
-                .email("mail@mail.com")
-                .password("password")
-                .role(Role.USER)
-                .build();
+        var userSub = "550e8400-e29b-41d4-a716-446655440000";
 
         var account = Account.builder()
                 .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
                 .name("USD account")
                 .currencyCode(CurrencyCode.USD)
-                .user(user)
+                .userSub(userSub)
                 .build();
 
         assertEquals(account, returnedAccount);

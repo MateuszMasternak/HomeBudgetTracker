@@ -2,7 +2,6 @@ package com.rainy.homebudgettracker.transaction;
 
 import com.rainy.homebudgettracker.account.Account;
 import com.rainy.homebudgettracker.category.Category;
-import com.rainy.homebudgettracker.user.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,7 +13,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
-    Iterable<Transaction> findAllByUser(User user);
+    Iterable<Transaction> findAllByUserSub(String userSub);
 
     Page<Transaction> findAllByAccount(Account account, Pageable pageable);
 
@@ -29,7 +28,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     boolean existsByCategory(Category category);
 
-    void deleteAllByUser(User user);
+    void deleteAllByUserSub(String userSub);
 
     @Query("SELECT SUM(t.amount) FROM Transaction t " +
             "WHERE t.amount > 0 AND t.account = :account")
