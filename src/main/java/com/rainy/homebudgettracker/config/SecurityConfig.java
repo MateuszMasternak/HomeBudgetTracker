@@ -37,7 +37,7 @@ public class SecurityConfig {
             "/swagger-ui/**",
     };
 
-    @Value("${application.mailing.frontend.url}")
+    @Value("${application.security.frontend-url}")
     private String frontendUrl;
 
     @Bean
