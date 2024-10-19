@@ -50,14 +50,13 @@ Home Budget Tracker is a Java-based API designed to help users manage their pers
 > * git clone https://github.com/MateuszMasternak/HomeBudgetTracker.git  
 > * cd HomeBudgetTracker
 2. Create the .env file and fill it up with the following environment variables:
->JWT_SECRET_KEY_DEV=yoursecretkey  
-DB_NAME_DEV=yourdatabasename  
-DB_USERNAME_DEV=yourusername  
-DB_PASSWORD_DEV=yourpassword  
-DB_HOST_DEV=postgres-hbt  
-DB_PORT_DEV=5432
-EXCHANGE_RATE_URL=https://v6.exchangerate-api.com/v6  
-EXCHANGE_RATE_API_KEY=API_KEY // create an account at https://www.exchangerate-api.com/ for free and get your own KEY if you want to use the exchange rate feature otherwise leave default and enter custom exchange rate manually when creating a new transaction (?exchange-rate=your-rate)
+> DB_NAME_DEV=yourdatabasename  
+> DB_USERNAME_DEV=yourusername  
+> DB_PASSWORD_DEV=yourpassword  
+> DB_HOST_DEV=postgres-hbt  
+> DB_PORT_DEV=5432
+> EXCHANGE_RATE_URL=https://v6.exchangerate-api.com/v6  
+> EXCHANGE_RATE_API_KEY=API_KEY // create an account at https://www.exchangerate-api.com/ for free and get your own KEY if you want to use the exchange rate feature otherwise leave default and enter custom exchange rate manually when creating a new transaction (?exchange-rate=your-rate)
 
 > * If you want to use AWS-related features, you need to create a user pool for Cognito, an S3 bucket instance and optionally a Cloudfront instance, and add the following environment variables to the .env file:  
 > AWS_COGNITO_PUBLIC_KEY_DEV=your-token-signing-key-url // you can find it in the Cognito user pool overiew
