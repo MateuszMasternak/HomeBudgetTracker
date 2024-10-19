@@ -1,7 +1,6 @@
 package com.rainy.homebudgettracker.account;
 
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
-import com.rainy.homebudgettracker.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,6 +19,5 @@ public class Account {
     private UUID id;
     private String name;
     private CurrencyCode currencyCode;
-    @ManyToOne
-    private User user;
+    private String userSub;
 }

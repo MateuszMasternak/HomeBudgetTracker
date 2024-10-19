@@ -12,8 +12,6 @@ import com.rainy.homebudgettracker.transaction.TransactionRequest;
 import com.rainy.homebudgettracker.transaction.TransactionResponse;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import com.rainy.homebudgettracker.transaction.enums.PaymentMethod;
-import com.rainy.homebudgettracker.user.Role;
-import com.rainy.homebudgettracker.user.User;
 import com.rainy.homebudgettracker.user.UserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,14 +40,9 @@ class ModelMapperTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        var user = User.builder()
-                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
-                .email("mail@mail.com")
-                .password("password")
-                .role(Role.USER)
-                .build();
+        var userSub = "550e8400-e29b-41d4-a716-446655440000";
 
-        when(userService.getCurrentUser()).thenReturn(user);
+        when(userService.getUserSub()).thenReturn(userSub);
         when(imageService.getImageUrl(any())).thenReturn(null);
     }
 
@@ -62,12 +55,7 @@ class ModelMapperTest {
         var category = Category.builder()
                 .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                 .name("Food")
-                .user(User.builder()
-                        .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
-                        .email("mail@mail.com")
-                        .password("password")
-                        .role(Role.USER)
-                        .build())
+                .userSub("550e8400-e29b-41d4-a716-446655440000")
                 .build();
 
         var returnedCategoryResponse = modelMapper.map(category, CategoryResponse.class);
@@ -97,17 +85,12 @@ class ModelMapperTest {
 
         var category = Category.builder()
                 .name("Food")
-                .user(User.builder()
-                        .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
-                        .email("mail@mail.com")
-                        .password("password")
-                        .role(Role.USER)
-                        .build())
+                .userSub("550e8400-e29b-41d4-a716-446655440000")
                 .build();
 
         assertEquals(category, returnedCategory);
 
-        verify(userService, times(1)).getCurrentUser();
+        verify(userService, times(1)).getUserSub();
     }
 
     @Test
@@ -116,7 +99,7 @@ class ModelMapperTest {
                 UnsupportedOperationException.class, () -> modelMapper.map(new Object(), CategoryRequest.class));
         assertEquals("Mapping not supported", exception.getMessage());
 
-        verify(userService, times(0)).getCurrentUser();
+        verify(userService, times(0)).getUserSub();
     }
 
     @Test
@@ -125,12 +108,7 @@ class ModelMapperTest {
                 .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                 .name("Main")
                 .currencyCode(CurrencyCode.USD)
-                .user(User.builder()
-                        .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
-                        .email("mail@mail.com")
-                        .password("password")
-                        .role(Role.USER)
-                        .build())
+                .userSub("550e8400-e29b-41d4-a716-446655440000")
                 .build();
 
         var returnedAccountResponse = modelMapper.map(account, AccountResponse.class);
@@ -163,17 +141,12 @@ class ModelMapperTest {
         var account = Account.builder()
                 .name("Main")
                 .currencyCode(CurrencyCode.USD)
-                .user(User.builder()
-                        .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
-                        .email("mail@mail.com")
-                        .password("password")
-                        .role(Role.USER)
-                        .build())
+                .userSub("550e8400-e29b-41d4-a716-446655440000")
                 .build();
 
         assertEquals(account, returnedAccount);
 
-        verify(userService, times(1)).getCurrentUser();
+        verify(userService, times(1)).getUserSub();
     }
 
     @Test
@@ -182,28 +155,23 @@ class ModelMapperTest {
                 UnsupportedOperationException.class, () -> modelMapper.map(new Object(), AccountRequest.class));
         assertEquals("Mapping not supported", exception.getMessage());
 
-        verify(userService, times(0)).getCurrentUser();
+        verify(userService, times(0)).getUserSub();
     }
 
     @Test
     public void shouldMapTransactionRequestToTransaction1() {
-        var user = User.builder()
-                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
-                .email("mail@mail.com")
-                .password("password")
-                .role(Role.USER)
-                .build();
+        var userSub = "550e8400-e29b-41d4-a716-446655440000";
 
         var account = Account.builder()
                 .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                 .name("Main")
                 .currencyCode(CurrencyCode.USD)
-                .user(user)
+                .userSub(userSub)
                 .build();
         var category = Category.builder()
                 .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                 .name("Food")
-                .user(user)
+                .userSub(userSub)
                 .build();
 
         var transactionRequest = TransactionRequest.builder()
@@ -223,7 +191,7 @@ class ModelMapperTest {
                 .date(transactionRequest.getDate())
                 .account(account)
                 .paymentMethod(transactionRequest.getPaymentMethod())
-                .user(user)
+                .userSub(userSub)
                 .details(transactionRequest.getDetails())
                 .build();
 
@@ -246,23 +214,18 @@ class ModelMapperTest {
 
     @Test
     public void shouldMapTransactionRequestToTransaction2() {
-        var user = User.builder()
-                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
-                .email("mail@mail.com")
-                .password("password")
-                .role(Role.USER)
-                .build();
+        var userSub = "550e8400-e29b-41d4-a716-446655440000";
 
         var account = Account.builder()
                 .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                 .name("Main")
                 .currencyCode(CurrencyCode.USD)
-                .user(user)
+                .userSub(userSub)
                 .build();
         var category = Category.builder()
                 .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                 .name("Food")
-                .user(user)
+                .userSub(userSub)
                 .build();
 
         var transactionRequest = TransactionRequest.builder()
@@ -281,7 +244,7 @@ class ModelMapperTest {
                 .date(transactionRequest.getDate())
                 .account(account)
                 .paymentMethod(transactionRequest.getPaymentMethod())
-                .user(user)
+                .userSub(userSub)
                 .build();
 
         assertEquals(transaction, returnedTransaction);
@@ -289,23 +252,18 @@ class ModelMapperTest {
 
     @Test
     public void shouldMapTransactionToTransactionResponse() {
-        var user = User.builder()
-                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
-                .email("mail@mail.com")
-                .password("password")
-                .role(Role.USER)
-                .build();
+        var userSub = "550e8400-e29b-41d4-a716-446655440000";
 
         var account = Account.builder()
                 .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                 .name("Main")
                 .currencyCode(CurrencyCode.USD)
-                .user(user)
+                .userSub(userSub)
                 .build();
         var category = Category.builder()
                 .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                 .name("Food")
-                .user(user)
+                .userSub(userSub)
                 .build();
 
         var transaction = Transaction.builder()
@@ -315,7 +273,7 @@ class ModelMapperTest {
                 .paymentMethod(PaymentMethod.CASH)
                 .category(category)
                 .account(account)
-                .user(user)
+                .userSub(userSub)
                 .details("Details")
                 .build();
 

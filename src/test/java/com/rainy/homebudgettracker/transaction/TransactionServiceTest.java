@@ -15,8 +15,6 @@ import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import com.rainy.homebudgettracker.transaction.enums.PaymentMethod;
-import com.rainy.homebudgettracker.user.Role;
-import com.rainy.homebudgettracker.user.User;
 import com.rainy.homebudgettracker.user.UserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,26 +55,16 @@ class TransactionServiceTest {
     void setUp() throws RecordDoesNotExistException, UserIsNotOwnerException {
         MockitoAnnotations.openMocks(this);
 
-        User user = User.builder()
-                .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
-                .email("test@mail.com")
-                .password("password")
-                .role(Role.USER)
-                .build();
-        when(userService.getCurrentUser()).thenReturn(user);
+        String userSub = "550e8400-e29b-41d4-a716-446655440000";
+        when(userService.getUserSub()).thenReturn(userSub);
 
-        User user2 = User.builder()
-                .id(UUID.fromString("77f57e8c-f7a4-4ff3-bb18-bd448b7a3019"))
-                .email("test2@mail.com")
-                .password("password")
-                .role(Role.USER)
-                .build();
+        String userSub2 = "550e8400-e29b-41d4-a716-446655440001";
 
         Account account = Account.builder()
                 .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                 .name("USD account")
                 .currencyCode(CurrencyCode.USD)
-                .user(user)
+                .userSub(userSub)
                 .build();
         when(accountService.findCurrentUserAccount(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))).thenReturn(account);
         when(accountService.findCurrentUserAccount(UUID.fromString("77f57e8c-f7a4-4ff3-bb18-bd448b7a3019"))).thenThrow(UserIsNotOwnerException.class);
@@ -91,7 +79,7 @@ class TransactionServiceTest {
                 .id(UUID.fromString("43823673-fa1b-45fd-900f-374505b9a454"))
                 .name("PLN account")
                 .currencyCode(CurrencyCode.PLN)
-                .user(user)
+                .userSub(userSub)
                 .build();
         when(accountService.findCurrentUserAccount(UUID.fromString("43823673-fa1b-45fd-900f-374505b9a454"))).thenReturn(account2);
         when(modelMapper.map(account2, AccountResponse.class)).thenReturn(AccountResponse.builder()
@@ -109,7 +97,7 @@ class TransactionServiceTest {
 
         Transaction transaction = Transaction.builder()
                 .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
-                .user(user)
+                .userSub(userSub)
                 .amount(BigDecimal.valueOf(100, 2))
                 .date(LocalDate.of(2024, 1, 1))
                 .paymentMethod(PaymentMethod.CASH)
@@ -119,7 +107,7 @@ class TransactionServiceTest {
 
         Transaction transaction2 = Transaction.builder()
                 .id(UUID.fromString("77f57e8c-f7a4-4ff3-bb18-bd448b7a3019"))
-                .user(user2)
+                .userSub(userSub2)
                 .amount(BigDecimal.valueOf(100, 2))
                 .date(LocalDate.of(2024, 1, 1))
                 .paymentMethod(PaymentMethod.CASH)
@@ -300,7 +288,7 @@ class TransactionServiceTest {
         when(modelMapper.map(BigDecimal.valueOf(100.1).setScale(2, RoundingMode.HALF_UP), SumResponse.class)).thenReturn(sumResponse);
         when(modelMapper.map(BigDecimal.valueOf(0).setScale(2, RoundingMode.HALF_UP), SumResponse.class)).thenReturn(sumResponse2);
 
-        when(transactionRepository.findAllByUser(user)).thenReturn(List.of(transaction));
+        when(transactionRepository.findAllByUserSub(userSub)).thenReturn(List.of(transaction));
     }
 
     @AfterEach

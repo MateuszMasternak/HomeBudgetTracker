@@ -16,7 +16,6 @@ import com.rainy.homebudgettracker.handler.exception.WrongFileTypeException;
 import com.rainy.homebudgettracker.images.S3Service;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
-import com.rainy.homebudgettracker.user.User;
 import com.rainy.homebudgettracker.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -190,11 +189,11 @@ public class TransactionServiceImpl implements TransactionService {
             RecordDoesNotExistException,
             UserIsNotOwnerException {
 
-        User user = userService.getCurrentUser();
+        String userSub = userService.getUserSub();
         Optional<Transaction> transaction = transactionRepository.findById(transactionId);
         if (transaction.isEmpty()) {
             throw new RecordDoesNotExistException("Transaction with id " + transactionId + " does not exist.");
-        } else if (!transaction.get().getUser().getEmail().equals(user.getEmail())) {
+        } else if (!transaction.get().getUserSub().equals(userSub)) {
             throw new UserIsNotOwnerException("Transaction with id " + transactionId + " does not belong to user.");
         } else {
             transactionRepository.deleteById(transactionId);
@@ -242,8 +241,8 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public List<TransactionResponse> findCurrentUserTransactionsAsResponses() {
-        User user = userService.getCurrentUser();
-        Iterable<Transaction> transactions = transactionRepository.findAllByUser(user);
+        String userSub = userService.getUserSub();
+        Iterable<Transaction> transactions = transactionRepository.findAllByUserSub(userSub);
         List<TransactionResponse> transactionResponses = new ArrayList<>();
         transactions.forEach(t -> transactionResponses.add(modelMapper.map(t, TransactionResponse.class)));
         return transactionResponses;
@@ -251,10 +250,10 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public byte[] generateCSVWithCurrentUserTransactions() throws IOException {
-        User user = userService.getCurrentUser();
+        String userSub = userService.getUserSub();
         List<TransactionResponse> transactionResponses = findCurrentUserTransactionsAsResponses();
 
-        Path csvFilePath = Paths.get("temp_transactions_" + user.getId() + "_" + LocalDate.now() + ".csv");
+        Path csvFilePath = Paths.get("temp_transactions_" + userSub + "_" + LocalDate.now() + ".csv");
 
         try (FileWriter writer = new FileWriter(csvFilePath.toString())) {
             writer.append("sep=,\n"); // separator for microsoft excel
@@ -288,18 +287,18 @@ public class TransactionServiceImpl implements TransactionService {
             ImageUploadException,
             WrongFileTypeException {
 
-        User user = userService.getCurrentUser();
+        String userSub = userService.getUserSub();
         Optional<Transaction> transaction = transactionRepository.findById(transactionId);
 
         if (transaction.isEmpty()) {
             throw new RecordDoesNotExistException("Transaction with id " + transactionId + " does not exist.");
-        } else if (!transaction.get().getUser().getEmail().equals(user.getEmail())) {
+        } else if (!transaction.get().getUserSub().equals(userSub)) {
             throw new UserIsNotOwnerException("Transaction with id " + transactionId + " does not belong to the user.");
         } else if (file.getContentType() == null || !file.getContentType().startsWith("image")) {
             throw new WrongFileTypeException("Invalid file type. Only images are allowed.");
         }
 
-        String key = s3Service.uploadFile(file, user.getId(), transactionId);
+        String key = s3Service.uploadFile(file, userSub, transactionId);
 
         transaction.get().setImageFilePath(key);
 
@@ -310,12 +309,12 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public TransactionResponse deleteImageFromCurrentUserTransaction(UUID transactionId)
             throws RecordDoesNotExistException, UserIsNotOwnerException {
-        User user = userService.getCurrentUser();
+        String userSub = userService.getUserSub();
         Optional<Transaction> transaction = transactionRepository.findById(transactionId);
 
         if (transaction.isEmpty()) {
             throw new RecordDoesNotExistException("Transaction with id " + transactionId + " does not exist.");
-        } else if (!transaction.get().getUser().getEmail().equals(user.getEmail())) {
+        } else if (!transaction.get().getUserSub().equals(userSub)) {
             throw new UserIsNotOwnerException("Transaction with id " + transactionId + " does not belong to the user.");
         }
 

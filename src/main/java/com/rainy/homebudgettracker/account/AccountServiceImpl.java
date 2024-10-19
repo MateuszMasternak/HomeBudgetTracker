@@ -4,7 +4,6 @@ import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.user.UserService;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
-import com.rainy.homebudgettracker.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,8 +21,8 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public List<AccountResponse> findCurrentUserAccountsAsResponses() {
-        User user = userService.getCurrentUser();
-        Iterable<Account> accounts = accountRepository.findAllByUser(user);
+        String userSub = userService.getUserSub();
+        Iterable<Account> accounts = accountRepository.findAllByUserSub(userSub);
 
         List<AccountResponse> accountResponses = new ArrayList<>();
         accounts.forEach(account -> accountResponses.add(modelMapper.map(account, AccountResponse.class)));
@@ -33,11 +32,11 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public AccountResponse findCurrentUserAccountAsResponse(UUID id)
             throws RecordDoesNotExistException, UserIsNotOwnerException {
-            User user = userService.getCurrentUser();
+            String userSub = userService.getUserSub();
 
             Account account = accountRepository.findById(id).orElseThrow(
                     () -> new RecordDoesNotExistException("Account with id " + id + " does not exist."));
-            if (!account.getUser().equals(user))
+            if (!account.getUserSub().equals(userSub))
                 throw new UserIsNotOwnerException("User is not the owner of the Account with id " + id + ".");
 
             return modelMapper.map(account, AccountResponse.class);
@@ -46,11 +45,11 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Account findCurrentUserAccount(UUID id)
             throws RecordDoesNotExistException, UserIsNotOwnerException {
-        User user = userService.getCurrentUser();
+        String userSub = userService.getUserSub();
 
         Account account = accountRepository.findById(id).orElseThrow(
                 () -> new RecordDoesNotExistException("Account with id " + id + " does not exist."));
-        if (!account.getUser().equals(user))
+        if (!account.getUserSub().equals(userSub))
             throw new UserIsNotOwnerException("User is not the owner of the Account with id " + id + ".");
 
         return account;

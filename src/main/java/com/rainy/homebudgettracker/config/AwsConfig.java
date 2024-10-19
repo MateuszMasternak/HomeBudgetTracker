@@ -1,5 +1,7 @@
 package com.rainy.homebudgettracker.config;
 
+import com.auth0.jwk.JwkProvider;
+import com.auth0.jwk.JwkProviderBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +16,8 @@ public class AwsConfig {
     private String awsProfile;
     @Value("${aws.s3.region}")
     private String region;
+    @Value("${aws.cognito.jwks-url}")
+    private String jwksUrl;
 
     @Bean
     public AwsCredentialsProvider awsCredentialsProvider() {
@@ -28,5 +32,10 @@ public class AwsConfig {
                 .region(Region.of(region))
                 .credentialsProvider(awsCredentialsProvider())
                 .build();
+    }
+
+    @Bean
+    public JwkProvider jwkProvider() {
+        return new JwkProviderBuilder(jwksUrl).build();
     }
 }

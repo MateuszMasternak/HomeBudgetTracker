@@ -3,7 +3,6 @@ package com.rainy.homebudgettracker.transaction;
 import com.rainy.homebudgettracker.account.Account;
 import com.rainy.homebudgettracker.category.Category;
 import com.rainy.homebudgettracker.transaction.enums.PaymentMethod;
-import com.rainy.homebudgettracker.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,8 +25,7 @@ public class Transaction {
     @ManyToOne
     private Category category;
     private LocalDate date;
-    @ManyToOne
-    private User user;
+    private String userSub;
     @ManyToOne
     private Account account;
     private PaymentMethod paymentMethod;

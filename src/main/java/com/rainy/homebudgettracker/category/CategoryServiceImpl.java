@@ -7,7 +7,6 @@ import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
 import com.rainy.homebudgettracker.transaction.TransactionRepository;
-import com.rainy.homebudgettracker.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,22 +27,22 @@ public class CategoryServiceImpl implements  CategoryService {
 
     @Override
     public Page<CategoryResponse> findCurrentUserCategoriesAsResponses(Pageable pageable) {
-        User user = userService.getCurrentUser();
-        Page<Category> categories = categoryRepository.findAllByUser(user, pageable);
+        String userSub = userService.getUserSub();
+        Page<Category> categories = categoryRepository.findAllByUserSub(userSub, pageable);
         return categories.map(category -> modelMapper.map(category, CategoryResponse.class));
     }
 
     @Override
     public List<CategoryResponse> findCurrentUserCategoriesAsResponses() {
-        User user = userService.getCurrentUser();
-        Iterable<Category> categories = categoryRepository.findAllByUser(user);
+        String userSub = userService.getUserSub();
+        Iterable<Category> categories = categoryRepository.findAllByUserSub(userSub);
         return mapIterableCategoryToResponseCategoryList(categories);
     }
 
     @Override
     public CategoryResponse findCurrentUserCategoryAsResponse(String name) throws RecordDoesNotExistException {
-        User user = userService.getCurrentUser();
-        Category category = categoryRepository.findByUserAndName(user, name).orElseThrow(
+        String userSub = userService.getUserSub();
+        Category category = categoryRepository.findByUserSubAndName(userSub, name).orElseThrow(
                 () -> new RecordDoesNotExistException("Category with name " + name + " does not exist.")
         );
         return modelMapper.map(category, CategoryResponse.class);
@@ -51,8 +50,8 @@ public class CategoryServiceImpl implements  CategoryService {
 
     @Override
     public Category findCurrentUserCategory(String name) throws RecordDoesNotExistException {
-        User user = userService.getCurrentUser();
-        return categoryRepository.findByUserAndName(user, name).orElseThrow(
+        String userSub = userService.getUserSub();
+        return categoryRepository.findByUserSubAndName(userSub, name).orElseThrow(
                 () -> new RecordDoesNotExistException("Category with name " + name + " does not exist.")
         );
     }
@@ -61,7 +60,7 @@ public class CategoryServiceImpl implements  CategoryService {
     public CategoryResponse createCategoryForCurrentUser(CategoryRequest categoryRequest)
             throws RecordAlreadyExistsException {
         Category category = modelMapper.map(categoryRequest, Category.class);
-        if (categoryRepository.existsByUserAndName(category.getUser(), category.getName())) {
+        if (categoryRepository.existsByUserSubAndName(category.getUserSub(), category.getName())) {
             throw new RecordAlreadyExistsException(
                     "Category with name " + categoryRequest.getName() + " already exists.");
         } else {
@@ -76,11 +75,11 @@ public class CategoryServiceImpl implements  CategoryService {
             UserIsNotOwnerException,
             CategoryAssociatedWithTransactionException
     {
-        User user = userService.getCurrentUser();
+        String userSub = userService.getUserSub();
         Optional<Category> category = categoryRepository.findById(categoryId);
         if (category.isEmpty()) {
             throw new RecordDoesNotExistException("Category with id " + categoryId + " does not exist.");
-        } else if (!category.get().getUser().getEmail().equals(user.getEmail())) {
+        } else if (!category.get().getUserSub().equals(userSub)) {
             throw new UserIsNotOwnerException("Category with id " + categoryId + " does not belong to user.");
         } else if (transactionRepository.existsByCategory(category.get())) {
             throw new CategoryAssociatedWithTransactionException("Category with id " + categoryId + " is associated with transactions.");

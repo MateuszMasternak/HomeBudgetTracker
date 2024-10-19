@@ -1,6 +1,5 @@
 package com.rainy.homebudgettracker.category;
 
-import com.rainy.homebudgettracker.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,6 +20,5 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     private String name;
-    @ManyToOne
-    private User user;
+    private String userSub;
 }

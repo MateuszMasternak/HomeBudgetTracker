@@ -23,7 +23,9 @@ aws:
     url: ${AWS_CLOUDFRONT_URL_DEV}
     public-key-pair-id: ${AWS_CLOUDFRONT_PUBLIC_KEY_PAIR_ID_DEV}
     private-key: ${AWS_CLOUDFRONT_PRIVATE_KEY_DEV}
-  transaction-response-url-type: ${AWS_URL_TYPE_DEV}
+  transaction-response-url-type: cloudfront-signed
+  cognito:
+    jwks-url: ${AWS_COGNITO_PUBLIC_KEY_DEV}
 
 server:
   port: 8080
@@ -41,19 +43,6 @@ spring:
       hibernate:
         format_sql: true
     open-in-view: false
-  mail:
-    host: ${EMAIL_HOST_DEV}
-    port: 1025
-    username: ${EMAIL_USERNAME_DEV}
-    password: ${EMAIL_PASSWORD_DEV}
-    default-encoding: UTF-8
-    test-connection: true
-#  mail:
-#    host: smtp.gmail.com
-#    port: 587
-#    username: ${EMAIL_USERNAME}
-#    password: ${EMAIL_PASSWORD}
-#    default-encoding: UTF-8
   config:
     activate:
       on-profile: dev

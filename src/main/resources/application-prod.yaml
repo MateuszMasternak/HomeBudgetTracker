@@ -24,7 +24,7 @@ aws:
     url: ${AWS_CLOUDFRONT_URL}
     public-key-pair-id: ${AWS_CLOUDFRONT_PUBLIC_KEY_PAIR_ID}
     private-key: ${AWS_CLOUDFRONT_PRIVATE_KEY}
-  transaction-response-url-type: ${AWS_URL_TYPE}
+  transaction-response-url-type: cloudfront-signed
 
 server:
   port: ${PORT}
@@ -42,12 +42,6 @@ spring:
       hibernate:
         format_sql: true
     open-in-view: false
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${EMAIL_USERNAME}
-    password: ${EMAIL_PASSWORD}
-    default-encoding: UTF-8
   config:
     activate:
       on-profile: prod
