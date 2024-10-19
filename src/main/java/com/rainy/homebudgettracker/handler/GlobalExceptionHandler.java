@@ -1,14 +1,10 @@
 package com.rainy.homebudgettracker.handler;
 
 import com.rainy.homebudgettracker.handler.exception.*;
-import jakarta.mail.MessagingException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.LockedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -17,6 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.HashSet;
+import java.util.UUID;
 
 import static com.rainy.homebudgettracker.handler.BusinessErrorCodes.*;
 
@@ -26,54 +23,17 @@ public class GlobalExceptionHandler {
 
     // ResponseStatus annotation is used for Swagger to generate the documentation
 
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    @ExceptionHandler(LockedException.class)
-    public ResponseEntity<ExceptionResponse> handleException(LockedException e) {
-        return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(
-                        ExceptionResponse.builder()
-                                .businessErrorCode(ACCOUNT_LOCKED.getCode())
-                                .businessErrorDescription(ACCOUNT_LOCKED.getDescription())
-                                .build()
-                );
-    }
-
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    @ExceptionHandler(DisabledException.class)
-    public ResponseEntity<ExceptionResponse> handleException(DisabledException e) {
-        return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(
-                        ExceptionResponse.builder()
-                                .businessErrorCode(ACCOUNT_DISABLED.getCode())
-                                .businessErrorDescription(ACCOUNT_DISABLED.getDescription())
-                                .build()
-                );
-    }
-
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ExceptionResponse> handleException(BadCredentialsException e) {
-        return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(
-                        ExceptionResponse.builder()
-                                .businessErrorCode(BAD_CREDENTIALS.getCode())
-                                .businessErrorDescription(BAD_CREDENTIALS.getDescription())
-                                .build()
-                );
-    }
-
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler(MessagingException.class)
-    public ResponseEntity<ExceptionResponse> handleException(MessagingException e) {
-        log.error("Error sending email", e);
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ExceptionResponse> handleException(Exception e) {
+        UUID errorId = UUID.randomUUID();
+        String message = "Internal server error. Error ID: %s".formatted(errorId.toString());
+        log.error(message, e);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(
                         ExceptionResponse.builder()
-                                .businessErrorDescription("Error sending email. Contact support")
+                                .businessErrorDescription(INTERNAL_SERVER_ERROR.getDescription() + ". Error ID: " + errorId)
                                 .build()
                 );
     }
@@ -84,7 +44,7 @@ public class GlobalExceptionHandler {
         var errors = new HashSet<String>();
         e.getBindingResult().getAllErrors().forEach(error -> errors.add(error.getDefaultMessage()));
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
+                .status(MISSING_OR_INVALID_REQUEST_BODY_ELEMENT.getCode())
                 .body(
                         ExceptionResponse.builder()
                                 .businessErrorCode(MISSING_OR_INVALID_REQUEST_BODY_ELEMENT.getCode())
@@ -94,24 +54,11 @@ public class GlobalExceptionHandler {
                 );
     }
 
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ExceptionResponse> handleException(Exception e) {
-        log.error("Internal server error", e);
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(
-                        ExceptionResponse.builder()
-                                .businessErrorDescription("Internal server error. Contact support")
-                                .build()
-                );
-    }
-
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<ExceptionResponse> handleException(MissingServletRequestParameterException e) {
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
+                .status(MISSING_REQUEST_PARAMETER.getCode())
                 .body(
                         ExceptionResponse.builder()
                                 .businessErrorCode(MISSING_REQUEST_PARAMETER.getCode())
@@ -125,7 +72,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ExceptionResponse> handleException(HttpMessageNotReadableException e) {
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
+                .status(MISSING_REQUEST_BODY.getCode())
                 .body(
                         ExceptionResponse.builder()
                                 .businessErrorCode(MISSING_REQUEST_BODY.getCode())
@@ -134,39 +81,11 @@ public class GlobalExceptionHandler {
                 );
     }
 
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    @ExceptionHandler(InvalidConfirmationTokenException.class)
-    public ResponseEntity<ExceptionResponse> handleException(InvalidConfirmationTokenException e) {
-        return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(
-                        ExceptionResponse.builder()
-                                .businessErrorCode(INVALID_CONFIRMATION_TOKEN.getCode())
-                                .businessErrorDescription(INVALID_CONFIRMATION_TOKEN.getDescription())
-                                .error(e.getMessage())
-                                .build()
-                );
-    }
-
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    @ExceptionHandler(ExpiredConfirmationTokenException.class)
-    public ResponseEntity<ExceptionResponse> handleException(ExpiredConfirmationTokenException e) {
-        return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(
-                        ExceptionResponse.builder()
-                                .businessErrorCode(EXPIRED_CONFIRMATION_TOKEN.getCode())
-                                .businessErrorDescription(EXPIRED_CONFIRMATION_TOKEN.getDescription())
-                                .error(e.getMessage())
-                                .build()
-                );
-    }
-
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(RecordDoesNotExistException.class)
     public ResponseEntity<ExceptionResponse> handleException(RecordDoesNotExistException e) {
         return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
+                .status(RECORD_IS_NOT_REACHABLE.getCode())
                 .body(
                         ExceptionResponse.builder()
                                 .businessErrorCode(RECORD_IS_NOT_REACHABLE.getCode())
@@ -180,7 +99,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserIsNotOwnerException.class)
     public ResponseEntity<ExceptionResponse> handleException(UserIsNotOwnerException e) {
         return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
+                .status(RECORD_IS_NOT_REACHABLE.getCode())
                 .body(
                         ExceptionResponse.builder()
                                 .businessErrorCode(RECORD_IS_NOT_REACHABLE.getCode())
@@ -189,11 +108,11 @@ public class GlobalExceptionHandler {
                 );
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.CONFLICT)
     @ExceptionHandler(RecordAlreadyExistsException.class)
     public ResponseEntity<ExceptionResponse> handleException(RecordAlreadyExistsException e) {
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
+                .status(RECORD_ALREADY_EXISTS.getCode())
                 .body(
                         ExceptionResponse.builder()
                                 .businessErrorCode(RECORD_ALREADY_EXISTS.getCode())
@@ -203,11 +122,11 @@ public class GlobalExceptionHandler {
                 );
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.CONFLICT)
     @ExceptionHandler(CategoryAssociatedWithTransactionException.class)
     public ResponseEntity<ExceptionResponse> handleException(CategoryAssociatedWithTransactionException e) {
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
+                .status(RECORD_ASSOCIATED_WITH_ANOTHER_RECORD.getCode())
                 .body(
                         ExceptionResponse.builder()
                                 .businessErrorCode(RECORD_ASSOCIATED_WITH_ANOTHER_RECORD.getCode())
@@ -217,11 +136,11 @@ public class GlobalExceptionHandler {
                 );
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.FAILED_DEPENDENCY)
     @ExceptionHandler(QuotaReachedException.class)
     public ResponseEntity<ExceptionResponse> handleException(QuotaReachedException e) {
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
+                .status(EXCHANGE_RATE_API_QUOTA_REACHED.getCode())
                 .body(
                         ExceptionResponse.builder()
                                 .businessErrorCode(EXCHANGE_RATE_API_QUOTA_REACHED.getCode())
@@ -230,11 +149,11 @@ public class GlobalExceptionHandler {
                 );
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.FAILED_DEPENDENCY)
     @ExceptionHandler(ExchangeRateApiException.class)
     public ResponseEntity<ExceptionResponse> handleException(ExchangeRateApiException e) {
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
+                .status(EXCHANGE_RATE_API_ERROR.getCode())
                 .body(
                         ExceptionResponse.builder()
                                 .businessErrorCode(EXCHANGE_RATE_API_ERROR.getCode())
@@ -243,25 +162,11 @@ public class GlobalExceptionHandler {
                 );
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(EmailAlreadyInUseException.class)
-    public ResponseEntity<ExceptionResponse> handleException(EmailAlreadyInUseException e) {
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(
-                        ExceptionResponse.builder()
-                                .businessErrorCode(RECORD_ALREADY_EXISTS.getCode())
-                                .businessErrorDescription(RECORD_ALREADY_EXISTS.getDescription())
-                                .error(e.getMessage())
-                                .build()
-                );
-    }
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(ImageUploadException.class)
     public ResponseEntity<ExceptionResponse> handleException(ImageUploadException e) {
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
+                .status(FILE_UPLOAD_ERROR.getCode())
                 .body(
                         ExceptionResponse.builder()
                                 .businessErrorCode(FILE_UPLOAD_ERROR.getCode())
@@ -271,11 +176,11 @@ public class GlobalExceptionHandler {
                 );
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
     @ExceptionHandler(WrongFileTypeException.class)
     public ResponseEntity<ExceptionResponse> handleException(WrongFileTypeException e) {
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
+                .status(INVALID_FILE.getCode())
                 .body(
                         ExceptionResponse.builder()
                                 .businessErrorCode(INVALID_FILE.getCode())
@@ -285,12 +190,12 @@ public class GlobalExceptionHandler {
                 );
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.PAYLOAD_TOO_LARGE)
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ExceptionResponse> handleException(MaxUploadSizeExceededException e) {
 
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
+                .status(MAXIMUM_FILE_SIZE_EXCEEDED.getCode())
                 .body(
                         ExceptionResponse.builder()
                                 .businessErrorCode(MAXIMUM_FILE_SIZE_EXCEEDED.getCode())
