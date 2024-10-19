@@ -42,12 +42,6 @@ spring:
       hibernate:
         format_sql: true
     open-in-view: false
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${EMAIL_USERNAME}
-    password: ${EMAIL_PASSWORD}
-    default-encoding: UTF-8
   config:
     activate:
       on-profile: prod

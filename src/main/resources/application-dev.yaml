@@ -43,19 +43,6 @@ spring:
       hibernate:
         format_sql: true
     open-in-view: false
-  mail:
-    host: ${EMAIL_HOST_DEV}
-    port: 1025
-    username: ${EMAIL_USERNAME_DEV}
-    password: ${EMAIL_PASSWORD_DEV}
-    default-encoding: UTF-8
-    test-connection: true
-#  mail:
-#    host: smtp.gmail.com
-#    port: 587
-#    username: ${EMAIL_USERNAME}
-#    password: ${EMAIL_PASSWORD}
-#    default-encoding: UTF-8
   config:
     activate:
       on-profile: dev
