@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -51,7 +50,6 @@ public class SecurityConfig {
                 .sessionManagement(sessionManagement -> sessionManagement
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(WHITE_LIST).permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
@@ -64,7 +62,6 @@ public class SecurityConfig {
     public CorsFilter corsFilter() {
         final var source = new UrlBasedCorsConfigurationSource();
         final var config = new CorsConfiguration();
-        config.setAllowCredentials(true);
         config.setAllowedOrigins(Arrays.asList(
                 frontendUrl,
                 "http://localhost:5173"
@@ -76,7 +73,7 @@ public class SecurityConfig {
                 AUTHORIZATION
         ));
         config.setAllowedMethods(Arrays.asList(
-                "Authorization", "Content-Type", "X-Requested-With", "Accept", ORIGIN
+                "GET", "POST", "PUT", "DELETE", "PATCH"
         ));
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
