@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -21,7 +22,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 import static org.springframework.http.HttpHeaders.*;
 
@@ -38,8 +38,8 @@ public class SecurityConfig {
             "/swagger-ui/**",
     };
 
-//    @Value("${application.security.frontend-url}")
-//    private String frontendUrl;
+    @Value("${application.security.frontend-url}")
+    private String frontendUrl;
 
     @Bean
     public SecurityFilterChain securityFilterChain(
@@ -51,6 +51,7 @@ public class SecurityConfig {
                 .sessionManagement(sessionManagement -> sessionManagement
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(request -> request
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(WHITE_LIST).permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
@@ -64,9 +65,19 @@ public class SecurityConfig {
         final var source = new UrlBasedCorsConfigurationSource();
         final var config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(Collections.singletonList("*"));
-        config.setAllowedHeaders(Collections.singletonList("*"));
-        config.setAllowedMethods(Collections.singletonList("*"));
+        config.setAllowedOrigins(Arrays.asList(
+                frontendUrl,
+                "http://localhost:5173"
+        ));
+        config.setAllowedHeaders(Arrays.asList(
+                ORIGIN,
+                CONTENT_TYPE,
+                ACCEPT,
+                AUTHORIZATION
+        ));
+        config.setAllowedMethods(Arrays.asList(
+                "Authorization", "Content-Type", "X-Requested-With", "Accept", ORIGIN
+        ));
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
     }
