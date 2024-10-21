@@ -74,7 +74,7 @@ public class SecurityConfig {
                 AUTHORIZATION
         ));
         config.setAllowedMethods(Arrays.asList(
-                "GET", "POST", "PUT", "DELETE", "PATCH"
+                "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
         ));
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
