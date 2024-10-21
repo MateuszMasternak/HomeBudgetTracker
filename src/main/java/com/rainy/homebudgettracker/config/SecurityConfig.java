@@ -64,8 +64,9 @@ public class SecurityConfig {
         final var source = new UrlBasedCorsConfigurationSource();
         final var config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(Collections.singletonList(
-                frontendUrl
+        config.setAllowedOrigins(Arrays.asList(
+                frontendUrl,
+                "http://localhost:5173"
         ));
         config.setAllowedHeaders(Arrays.asList(
                 ORIGIN,
