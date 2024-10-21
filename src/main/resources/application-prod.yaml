@@ -1,7 +1,6 @@
 application:
-  application:
-    security:
-      frontend-url: ${FRONTEND_URL}
+  security:
+    frontend-url: ${FRONTEND_URL}
   exchange:
     rate:
       url: ${EXCHANGE_RATE_URL}
