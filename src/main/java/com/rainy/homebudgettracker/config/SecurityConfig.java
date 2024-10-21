@@ -21,6 +21,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 import static org.springframework.http.HttpHeaders.*;
 
@@ -37,8 +38,8 @@ public class SecurityConfig {
             "/swagger-ui/**",
     };
 
-    @Value("${application.security.frontend-url}")
-    private String frontendUrl;
+//    @Value("${application.security.frontend-url}")
+//    private String frontendUrl;
 
     @Bean
     public SecurityFilterChain securityFilterChain(
@@ -63,19 +64,9 @@ public class SecurityConfig {
         final var source = new UrlBasedCorsConfigurationSource();
         final var config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        // allow all origins
-        config.setAllowedOrigins(Arrays.asList(
-                "*"
-        ));
-        config.setAllowedHeaders(Arrays.asList(
-                ORIGIN,
-                CONTENT_TYPE,
-                ACCEPT,
-                AUTHORIZATION
-        ));
-        config.setAllowedMethods(Arrays.asList(
-                "Authorization", "Content-Type", "X-Requested-With", "Accept", ORIGIN
-        ));
+        config.setAllowedOrigins(Collections.singletonList("*"));
+        config.setAllowedHeaders(Collections.singletonList("*"));
+        config.setAllowedMethods(Collections.singletonList("*"));
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
     }
