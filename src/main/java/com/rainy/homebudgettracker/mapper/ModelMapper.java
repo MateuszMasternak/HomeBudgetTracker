@@ -60,7 +60,7 @@ public class ModelMapper {
             }
             case "SumResponse": {
                 if (source instanceof BigDecimal sum) {
-                    yield (T) SumResponse.builder().amount(sum.toString()).build();
+                    yield (T) mapBigDecimalToSumResponse(sum);
                 }
                 else
                     throw new UnsupportedOperationException("Mapping not supported");
@@ -123,6 +123,12 @@ public class ModelMapper {
                 .name(accountRequest.getName())
                 .currencyCode(accountRequest.getCurrencyCode())
                 .userSub(userService.getUserSub())
+                .build();
+    }
+
+    private SumResponse mapBigDecimalToSumResponse(BigDecimal sum) {
+        return SumResponse.builder()
+                .amount(String.valueOf(sum))
                 .build();
     }
 }

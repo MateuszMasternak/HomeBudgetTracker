@@ -205,8 +205,8 @@ public class TransactionServiceImpl implements TransactionService {
             throws RecordDoesNotExistException, UserIsNotOwnerException {
 
         Account account = accountService.findCurrentUserAccount(accountId);
-        BigDecimal sum = transactionRepository.sumPositiveAmountByAccount(account).setScale(
-                2, RoundingMode.HALF_UP);
+        BigDecimal sum = transactionRepository.sumPositiveAmountByAccount(account);
+        sum = changeToZeroIfNull(sum).setScale(2, RoundingMode.HALF_UP);
         SumResponse response = modelMapper.map(sum, SumResponse.class);
         response.setAccount(modelMapper.map(account, AccountResponse.class));
 
@@ -218,8 +218,8 @@ public class TransactionServiceImpl implements TransactionService {
             throws RecordDoesNotExistException, UserIsNotOwnerException {
 
         Account account = accountService.findCurrentUserAccount(accountId);
-        BigDecimal sum = transactionRepository.sumNegativeAmountByAccount(account).setScale(
-                2, RoundingMode.HALF_UP);
+        BigDecimal sum = transactionRepository.sumNegativeAmountByAccount(account);
+        sum = changeToZeroIfNull(sum).setScale(2, RoundingMode.HALF_UP);
         SumResponse response = modelMapper.map(sum, SumResponse.class);
         response.setAccount(modelMapper.map(account, AccountResponse.class));
 
@@ -231,12 +231,16 @@ public class TransactionServiceImpl implements TransactionService {
             throws RecordDoesNotExistException, UserIsNotOwnerException {
 
         Account account = accountService.findCurrentUserAccount(accountId);
-        BigDecimal sum = transactionRepository.sumAmountByAccount(account).setScale(
-                2, RoundingMode.HALF_UP);
+        BigDecimal sum = transactionRepository.sumAmountByAccount(account);
+        sum = changeToZeroIfNull(sum).setScale(2, RoundingMode.HALF_UP);
         SumResponse response = modelMapper.map(sum, SumResponse.class);
         response.setAccount(modelMapper.map(account, AccountResponse.class));
 
         return response;
+    }
+
+    private BigDecimal changeToZeroIfNull(BigDecimal value) {
+        return value == null ? BigDecimal.ZERO : value;
     }
 
     @Override
