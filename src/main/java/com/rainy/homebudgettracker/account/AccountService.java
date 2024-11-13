@@ -21,4 +21,6 @@ public interface AccountService {
 
     AccountResponse updateCurrentUserAccountName(AccountUpdateNameRequest request)
             throws RecordDoesNotExistException, UserIsNotOwnerException;
+
+    void deleteCurrentUserAccount(UUID id) throws RecordDoesNotExistException, UserIsNotOwnerException;
 }

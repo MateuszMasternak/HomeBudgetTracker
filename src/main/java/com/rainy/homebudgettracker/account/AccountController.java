@@ -40,4 +40,12 @@ public class AccountController {
     ) throws RecordDoesNotExistException, UserIsNotOwnerException {
         return ResponseEntity.ok(accountService.updateCurrentUserAccountName(request));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCurrentUserAccount(
+            @PathVariable(name = "id") UUID accountId
+    ) throws RecordDoesNotExistException, UserIsNotOwnerException {
+        accountService.deleteCurrentUserAccount(accountId);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -71,4 +71,10 @@ public class AccountServiceImpl implements AccountService {
         account.setName(request.getName());
         return modelMapper.map(account, AccountResponse.class);
     }
+
+    @Override
+    public void deleteCurrentUserAccount(UUID id) throws RecordDoesNotExistException, UserIsNotOwnerException {
+        Account account = findCurrentUserAccount(id);
+        accountRepository.delete(account);
+    }
 }
