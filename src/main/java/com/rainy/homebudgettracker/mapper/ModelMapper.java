@@ -35,6 +35,9 @@ public class ModelMapper {
             }
             case "TransactionResponse": {
                 if (source instanceof Transaction transaction
+                        && args.length == 0)
+                    yield (T) mapTransactionToResponse(transaction, null);
+                else if (source instanceof Transaction transaction
                         && args.length == 1
                         && args[0] instanceof String imageUrl)
                     yield (T) mapTransactionToResponse(transaction, imageUrl);
@@ -56,7 +59,8 @@ public class ModelMapper {
                     throw new UnsupportedOperationException(message);
             }
             case "AccountResponse": {
-                if (source instanceof Account account && args.length == 0)
+                if (source instanceof Account account
+                        && args.length == 0)
                     yield (T) mapAccountToResponse(account);
                 else if (source instanceof Account account
                         && args.length == 1

@@ -13,6 +13,7 @@ import com.rainy.homebudgettracker.handler.exception.ImageUploadException;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.handler.exception.WrongFileTypeException;
+import com.rainy.homebudgettracker.images.ImageService;
 import com.rainy.homebudgettracker.images.S3Service;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
@@ -44,6 +45,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final ModelMapper modelMapper;
     private final UserService userService;
     private final S3Service s3Service;
+    private final ImageService imageService;
 
     @Override
     public Page<TransactionResponse> findCurrentUserTransactionsAsResponses(UUID accountId, Pageable pageable)
@@ -51,7 +53,10 @@ public class TransactionServiceImpl implements TransactionService {
 
         Account account = accountService.findCurrentUserAccount(accountId);
         Page<Transaction> transactions = transactionRepository.findAllByAccount(account, pageable);
-        return transactions.map(t -> modelMapper.map(t, TransactionResponse.class));
+        return transactions.map(t -> {
+            String imageUrl = imageService.getImageUrl(t);
+            return modelMapper.map(t, TransactionResponse.class, imageUrl);
+        });
     }
 
     @Override
@@ -65,7 +70,10 @@ public class TransactionServiceImpl implements TransactionService {
         Page<Transaction> transactions = transactionRepository.findAllByAccountAndCategory(
                 account, category, pageable
         );
-        return transactions.map(t -> modelMapper.map(t, TransactionResponse.class));
+        return transactions.map(t -> {
+            String imageUrl = imageService.getImageUrl(t);
+            return modelMapper.map(t, TransactionResponse.class, imageUrl);
+        });
     }
 
     @Override
@@ -83,7 +91,10 @@ public class TransactionServiceImpl implements TransactionService {
                 endDate,
                 pageable
         );
-        return transactions.map(t -> modelMapper.map(t, TransactionResponse.class));
+        return transactions.map(t -> {
+            String imageUrl = imageService.getImageUrl(t);
+            return modelMapper.map(t, TransactionResponse.class, imageUrl);
+        });
     }
 
     @Override
@@ -105,7 +116,10 @@ public class TransactionServiceImpl implements TransactionService {
                 endDate,
                 pageable
         );
-        return transactions.map(t -> modelMapper.map(t, TransactionResponse.class));
+        return transactions.map(t -> {
+            String imageUrl = imageService.getImageUrl(t);
+            return modelMapper.map(t, TransactionResponse.class, imageUrl);
+        });
     }
 
     @Transactional
@@ -154,8 +168,9 @@ public class TransactionServiceImpl implements TransactionService {
 
         Category category = categoryService.findCurrentUserCategory(
                 transactionRequest.getCategoryName().getName());
+        String userSub = userService.getUserSub();
 
-        Transaction transaction = modelMapper.mapTransactionRequestToTransaction(transactionRequest, account, category);
+        Transaction transaction = modelMapper.map(transactionRequest, Transaction.class, userSub, category, account);
         transaction = transactionRepository.save(transaction);
         return modelMapper.map(transactionRepository.save(transaction), TransactionResponse.class);
     }
@@ -307,7 +322,8 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.get().setImageFilePath(key);
 
         transactionRepository.save(transaction.get());
-        return modelMapper.map(transaction.get(), TransactionResponse.class);
+        String imageUrl = imageService.getImageUrl(transaction.get());
+        return modelMapper.map(transaction.get(), TransactionResponse.class, imageUrl);
     }
 
     @Override
