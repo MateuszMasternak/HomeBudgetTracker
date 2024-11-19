@@ -6,18 +6,15 @@ import com.rainy.homebudgettracker.account.AccountResponse;
 import com.rainy.homebudgettracker.category.Category;
 import com.rainy.homebudgettracker.category.CategoryRequest;
 import com.rainy.homebudgettracker.category.CategoryResponse;
-import com.rainy.homebudgettracker.images.ImageService;
 import com.rainy.homebudgettracker.transaction.Transaction;
 import com.rainy.homebudgettracker.transaction.TransactionRequest;
 import com.rainy.homebudgettracker.transaction.TransactionResponse;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import com.rainy.homebudgettracker.transaction.enums.PaymentMethod;
-import com.rainy.homebudgettracker.user.UserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.math.BigDecimal;
@@ -26,24 +23,15 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class ModelMapperTest {
     @InjectMocks
     ModelMapper modelMapper;
-    @Mock
-    UserService userService;
-    @Mock
-    ImageService imageService;
+    String userSub = "550e8400-e29b-41d4-a716-446655440000";
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-
-        var userSub = "550e8400-e29b-41d4-a716-446655440000";
-
-        when(userService.getUserSub()).thenReturn(userSub);
-        when(imageService.getImageUrl(any())).thenReturn(null);
     }
 
     @AfterEach
@@ -55,7 +43,7 @@ class ModelMapperTest {
         var category = Category.builder()
                 .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                 .name("Food")
-                .userSub("550e8400-e29b-41d4-a716-446655440000")
+                .userSub(userSub)
                 .build();
 
         var returnedCategoryResponse = modelMapper.map(category, CategoryResponse.class);
@@ -81,25 +69,22 @@ class ModelMapperTest {
                 .name("Food")
                 .build();
 
-        var returnedCategory = modelMapper.map(categoryRequest, Category.class);
+        var returnedCategory = modelMapper.map(categoryRequest, Category.class, userSub);
 
         var category = Category.builder()
                 .name("Food")
-                .userSub("550e8400-e29b-41d4-a716-446655440000")
+                .userSub(userSub)
                 .build();
 
         assertEquals(category, returnedCategory);
-
-        verify(userService, times(1)).getUserSub();
     }
 
     @Test
     public void shouldThrowExceptionCategory() {
         var exception = assertThrows(
-                UnsupportedOperationException.class, () -> modelMapper.map(new Object(), CategoryRequest.class));
+                UnsupportedOperationException.class,
+                () -> modelMapper.map(new Object(), CategoryRequest.class, userSub));
         assertEquals("Mapping not supported", exception.getMessage());
-
-        verify(userService, times(0)).getUserSub();
     }
 
     @Test
@@ -108,7 +93,7 @@ class ModelMapperTest {
                 .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                 .name("Main")
                 .currencyCode(CurrencyCode.USD)
-                .userSub("550e8400-e29b-41d4-a716-446655440000")
+                .userSub(userSub)
                 .build();
 
         var returnedAccountResponse = modelMapper.map(account, AccountResponse.class);
@@ -123,9 +108,32 @@ class ModelMapperTest {
     }
 
     @Test
+    public void shouldMapAccountToAccountResponseWithBalance() {
+        var account = Account.builder()
+                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
+                .name("Main")
+                .currencyCode(CurrencyCode.USD)
+                .userSub(userSub)
+                .build();
+        var balance = BigDecimal.valueOf(100).setScale(2, RoundingMode.HALF_UP);
+
+        var returnedAccountResponse = modelMapper.map(account, AccountResponse.class, balance);
+
+        var accountResponse = AccountResponse.builder()
+                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
+                .name("Main")
+                .currencyCode(CurrencyCode.USD.name())
+                .balance("100.00")
+                .build();
+
+        assertEquals(accountResponse, returnedAccountResponse);
+    }
+
+    @Test
     public void shouldThrowExceptionAccountResponse() {
         var exception = assertThrows(
-                UnsupportedOperationException.class, () -> modelMapper.map(new Object(), AccountResponse.class));
+                UnsupportedOperationException.class,
+                () -> modelMapper.map(new Object(), AccountResponse.class, userSub));
         assertEquals("Mapping not supported", exception.getMessage());
     }
 
@@ -136,26 +144,23 @@ class ModelMapperTest {
                 .currencyCode(CurrencyCode.USD)
                 .build();
 
-        var returnedAccount = modelMapper.map(accountRequest, Account.class);
+        var returnedAccount = modelMapper.map(accountRequest, Account.class, userSub);
 
         var account = Account.builder()
                 .name("Main")
                 .currencyCode(CurrencyCode.USD)
-                .userSub("550e8400-e29b-41d4-a716-446655440000")
+                .userSub(userSub)
                 .build();
 
         assertEquals(account, returnedAccount);
-
-        verify(userService, times(1)).getUserSub();
     }
 
     @Test
     public void shouldThrowExceptionAccount() {
         var exception = assertThrows(
-                UnsupportedOperationException.class, () -> modelMapper.map(new Object(), AccountRequest.class));
+                UnsupportedOperationException.class,
+                () -> modelMapper.map(new Object(), AccountRequest.class, userSub));
         assertEquals("Mapping not supported", exception.getMessage());
-
-        verify(userService, times(0)).getUserSub();
     }
 
     @Test
@@ -183,7 +188,7 @@ class ModelMapperTest {
                 .details("Details")
                 .build();
 
-        var returnedTransaction = modelMapper.mapTransactionRequestToTransaction(transactionRequest, account, category);
+        var returnedTransaction = modelMapper.map(transactionRequest, Transaction.class, userSub, category, account);
 
         var transaction = Transaction.builder()
                 .amount(transactionRequest.getAmount().setScale(2, RoundingMode.HALF_UP))
@@ -236,7 +241,7 @@ class ModelMapperTest {
                 .currencyCode(CurrencyCode.USD)
                 .build();
 
-        var returnedTransaction = modelMapper.mapTransactionRequestToTransaction(transactionRequest, account, category);
+        var returnedTransaction = modelMapper.map(transactionRequest, Transaction.class, userSub, category, account);
 
         var transaction = Transaction.builder()
                 .amount(transactionRequest.getAmount().setScale(2, RoundingMode.HALF_UP))
@@ -265,10 +270,11 @@ class ModelMapperTest {
                 .name("Food")
                 .userSub(userSub)
                 .build();
+        var imageUrl = "link-to-image";
 
         var transaction = Transaction.builder()
                 .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
-                .amount(BigDecimal.valueOf(100))
+                .amount(BigDecimal.valueOf(100).setScale(2, RoundingMode.HALF_UP))
                 .date(LocalDate.now())
                 .paymentMethod(PaymentMethod.CASH)
                 .category(category)
@@ -277,11 +283,11 @@ class ModelMapperTest {
                 .details("Details")
                 .build();
 
-        var returnedTransactionResponse = modelMapper.map(transaction, TransactionResponse.class);
+        var returnedTransactionResponse = modelMapper.map(transaction, TransactionResponse.class, imageUrl);
 
         var transactionResponse = TransactionResponse.builder()
                 .id(transaction.getId())
-                .amount(transaction.getAmount() + ".00")
+                .amount("100.00")
                 .category(CategoryResponse.builder()
                         .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                         .name("Food")
@@ -294,10 +300,8 @@ class ModelMapperTest {
                         .build())
                 .paymentMethod(transaction.getPaymentMethod().name())
                 .details("Details")
+                .imageUrl(imageUrl)
                 .build();
-
-        System.out.println(returnedTransactionResponse);
-        System.out.println(transactionResponse);
 
         assertEquals(transactionResponse, returnedTransactionResponse);
     }
