@@ -12,6 +12,7 @@ import com.rainy.homebudgettracker.exchange.ExchangeResponse;
 import com.rainy.homebudgettracker.exchange.ExchangeService;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
+import com.rainy.homebudgettracker.images.ImageService;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import com.rainy.homebudgettracker.transaction.enums.PaymentMethod;
@@ -50,6 +51,8 @@ class TransactionServiceTest {
     ModelMapper modelMapper;
     @Mock
     UserService userService;
+    @Mock
+    ImageService imageService;
 
     @BeforeEach
     void setUp() throws RecordDoesNotExistException, UserIsNotOwnerException {
@@ -59,6 +62,8 @@ class TransactionServiceTest {
         when(userService.getUserSub()).thenReturn(userSub);
 
         String userSub2 = "550e8400-e29b-41d4-a716-446655440001";
+
+        when(imageService.getImageUrl(any())).thenReturn("https://example.com/image.jpg");
 
         Account account = Account.builder()
                 .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
@@ -155,7 +160,7 @@ class TransactionServiceTest {
                 .currencyCode(CurrencyCode.USD)
                 .paymentMethod(PaymentMethod.CASH)
                 .build();
-        when(modelMapper.mapTransactionRequestToTransaction(transactionRequest, account, category)).thenReturn(transaction);
+        when(modelMapper.map(transactionRequest, Transaction.class, userSub, category, account)).thenReturn(transaction);
 
         when(transactionRepository.save(transaction)).thenReturn(transaction);
         when(transactionRepository.findById(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))).thenReturn(Optional.of(transaction));
@@ -193,7 +198,7 @@ class TransactionServiceTest {
                         .build())
                 .build();
 
-        when(modelMapper.mapTransactionRequestToTransaction(convertedTransactionRequest, account2, category)).thenReturn(convertedTransaction);
+        when(modelMapper.map(convertedTransactionRequest, Transaction.class, userSub, category, account2)).thenReturn(convertedTransaction);
         when(modelMapper.map(convertedTransaction, TransactionResponse.class)).thenReturn(convertedTransactionResponse);
         when(transactionRepository.save(convertedTransaction)).thenReturn(convertedTransaction);
 
@@ -204,7 +209,6 @@ class TransactionServiceTest {
                 .paymentMethod(PaymentMethod.CASH)
                 .category(category)
                 .account(account2)
-                .details("EUR->PLN: 4.21")
                 .build();
 
         TransactionRequest convertedTransactionRequest_2 = TransactionRequest.builder()
@@ -213,7 +217,6 @@ class TransactionServiceTest {
                 .date(LocalDate.of(2024, 1, 1))
                 .currencyCode(CurrencyCode.PLN)
                 .paymentMethod(PaymentMethod.CASH)
-                .details("EUR->PLN: 4.21")
                 .build();
 
         TransactionResponse convertedTransactionResponse_2 = TransactionResponse.builder()
@@ -230,34 +233,34 @@ class TransactionServiceTest {
                         .name("PLN account")
                         .currencyCode("PLN")
                         .build())
-                .details("EUR->PLN: 4.21")
                 .build();
 
-        when(modelMapper.mapTransactionRequestToTransaction(convertedTransactionRequest_2, account2, category)).thenReturn(convertedTransaction_2);
+        when(modelMapper.map(convertedTransactionRequest_2, Transaction.class, userSub, category, account2)).thenReturn(convertedTransaction_2);
         when(modelMapper.map(convertedTransaction_2, TransactionResponse.class)).thenReturn(convertedTransactionResponse_2);
         when(transactionRepository.save(convertedTransaction_2)).thenReturn(convertedTransaction_2);
-        when(exchangeService.getExchangeRate(CurrencyCode.EUR, CurrencyCode.PLN)).thenReturn(ExchangeResponse.builder().conversionRate("4.21").build());
 
-                Transaction convertedTransaction_3 = Transaction.builder()
+        Transaction convertedTransaction_3 = Transaction.builder()
                 .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
-                .amount(BigDecimal.valueOf(421).setScale(2, RoundingMode.HALF_UP))
+                .amount(BigDecimal.valueOf(422).setScale(2, RoundingMode.HALF_UP))
                 .date(LocalDate.of(2024, 1, 1))
                 .paymentMethod(PaymentMethod.CASH)
                 .category(category)
                 .account(account2)
+                .details("EUR->PLN: 4.22")
                 .build();
 
         TransactionRequest convertedTransactionRequest_3 = TransactionRequest.builder()
-                .amount(BigDecimal.valueOf(421).setScale(2, RoundingMode.HALF_UP))
+                .amount(BigDecimal.valueOf(422).setScale(2, RoundingMode.HALF_UP))
                 .categoryName(CategoryRequest.builder().name("Food").build())
                 .date(LocalDate.of(2024, 1, 1))
                 .currencyCode(CurrencyCode.PLN)
                 .paymentMethod(PaymentMethod.CASH)
+                .details("EUR->PLN: 4.22")
                 .build();
 
         TransactionResponse convertedTransactionResponse_3 = TransactionResponse.builder()
                 .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
-                .amount("421.00")
+                .amount("422.00")
                 .date("2024-01-01")
                 .paymentMethod("CASH")
                 .category(CategoryResponse.builder()
@@ -269,12 +272,14 @@ class TransactionServiceTest {
                         .name("PLN account")
                         .currencyCode("PLN")
                         .build())
+                .details("EUR->PLN: 4.22")
                 .build();
 
-        when(modelMapper.mapTransactionRequestToTransaction(convertedTransactionRequest_3, account2, category)).thenReturn(convertedTransaction_3);
+
+        when(modelMapper.map(convertedTransactionRequest_3, Transaction.class, userSub, category, account2)).thenReturn(convertedTransaction_3);
         when(modelMapper.map(convertedTransaction_3, TransactionResponse.class)).thenReturn(convertedTransactionResponse_3);
         when(transactionRepository.save(convertedTransaction_3)).thenReturn(convertedTransaction_3);
-        when(exchangeService.getExchangeRate(CurrencyCode.EUR, CurrencyCode.PLN)).thenReturn(ExchangeResponse.builder().conversionRate("4.21").build());
+        when(exchangeService.getExchangeRate(CurrencyCode.EUR, CurrencyCode.PLN)).thenReturn(ExchangeResponse.builder().conversionRate("4.22").build());
 
         when(transactionRepository.sumPositiveAmountByAccount(account)).thenReturn(BigDecimal.valueOf(100.1));
         when(transactionRepository.sumPositiveAmountByAccount(account2)).thenReturn(BigDecimal.valueOf(0));
@@ -495,9 +500,9 @@ class TransactionServiceTest {
 
         try(MockedStatic<CurrencyConverter> converter = Mockito.mockStatic(CurrencyConverter.class)) {
             converter.when(() -> CurrencyConverter.convert(BigDecimal.valueOf(100).setScale(2, RoundingMode.HALF_UP),
-                            BigDecimal.valueOf(4.21).setScale(2, RoundingMode.HALF_UP),
+                            BigDecimal.valueOf(4.22).setScale(2, RoundingMode.HALF_UP),
                             2))
-                    .thenReturn(BigDecimal.valueOf(421).setScale(2, RoundingMode.HALF_UP));
+                    .thenReturn(BigDecimal.valueOf(422).setScale(2, RoundingMode.HALF_UP));
 
             var transactionRequest = TransactionRequest.builder()
                 .amount(BigDecimal.valueOf(100).setScale(2, RoundingMode.HALF_UP))
@@ -512,7 +517,7 @@ class TransactionServiceTest {
 
             var transactionResponse = TransactionResponse.builder()
                     .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
-                    .amount("421.00")
+                    .amount("422.00")
                     .date("2024-01-01")
                     .paymentMethod("CASH")
                     .category(CategoryResponse.builder()
@@ -524,7 +529,7 @@ class TransactionServiceTest {
                             .name("PLN account")
                             .currencyCode("PLN")
                             .build())
-                    .details("EUR->PLN: 4.21")
+                    .details("EUR->PLN: 4.22")
                     .build();
 
             assertEquals(transactionResponse, returnedTransactionResponse);
