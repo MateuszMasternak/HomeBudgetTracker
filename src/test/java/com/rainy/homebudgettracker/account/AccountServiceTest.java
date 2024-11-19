@@ -1,6 +1,7 @@
 package com.rainy.homebudgettracker.account;
 
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
+import com.rainy.homebudgettracker.transaction.TransactionRepository;
 import com.rainy.homebudgettracker.user.UserService;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
@@ -12,6 +13,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -28,6 +31,8 @@ class AccountServiceTest {
     UserService userService;
     @Mock
     ModelMapper modelMapper;
+    @Mock
+    TransactionRepository transactionRepository;
 
     @BeforeEach
     void setUp() {
@@ -76,23 +81,38 @@ class AccountServiceTest {
                 .currencyCode(CurrencyCode.EUR)
                 .build();
 
-        when(modelMapper.map(account, AccountResponse.class)).thenReturn(AccountResponse.builder()
+        when(modelMapper.map(account, AccountResponse.class, BigDecimal.valueOf(0).setScale(2, RoundingMode.HALF_UP))).thenReturn(AccountResponse.builder()
                 .id(account.getId())
                 .name(account.getName())
                 .currencyCode(account.getCurrencyCode().toString())
+                .balance("0.00")
                 .build());
         when(modelMapper.map(account2, AccountResponse.class)).thenReturn(AccountResponse.builder()
                 .id(account2.getId())
                 .name(account2.getName())
                 .currencyCode(account2.getCurrencyCode().toString())
+                .balance("0.00")
+                .build());
+        when(modelMapper.map(account2, AccountResponse.class, BigDecimal.valueOf(0).setScale(2, RoundingMode.HALF_UP))).thenReturn(AccountResponse.builder()
+                .id(account2.getId())
+                .name(account2.getName())
+                .currencyCode(account2.getCurrencyCode().toString())
+                .balance("0.00")
+                .build());
+        when(modelMapper.map(account3, AccountResponse.class, BigDecimal.valueOf(0).setScale(2, RoundingMode.HALF_UP))).thenReturn(AccountResponse.builder()
+                .id(account3.getId())
+                .name(account3.getName())
+                .currencyCode(account3.getCurrencyCode().toString())
+                .balance("0.00")
                 .build());
         when(modelMapper.map(account3, AccountResponse.class)).thenReturn(AccountResponse.builder()
                 .id(account3.getId())
                 .name(account3.getName())
                 .currencyCode(account3.getCurrencyCode().toString())
+                .balance("0.00")
                 .build());
-        when(modelMapper.map(accountRequest, Account.class)).thenReturn(account);
-        when(modelMapper.map(accountRequest2, Account.class)).thenReturn(account2);
+        when(modelMapper.map(accountRequest, Account.class, userSub)).thenReturn(account);
+        when(modelMapper.map(accountRequest2, Account.class, userSub)).thenReturn(account2);
 
         when(accountRepository.findAllByUserSub(userSub)).thenReturn(List.of(account));
         when(accountRepository.findById(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))).thenReturn(Optional.of(account));
@@ -102,6 +122,11 @@ class AccountServiceTest {
         when(accountRepository.existsById(UUID.fromString("c7e2fa7e-2267-4da5-ade1-5dc79948a773"))).thenReturn(false);
         when(accountRepository.save(account2)).thenReturn(account2);
         doNothing().when(accountRepository).updateAccountName(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"), "Changed name");
+
+        when(transactionRepository.sumAmountByAccount(account)).thenReturn(BigDecimal.valueOf(0).setScale(2, RoundingMode.HALF_UP));
+        when(transactionRepository.sumAmountByAccount(account2)).thenReturn(BigDecimal.valueOf(0).setScale(2, RoundingMode.HALF_UP));
+        when(transactionRepository.sumAmountByAccount(account3)).thenReturn(BigDecimal.valueOf(0).setScale(2, RoundingMode.HALF_UP));
+        when(transactionRepository.sumAmountByAccount(account4)).thenReturn(BigDecimal.valueOf(0).setScale(2, RoundingMode.HALF_UP));
     }
 
     @AfterEach
@@ -111,33 +136,28 @@ class AccountServiceTest {
 
     @Test
     void shouldReturnListWithAccountResponse() {
-        var accountResponses = accountService.findCurrentUserAccountsAsResponses();
+        var returnedAccountResponses = accountService.findCurrentUserAccountsAsResponses();
 
-        var account = Account.builder()
+        var accountResponse = AccountResponse.builder()
                 .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
                 .name("USD account")
-                .currencyCode(CurrencyCode.USD)
+                .currencyCode(CurrencyCode.USD.toString())
+                .balance("0.00")
                 .build();
 
-        assertEquals(1, accountResponses.size());
-        assertEquals(account.getId(), accountResponses.get(0).getId());
-        assertEquals(account.getName(), accountResponses.get(0).getName());
-        assertEquals(account.getCurrencyCode().name(), accountResponses.get(0).getCurrencyCode());
+        assertEquals(List.of(accountResponse), returnedAccountResponses);
     }
 
     @Test
     void shouldReturnAccountResponse() throws RecordDoesNotExistException, UserIsNotOwnerException {
-        var accountResponse = accountService.findCurrentUserAccountAsResponse(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"));
+        var returnedAccountResponse = accountService.findCurrentUserAccountAsResponse(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"));
 
-        var account = Account.builder()
+        var accountResponse = AccountResponse.builder()
                 .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
                 .name("USD account")
-                .currencyCode(CurrencyCode.USD)
+                .currencyCode(CurrencyCode.USD.toString())
+                .balance("0.00")
                 .build();
-
-        assertEquals(account.getId(), accountResponse.getId());
-        assertEquals(account.getName(), accountResponse.getName());
-        assertEquals(account.getCurrencyCode().name(), accountResponse.getCurrencyCode());
     }
 
     @Test
@@ -181,35 +201,33 @@ class AccountServiceTest {
                 .currencyCode(CurrencyCode.EUR)
                 .build();
 
-        var accountResponse = accountService.createAccountForCurrentUser(accountRequest);
+        var returnedAccountResponse = accountService.createAccountForCurrentUser(accountRequest);
 
-        var account = Account.builder()
+        var accountResponse = AccountResponse.builder()
                 .id(UUID.fromString("c7e2fa7e-2267-4da5-ade1-5dc79948a773"))
                 .name("EUR account")
-                .currencyCode(CurrencyCode.EUR)
+                .currencyCode(CurrencyCode.EUR.toString())
+                .balance("0.00")
                 .build();
 
-        assertEquals(account.getId(), accountResponse.getId());
-        assertEquals(account.getName(), accountResponse.getName());
-        assertEquals(account.getCurrencyCode().name(), accountResponse.getCurrencyCode());
+        assertEquals(accountResponse, returnedAccountResponse);
     }
 
     @Test
     void shouldReturnAccountResponseWhenAccountNameIsUpdated()
             throws RecordDoesNotExistException, UserIsNotOwnerException {
 
-        var accountResponse = accountService.updateCurrentUserAccountName(
+        var returnedAccountResponse = accountService.updateCurrentUserAccountName(
                 AccountUpdateNameRequest.builder().id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100")).name("Changed name").build());
 
-        var account = Account.builder()
+        var accountResponse = AccountResponse.builder()
                 .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
                 .name("Changed name")
-                .currencyCode(CurrencyCode.USD)
+                .currencyCode(CurrencyCode.USD.toString())
+                .balance("0.00")
                 .build();
 
-        assertEquals(account.getId(), accountResponse.getId());
-        assertEquals("Changed name", accountResponse.getName());
-        assertEquals(account.getCurrencyCode().name(), accountResponse.getCurrencyCode());
+        assertEquals(accountResponse, returnedAccountResponse);
     }
 
     @Test
