@@ -1,6 +1,7 @@
 package com.rainy.homebudgettracker.account;
 
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
+import com.rainy.homebudgettracker.transaction.TransactionRepository;
 import com.rainy.homebudgettracker.user.UserService;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
@@ -8,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -16,6 +19,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
+    private final TransactionRepository transactionRepository;
     private final UserService userService;
     private final ModelMapper modelMapper;
 
@@ -25,7 +29,12 @@ public class AccountServiceImpl implements AccountService {
         Iterable<Account> accounts = accountRepository.findAllByUserSub(userSub);
 
         List<AccountResponse> accountResponses = new ArrayList<>();
-        accounts.forEach(account -> accountResponses.add(modelMapper.map(account, AccountResponse.class)));
+        accounts.forEach(account -> {
+            BigDecimal balance = transactionRepository.sumAmountByAccount(account)
+                    .setScale(2, RoundingMode.HALF_UP);
+            AccountResponse accountResponse = modelMapper.map(account, AccountResponse.class, balance);
+            accountResponses.add(accountResponse);
+        });
         return accountResponses;
     }
 
@@ -39,7 +48,9 @@ public class AccountServiceImpl implements AccountService {
             if (!account.getUserSub().equals(userSub))
                 throw new UserIsNotOwnerException("User is not the owner of the Account with id " + id + ".");
 
-            return modelMapper.map(account, AccountResponse.class);
+            BigDecimal balance = transactionRepository.sumAmountByAccount(account)
+                    .setScale(2, RoundingMode.HALF_UP);
+            return modelMapper.map(account, AccountResponse.class, balance);
     }
 
     @Override
@@ -57,7 +68,8 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public AccountResponse createAccountForCurrentUser(AccountRequest request) {
-        Account account = modelMapper.map(request, Account.class);
+        String userSub = userService.getUserSub();
+        Account account = modelMapper.map(request, Account.class, userSub);
         accountRepository.save(account);
         return modelMapper.map(account, AccountResponse.class);
     }

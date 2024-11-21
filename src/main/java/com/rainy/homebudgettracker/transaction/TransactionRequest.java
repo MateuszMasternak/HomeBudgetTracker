@@ -20,7 +20,6 @@ public class TransactionRequest {
     private CategoryRequest categoryName;
     @NotNull(message = "Date is required")
     private LocalDate date;
-    @NotNull(message = "Currency code is required")
     private CurrencyCode currencyCode;
     @NotNull(message = "Payment method is required")
     private PaymentMethod paymentMethod;
