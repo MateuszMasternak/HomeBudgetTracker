@@ -15,7 +15,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -65,8 +64,8 @@ class CategoryServiceTest {
                 .id(category.getId())
                 .name(category.getName())
                 .build());
-        when(modelMapper.map(categoryRequest, Category.class)).thenReturn(category);
-        when(modelMapper.map(categoryRequest2, Category.class)).thenReturn(Category.builder()
+        when(modelMapper.map(categoryRequest, Category.class, userSub)).thenReturn(category);
+        when(modelMapper.map(categoryRequest2, Category.class, userSub)).thenReturn(Category.builder()
                 .name("Healthcare")
                 .userSub(userSub)
                 .build());
