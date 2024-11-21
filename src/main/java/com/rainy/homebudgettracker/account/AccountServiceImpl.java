@@ -10,10 +10,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import static com.rainy.homebudgettracker.transaction.BigDecimalNormalization.normalize;
 
 @Service
 @RequiredArgsConstructor
@@ -30,8 +31,7 @@ public class AccountServiceImpl implements AccountService {
 
         List<AccountResponse> accountResponses = new ArrayList<>();
         accounts.forEach(account -> {
-            BigDecimal balance = transactionRepository.sumAmountByAccount(account)
-                    .setScale(2, RoundingMode.HALF_UP);
+            BigDecimal balance = normalize(transactionRepository.sumAmountByAccount(account), 2);
             AccountResponse accountResponse = modelMapper.map(account, AccountResponse.class, balance);
             accountResponses.add(accountResponse);
         });
@@ -48,8 +48,7 @@ public class AccountServiceImpl implements AccountService {
             if (!account.getUserSub().equals(userSub))
                 throw new UserIsNotOwnerException("User is not the owner of the Account with id " + id + ".");
 
-            BigDecimal balance = transactionRepository.sumAmountByAccount(account)
-                    .setScale(2, RoundingMode.HALF_UP);
+            BigDecimal balance = normalize(transactionRepository.sumAmountByAccount(account), 2);
             return modelMapper.map(account, AccountResponse.class, balance);
     }
 

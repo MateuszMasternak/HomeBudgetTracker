@@ -35,6 +35,8 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.*;
 
+import static com.rainy.homebudgettracker.transaction.BigDecimalNormalization.normalize;
+
 @Service
 @RequiredArgsConstructor
 public class TransactionServiceImpl implements TransactionService {
@@ -220,8 +222,7 @@ public class TransactionServiceImpl implements TransactionService {
             throws RecordDoesNotExistException, UserIsNotOwnerException {
 
         Account account = accountService.findCurrentUserAccount(accountId);
-        BigDecimal sum = transactionRepository.sumPositiveAmountByAccount(account);
-        sum = changeToZeroIfNull(sum).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal sum = normalize(transactionRepository.sumPositiveAmountByAccount(account), 2);
         SumResponse response = modelMapper.map(sum, SumResponse.class);
         response.setAccount(modelMapper.map(account, AccountResponse.class));
 
@@ -233,8 +234,7 @@ public class TransactionServiceImpl implements TransactionService {
             throws RecordDoesNotExistException, UserIsNotOwnerException {
 
         Account account = accountService.findCurrentUserAccount(accountId);
-        BigDecimal sum = transactionRepository.sumNegativeAmountByAccount(account);
-        sum = changeToZeroIfNull(sum).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal sum = normalize(transactionRepository.sumNegativeAmountByAccount(account), 2);
         SumResponse response = modelMapper.map(sum, SumResponse.class);
         response.setAccount(modelMapper.map(account, AccountResponse.class));
 
@@ -246,16 +246,11 @@ public class TransactionServiceImpl implements TransactionService {
             throws RecordDoesNotExistException, UserIsNotOwnerException {
 
         Account account = accountService.findCurrentUserAccount(accountId);
-        BigDecimal sum = transactionRepository.sumAmountByAccount(account);
-        sum = changeToZeroIfNull(sum).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal sum = normalize(transactionRepository.sumAmountByAccount(account), 2);
         SumResponse response = modelMapper.map(sum, SumResponse.class);
         response.setAccount(modelMapper.map(account, AccountResponse.class));
 
         return response;
-    }
-
-    private BigDecimal changeToZeroIfNull(BigDecimal value) {
-        return value == null ? BigDecimal.ZERO : value;
     }
 
     @Override
