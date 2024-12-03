@@ -49,16 +49,20 @@ public class TransactionServiceImpl implements TransactionService {
     private final S3Service s3Service;
     private final ImageService imageService;
 
+    private TransactionResponse mapToTransactionResponse(Transaction transaction) {
+        String imageUrl = imageService.getImageUrl(transaction);
+        return imageUrl == null
+                ? modelMapper.map(transaction, TransactionResponse.class)
+                : modelMapper.map(transaction, TransactionResponse.class, imageUrl);
+    }
+
     @Override
     public Page<TransactionResponse> findCurrentUserTransactionsAsResponses(UUID accountId, Pageable pageable)
             throws RecordDoesNotExistException, UserIsNotOwnerException {
 
         Account account = accountService.findCurrentUserAccount(accountId);
         Page<Transaction> transactions = transactionRepository.findAllByAccount(account, pageable);
-        return transactions.map(t -> {
-            String imageUrl = imageService.getImageUrl(t);
-            return modelMapper.map(t, TransactionResponse.class, imageUrl);
-        });
+        return transactions.map(this::mapToTransactionResponse);
     }
 
     @Override
@@ -72,10 +76,7 @@ public class TransactionServiceImpl implements TransactionService {
         Page<Transaction> transactions = transactionRepository.findAllByAccountAndCategory(
                 account, category, pageable
         );
-        return transactions.map(t -> {
-            String imageUrl = imageService.getImageUrl(t);
-            return modelMapper.map(t, TransactionResponse.class, imageUrl);
-        });
+        return transactions.map(this::mapToTransactionResponse);
     }
 
     @Override
@@ -93,10 +94,7 @@ public class TransactionServiceImpl implements TransactionService {
                 endDate,
                 pageable
         );
-        return transactions.map(t -> {
-            String imageUrl = imageService.getImageUrl(t);
-            return modelMapper.map(t, TransactionResponse.class, imageUrl);
-        });
+        return transactions.map(this::mapToTransactionResponse);
     }
 
     @Override
@@ -118,10 +116,7 @@ public class TransactionServiceImpl implements TransactionService {
                 endDate,
                 pageable
         );
-        return transactions.map(t -> {
-            String imageUrl = imageService.getImageUrl(t);
-            return modelMapper.map(t, TransactionResponse.class, imageUrl);
-        });
+        return transactions.map(this::mapToTransactionResponse);
     }
 
     @Transactional
