@@ -196,6 +196,7 @@ public class TransactionServiceImpl implements TransactionService {
                 transactionRequest.getCurrencyCode() + "->" + targetCurrency + ": " + apiExchangeRate);
     }
 
+    @Transactional
     @Override
     public void deleteCurrentUserTransaction(UUID transactionId) throws
             RecordDoesNotExistException,
