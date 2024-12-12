@@ -27,7 +27,7 @@ public class RateLimitFilter implements Filter {
     public RateLimitFilter() {
         executor = new ScheduledThreadPoolExecutor(8);
         requestCount = new ConcurrentHashMap<>();
-        limit = 10L;
+        limit = 1000L;
         blockDurationInMinutes = 5L;
         limitDurationInSeconds = 2L;
     }

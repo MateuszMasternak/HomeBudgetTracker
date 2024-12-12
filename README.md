@@ -67,14 +67,14 @@ Home Budget Tracker is a Java-based API designed to help users manage their pers
 > AWS_CLOUDFRONT_URL_DEV=your-cloudfront-url // leave default if you want to share images directly via S3  
 > AWS_CLOUDFRONT_PUBLIC_KEY_PAIR_ID_DEV=cloud-front-public-key-id // leave default if you want to share images directly via S3 or default Cloudfront URL
 > AWS_CLOUDFRONT_PRIVATE_KEY_DEV=cloud-front-private-key // leave default if you want to share images directly via S3 or default Cloudfront URL  
-> * The profile should be configured in the ~/.aws/config file for example by aws configure sso through AWS CLI. Then you can login by aws sso login --profile your-profile-name. More info here: https://docs.aws.amazon.com/sdkref/latest/guide/access-sso.html. 
+> * The profile should be configured in the ~/.aws/config file for example by aws configure sso through AWS CLI. Then you can login by aws sso login --profile your-profile-name. More info here: https://docs.aws.amazon.com/sdkref/latest/guide/access-sso.html.
 > * You can generate the private key by openssl genpkey -algorithm RSA -out private_key.pem -pkeyopt rsa_keygen_bits:2048.
 > * You can generate the public key by openssl rsa -in private_key.pem -pubout -out public_key.pem.
 
 ***Docker Setup***
 1. Build and run Docker containers:
 > docker-compose up --build -d
-> * The .env file is used by the Docker containers.
+> * The .env file and the ~/.aws/config file are mounted to the web app container.
 2. The API will be available at http://localhost:8080.
 
 ## API Endpoints
