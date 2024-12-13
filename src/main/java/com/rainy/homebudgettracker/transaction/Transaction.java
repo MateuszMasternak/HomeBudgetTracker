@@ -2,7 +2,7 @@ package com.rainy.homebudgettracker.transaction;
 
 import com.rainy.homebudgettracker.account.Account;
 import com.rainy.homebudgettracker.category.Category;
-import com.rainy.homebudgettracker.transaction.enums.PaymentMethod;
+import com.rainy.homebudgettracker.transaction.enums.TransactionMethod;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,7 +28,7 @@ public class Transaction {
     private String userSub;
     @ManyToOne
     private Account account;
-    private PaymentMethod paymentMethod;
+    private TransactionMethod transactionMethod;
     private String imageFilePath;
     private String details;
 }

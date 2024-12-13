@@ -10,7 +10,7 @@ import com.rainy.homebudgettracker.transaction.Transaction;
 import com.rainy.homebudgettracker.transaction.TransactionRequest;
 import com.rainy.homebudgettracker.transaction.TransactionResponse;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
-import com.rainy.homebudgettracker.transaction.enums.PaymentMethod;
+import com.rainy.homebudgettracker.transaction.enums.TransactionMethod;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -182,7 +182,7 @@ class ModelMapperTest {
         var transactionRequest = TransactionRequest.builder()
                 .amount(BigDecimal.valueOf(100))
                 .date(LocalDate.now())
-                .paymentMethod(PaymentMethod.CASH)
+                .transactionMethod(TransactionMethod.CASH)
                 .categoryName(CategoryRequest.builder().name("Food").build())
                 .currencyCode(CurrencyCode.USD)
                 .details("Details")
@@ -195,7 +195,7 @@ class ModelMapperTest {
                 .category(category)
                 .date(transactionRequest.getDate())
                 .account(account)
-                .paymentMethod(transactionRequest.getPaymentMethod())
+                .transactionMethod(transactionRequest.getTransactionMethod())
                 .userSub(userSub)
                 .details(transactionRequest.getDetails())
                 .build();
@@ -236,7 +236,7 @@ class ModelMapperTest {
         var transactionRequest = TransactionRequest.builder()
                 .amount(BigDecimal.valueOf(100))
                 .date(LocalDate.now())
-                .paymentMethod(PaymentMethod.CASH)
+                .transactionMethod(TransactionMethod.CASH)
                 .categoryName(CategoryRequest.builder().name("Food").build())
                 .currencyCode(CurrencyCode.USD)
                 .build();
@@ -248,7 +248,7 @@ class ModelMapperTest {
                 .category(category)
                 .date(transactionRequest.getDate())
                 .account(account)
-                .paymentMethod(transactionRequest.getPaymentMethod())
+                .transactionMethod(transactionRequest.getTransactionMethod())
                 .userSub(userSub)
                 .build();
 
@@ -276,7 +276,7 @@ class ModelMapperTest {
                 .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
                 .amount(BigDecimal.valueOf(100).setScale(2, RoundingMode.HALF_UP))
                 .date(LocalDate.now())
-                .paymentMethod(PaymentMethod.CASH)
+                .transactionMethod(TransactionMethod.CASH)
                 .category(category)
                 .account(account)
                 .userSub(userSub)
@@ -298,7 +298,7 @@ class ModelMapperTest {
                         .name("Main")
                         .currencyCode(CurrencyCode.USD.name())
                         .build())
-                .paymentMethod(transaction.getPaymentMethod().name())
+                .transactionMethod(transaction.getTransactionMethod().name())
                 .details("Details")
                 .imageUrl(imageUrl)
                 .build();

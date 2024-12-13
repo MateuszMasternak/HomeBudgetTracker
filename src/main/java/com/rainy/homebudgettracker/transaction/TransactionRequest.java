@@ -2,7 +2,7 @@ package com.rainy.homebudgettracker.transaction;
 
 import com.rainy.homebudgettracker.category.CategoryRequest;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
-import com.rainy.homebudgettracker.transaction.enums.PaymentMethod;
+import com.rainy.homebudgettracker.transaction.enums.TransactionMethod;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
@@ -21,7 +21,7 @@ public class TransactionRequest {
     @NotNull(message = "Date is required")
     private LocalDate date;
     private CurrencyCode currencyCode;
-    @NotNull(message = "Payment method is required")
-    private PaymentMethod paymentMethod;
+    @NotNull(message = "Transaction method is required")
+    private TransactionMethod transactionMethod;
     private String details;
 }

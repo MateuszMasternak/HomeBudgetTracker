@@ -96,7 +96,7 @@ public class ModelMapper {
                 .category(category)
                 .date(transactionRequest.getDate())
                 .account(account)
-                .paymentMethod(transactionRequest.getPaymentMethod())
+                .transactionMethod(transactionRequest.getTransactionMethod())
                 .userSub(userSub)
                 .details(transactionRequest.getDetails())
                 .build();
@@ -109,7 +109,7 @@ public class ModelMapper {
                 .category(mapCategoryToResponse(transaction.getCategory()))
                 .date(String.valueOf(transaction.getDate()))
                 .account(mapAccountToResponse(transaction.getAccount()))
-                .paymentMethod(transaction.getPaymentMethod().name())
+                .transactionMethod(transaction.getTransactionMethod().name())
                 .imageUrl(imageUrl)
                 .details(transaction.getDetails())
                 .build();

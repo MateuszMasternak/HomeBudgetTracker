@@ -15,7 +15,7 @@ import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.images.ImageService;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
-import com.rainy.homebudgettracker.transaction.enums.PaymentMethod;
+import com.rainy.homebudgettracker.transaction.enums.TransactionMethod;
 import com.rainy.homebudgettracker.user.UserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -105,7 +105,7 @@ class TransactionServiceTest {
                 .userSub(userSub)
                 .amount(BigDecimal.valueOf(100, 2))
                 .date(LocalDate.of(2024, 1, 1))
-                .paymentMethod(PaymentMethod.CASH)
+                .transactionMethod(TransactionMethod.CASH)
                 .category(category)
                 .account(account)
                 .build();
@@ -115,7 +115,7 @@ class TransactionServiceTest {
                 .userSub(userSub2)
                 .amount(BigDecimal.valueOf(100, 2))
                 .date(LocalDate.of(2024, 1, 1))
-                .paymentMethod(PaymentMethod.CASH)
+                .transactionMethod(TransactionMethod.CASH)
                 .category(category)
                 .account(account)
                 .build();
@@ -140,7 +140,7 @@ class TransactionServiceTest {
                 .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                 .amount("100.00")
                 .date("2024-01-01")
-                .paymentMethod("CASH")
+                .transactionMethod("CASH")
                 .category(CategoryResponse.builder()
                         .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                         .name("Food")
@@ -158,7 +158,7 @@ class TransactionServiceTest {
                 .categoryName(CategoryRequest.builder().name("Food").build())
                 .date(LocalDate.of(2024, 1, 1))
                 .currencyCode(CurrencyCode.USD)
-                .paymentMethod(PaymentMethod.CASH)
+                .transactionMethod(TransactionMethod.CASH)
                 .build();
         when(modelMapper.map(transactionRequest, Transaction.class, userSub, category, account)).thenReturn(transaction);
 
@@ -169,7 +169,7 @@ class TransactionServiceTest {
                 .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                 .amount(BigDecimal.valueOf(421).setScale(2, RoundingMode.HALF_UP))
                 .date(LocalDate.of(2024, 1, 1))
-                .paymentMethod(PaymentMethod.CASH)
+                .transactionMethod(TransactionMethod.CASH)
                 .category(category)
                 .account(account)
                 .build();
@@ -179,14 +179,14 @@ class TransactionServiceTest {
                 .categoryName(CategoryRequest.builder().name("Food").build())
                 .date(LocalDate.of(2024, 1, 1))
                 .currencyCode(CurrencyCode.PLN)
-                .paymentMethod(PaymentMethod.CASH)
+                .transactionMethod(TransactionMethod.CASH)
                 .build();
 
         TransactionResponse convertedTransactionResponse = TransactionResponse.builder()
                 .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                 .amount("421.00")
                 .date("2024-01-01")
-                .paymentMethod("CASH")
+                .transactionMethod("CASH")
                 .category(CategoryResponse.builder()
                         .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                         .name("Food")
@@ -206,7 +206,7 @@ class TransactionServiceTest {
                 .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                 .amount(BigDecimal.valueOf(421).setScale(2, RoundingMode.HALF_UP))
                 .date(LocalDate.of(2024, 1, 1))
-                .paymentMethod(PaymentMethod.CASH)
+                .transactionMethod(TransactionMethod.CASH)
                 .category(category)
                 .account(account2)
                 .build();
@@ -216,14 +216,14 @@ class TransactionServiceTest {
                 .categoryName(CategoryRequest.builder().name("Food").build())
                 .date(LocalDate.of(2024, 1, 1))
                 .currencyCode(CurrencyCode.PLN)
-                .paymentMethod(PaymentMethod.CASH)
+                .transactionMethod(TransactionMethod.CASH)
                 .build();
 
         TransactionResponse convertedTransactionResponse_2 = TransactionResponse.builder()
                 .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                 .amount("421.00")
                 .date("2024-01-01")
-                .paymentMethod("CASH")
+                .transactionMethod("CASH")
                 .category(CategoryResponse.builder()
                         .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                         .name("Food")
@@ -243,7 +243,7 @@ class TransactionServiceTest {
                 .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                 .amount(BigDecimal.valueOf(422).setScale(2, RoundingMode.HALF_UP))
                 .date(LocalDate.of(2024, 1, 1))
-                .paymentMethod(PaymentMethod.CASH)
+                .transactionMethod(TransactionMethod.CASH)
                 .category(category)
                 .account(account2)
                 .details("EUR->PLN: 4.22")
@@ -254,7 +254,7 @@ class TransactionServiceTest {
                 .categoryName(CategoryRequest.builder().name("Food").build())
                 .date(LocalDate.of(2024, 1, 1))
                 .currencyCode(CurrencyCode.PLN)
-                .paymentMethod(PaymentMethod.CASH)
+                .transactionMethod(TransactionMethod.CASH)
                 .details("EUR->PLN: 4.22")
                 .build();
 
@@ -262,7 +262,7 @@ class TransactionServiceTest {
                 .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                 .amount("422.00")
                 .date("2024-01-01")
-                .paymentMethod("CASH")
+                .transactionMethod("CASH")
                 .category(CategoryResponse.builder()
                         .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                         .name("Food")
@@ -400,7 +400,7 @@ class TransactionServiceTest {
                 .categoryName(CategoryRequest.builder().name("Food").build())
                 .date(LocalDate.of(2024, 1, 1))
                 .currencyCode(CurrencyCode.USD)
-                .paymentMethod(PaymentMethod.CASH)
+                .transactionMethod(TransactionMethod.CASH)
                 .build();
 
         var returnedTransactionResponse = transactionService.createTransactionForCurrentUser(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"), transactionRequest);
@@ -409,7 +409,7 @@ class TransactionServiceTest {
                 .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                 .amount("100.00")
                 .date("2024-01-01")
-                .paymentMethod("CASH")
+                .transactionMethod("CASH")
                 .category(CategoryResponse.builder()
                         .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                         .name("Food")
@@ -468,7 +468,7 @@ class TransactionServiceTest {
                 .categoryName(CategoryRequest.builder().name("Food").build())
                 .date(LocalDate.of(2024, 1, 1))
                 .currencyCode(CurrencyCode.EUR)
-                .paymentMethod(PaymentMethod.CASH)
+                .transactionMethod(TransactionMethod.CASH)
                     .build();
 
             var returnedTransactionResponse = transactionService.createTransactionForCurrentUser(
@@ -478,7 +478,7 @@ class TransactionServiceTest {
                     .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                     .amount("421.00")
                     .date("2024-01-01")
-                    .paymentMethod("CASH")
+                    .transactionMethod("CASH")
                     .category(CategoryResponse.builder()
                             .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                             .name("Food")
@@ -509,7 +509,7 @@ class TransactionServiceTest {
                 .categoryName(CategoryRequest.builder().name("Food").build())
                 .date(LocalDate.of(2024, 1, 1))
                 .currencyCode(CurrencyCode.EUR)
-                .paymentMethod(PaymentMethod.CASH)
+                .transactionMethod(TransactionMethod.CASH)
                     .build();
 
             var returnedTransactionResponse = transactionService.createTransactionForCurrentUser(
@@ -519,7 +519,7 @@ class TransactionServiceTest {
                     .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                     .amount("422.00")
                     .date("2024-01-01")
-                    .paymentMethod("CASH")
+                    .transactionMethod("CASH")
                     .category(CategoryResponse.builder()
                             .id(UUID.fromString("212a0e7e-24c3-4774-a46b-741d89072fad"))
                             .name("Food")

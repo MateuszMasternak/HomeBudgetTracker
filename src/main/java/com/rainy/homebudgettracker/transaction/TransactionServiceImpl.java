@@ -180,7 +180,7 @@ public class TransactionServiceImpl implements TransactionService {
                 .categoryName(transactionRequest.getCategoryName())
                 .date(transactionRequest.getDate())
                 .currencyCode(targetCurrency)
-                .paymentMethod(transactionRequest.getPaymentMethod())
+                .transactionMethod(transactionRequest.getTransactionMethod())
                 .details(transactionRequest.getDetails())
                 .build();
     }
@@ -267,9 +267,11 @@ public class TransactionServiceImpl implements TransactionService {
 
         try (FileWriter writer = new FileWriter(csvFilePath.toString())) {
             writer.append("sep=,\n"); // separator for microsoft excel
-            writer.append("ID,Amount,Category,Date,Currency code,Payment method\n");
+            writer.append("Account name,Currency code,Amount,Category,Date,Transaction method,Description\n");
             for (TransactionResponse transactionResponse : transactionResponses) {
-                writer.append(transactionResponse.getId().toString())
+                writer.append(transactionResponse.getAccount().getName())
+                        .append(",")
+                        .append(transactionResponse.getAccount().getCurrencyCode())
                         .append(",")
                         .append(transactionResponse.getAmount())
                         .append(",")
@@ -277,9 +279,9 @@ public class TransactionServiceImpl implements TransactionService {
                         .append(",")
                         .append(transactionResponse.getDate())
                         .append(",")
-                        .append(transactionResponse.getAccount().getCurrencyCode())
+                        .append(transactionResponse.getTransactionMethod())
                         .append(",")
-                        .append(transactionResponse.getPaymentMethod())
+                        .append(transactionResponse.getDetails())
                         .append("\n");
             }
         }

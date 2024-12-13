@@ -16,7 +16,7 @@ public class TransactionResponse {
     private CategoryResponse category;
     private String date;
     private AccountResponse account;
-    private String paymentMethod;
+    private String transactionMethod;
     private String imageUrl;
     private String details;
 }
