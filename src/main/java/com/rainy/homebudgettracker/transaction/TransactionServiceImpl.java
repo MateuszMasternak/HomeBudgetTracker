@@ -5,6 +5,7 @@ import com.rainy.homebudgettracker.account.AccountResponse;
 import com.rainy.homebudgettracker.account.AccountService;
 import com.rainy.homebudgettracker.category.Category;
 import com.rainy.homebudgettracker.category.CategoryRequest;
+import com.rainy.homebudgettracker.category.CategoryResponse;
 import com.rainy.homebudgettracker.category.CategoryService;
 import com.rainy.homebudgettracker.exchange.CurrencyConverter;
 import com.rainy.homebudgettracker.exchange.ExchangeResponse;
@@ -245,6 +246,62 @@ public class TransactionServiceImpl implements TransactionService {
         BigDecimal sum = normalize(transactionRepository.sumAmountByAccount(account), 2);
         SumResponse response = modelMapper.map(sum, SumResponse.class);
         response.setAccount(modelMapper.map(account, AccountResponse.class));
+
+        return response;
+    }
+
+    @Override
+    public SumResponse sumCurrentUserPositiveAmount(UUID accountId, LocalDate startDate, LocalDate endDate)
+            throws RecordDoesNotExistException, UserIsNotOwnerException {
+
+        Account account = accountService.findCurrentUserAccount(accountId);
+        BigDecimal sum = normalize(transactionRepository.sumPositiveAmountByAccountAndDateBetween(
+                account, startDate, endDate), 2);
+        SumResponse response = modelMapper.map(sum, SumResponse.class);
+        response.setAccount(modelMapper.map(account, AccountResponse.class));
+
+        return response;
+    }
+
+    @Override
+    public SumResponse sumCurrentUserPositiveAmount(UUID accountId, CategoryRequest categoryName, LocalDate startDate, LocalDate endDate)
+            throws RecordDoesNotExistException, UserIsNotOwnerException {
+
+        Account account = accountService.findCurrentUserAccount(accountId);
+        Category category = categoryService.findCurrentUserCategory(categoryName.getName());
+        BigDecimal sum = normalize(transactionRepository.sumPositiveAmountByAccountAndCategoryAndDateBetween(
+                account, category, startDate, endDate), 2);
+        SumResponse response = modelMapper.map(sum, SumResponse.class);
+        response.setAccount(modelMapper.map(account, AccountResponse.class));
+        response.setCategory(modelMapper.map(category, CategoryResponse.class));
+
+        return response;
+    }
+
+    @Override
+    public SumResponse sumCurrentUserNegativeAmount(UUID accountId, LocalDate startDate, LocalDate endDate)
+            throws RecordDoesNotExistException, UserIsNotOwnerException {
+
+        Account account = accountService.findCurrentUserAccount(accountId);
+        BigDecimal sum = normalize(transactionRepository.sumNegativeAmountByAccountAndDateBetween(
+                account, startDate, endDate), 2);
+        SumResponse response = modelMapper.map(sum, SumResponse.class);
+        response.setAccount(modelMapper.map(account, AccountResponse.class));
+
+        return response;
+    }
+
+    @Override
+    public SumResponse sumCurrentUserNegativeAmount(UUID accountId, CategoryRequest categoryName, LocalDate startDate, LocalDate endDate)
+            throws RecordDoesNotExistException, UserIsNotOwnerException {
+
+        Account account = accountService.findCurrentUserAccount(accountId);
+        Category category = categoryService.findCurrentUserCategory(categoryName.getName());
+        BigDecimal sum = normalize(transactionRepository.sumNegativeAmountByAccountAndCategoryAndDateBetween(
+                account, category, startDate, endDate), 2);
+        SumResponse response = modelMapper.map(sum, SumResponse.class);
+        response.setAccount(modelMapper.map(account, AccountResponse.class));
+        response.setCategory(modelMapper.map(category, CategoryResponse.class));
 
         return response;
     }
