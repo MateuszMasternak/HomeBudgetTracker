@@ -166,4 +166,50 @@ public class TransactionController {
 
         return ResponseEntity.accepted().body(transactionService.deleteImageFromCurrentUserTransaction(transactionId));
     }
+
+    @GetMapping("sum-positive-by-date")
+    public ResponseEntity<SumResponse> sumCurrentUserPositiveAmount(
+            @RequestParam(name = "account-id") UUID accountId,
+            @RequestParam(name = "start-date") String startDate,
+            @RequestParam(name = "end-date") String endDate
+    ) throws RecordDoesNotExistException, UserIsNotOwnerException {
+
+        return ResponseEntity.ok(transactionService.sumCurrentUserPositiveAmount(
+                accountId, LocalDate.parse(startDate), LocalDate.parse(endDate)));
+    }
+
+    @GetMapping("sum-positive-by-date-and-category")
+    public ResponseEntity<SumResponse> sumCurrentUserPositiveAmount(
+            @RequestParam(name = "account-id") UUID accountId,
+            @RequestParam(name = "category-name") CategoryRequest category,
+            @RequestParam(name = "start-date") String startDate,
+            @RequestParam(name = "end-date") String endDate
+    ) throws RecordDoesNotExistException, UserIsNotOwnerException {
+
+        return ResponseEntity.ok(transactionService.sumCurrentUserPositiveAmount(
+                accountId, category, LocalDate.parse(startDate), LocalDate.parse(endDate)));
+    }
+
+    @GetMapping("sum-negative-by-date")
+    public ResponseEntity<SumResponse> sumCurrentUserNegativeAmount(
+            @RequestParam(name = "account-id") UUID accountId,
+            @RequestParam(name = "start-date") String startDate,
+            @RequestParam(name = "end-date") String endDate
+    ) throws RecordDoesNotExistException, UserIsNotOwnerException {
+
+        return ResponseEntity.ok(transactionService.sumCurrentUserNegativeAmount(
+                accountId, LocalDate.parse(startDate), LocalDate.parse(endDate)));
+    }
+
+    @GetMapping("sum-negative-by-date-and-category")
+    public ResponseEntity<SumResponse> sumCurrentUserNegativeAmount(
+            @RequestParam(name = "account-id") UUID accountId,
+            @RequestParam(name = "category-name") CategoryRequest category,
+            @RequestParam(name = "start-date") String startDate,
+            @RequestParam(name = "end-date") String endDate
+    ) throws RecordDoesNotExistException, UserIsNotOwnerException {
+
+        return ResponseEntity.ok(transactionService.sumCurrentUserNegativeAmount(
+                accountId, category, LocalDate.parse(startDate), LocalDate.parse(endDate)));
+    }
 }

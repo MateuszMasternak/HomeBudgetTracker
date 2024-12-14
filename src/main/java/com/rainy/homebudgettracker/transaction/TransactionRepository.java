@@ -45,4 +45,26 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     Optional<Transaction> findById(UUID transactionId);
 
     void deleteById(UUID transactionId);
+
+    @Query("SELECT SUM(t.amount) FROM Transaction t " +
+            "WHERE t.amount > 0 AND t.account = :account AND t.date BETWEEN :startDate AND :endDate")
+    BigDecimal sumPositiveAmountByAccountAndDateBetween(
+            Account account, LocalDate startDate, LocalDate endDate);
+
+    @Query("SELECT SUM(t.amount) FROM Transaction t " +
+            "WHERE t.amount > 0 AND t.account = :account AND t.category = :category"
+            + " AND t.date BETWEEN :startDate AND :endDate")
+    BigDecimal sumPositiveAmountByAccountAndCategoryAndDateBetween(
+            Account account, Category category, LocalDate startDate, LocalDate endDate);
+
+    @Query("SELECT SUM(t.amount) FROM Transaction t " +
+            "WHERE t.amount < 0 AND t.account = :account AND t.date BETWEEN :startDate AND :endDate")
+    BigDecimal sumNegativeAmountByAccountAndDateBetween(
+            Account account, LocalDate startDate, LocalDate endDate);
+
+    @Query("SELECT SUM(t.amount) FROM Transaction t " +
+            "WHERE t.amount < 0 AND t.account = :account AND t.category = :category"
+            + " AND t.date BETWEEN :startDate AND :endDate")
+    BigDecimal sumNegativeAmountByAccountAndCategoryAndDateBetween(
+            Account account, Category category, LocalDate startDate, LocalDate endDate);
 }
