@@ -5,6 +5,7 @@ import com.rainy.homebudgettracker.handler.exception.ImageUploadException;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.handler.exception.WrongFileTypeException;
+import org.springframework.cglib.core.Local;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
@@ -69,5 +70,17 @@ public interface TransactionService {
             throws RecordDoesNotExistException, UserIsNotOwnerException;
 
     SumResponse sumCurrentUserAmount(UUID accountId)
+            throws RecordDoesNotExistException, UserIsNotOwnerException;
+
+    SumResponse sumCurrentUserPositiveAmount(UUID accountId, LocalDate startDate, LocalDate endDate)
+            throws RecordDoesNotExistException, UserIsNotOwnerException;
+
+    SumResponse sumCurrentUserPositiveAmount(UUID accountId, CategoryRequest categoryName, LocalDate startDate, LocalDate endDate)
+            throws RecordDoesNotExistException, UserIsNotOwnerException;
+
+    SumResponse sumCurrentUserNegativeAmount(UUID accountId, LocalDate startDate, LocalDate endDate)
+            throws RecordDoesNotExistException, UserIsNotOwnerException;
+
+    SumResponse sumCurrentUserNegativeAmount(UUID accountId, CategoryRequest categoryName, LocalDate startDate, LocalDate endDate)
             throws RecordDoesNotExistException, UserIsNotOwnerException;
 }
