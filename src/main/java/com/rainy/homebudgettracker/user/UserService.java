@@ -19,6 +19,11 @@ public class UserService {
         return String.valueOf(SecurityContextHolder.getContext().getAuthentication().getPrincipal());
     }
 
+    public boolean isPremiumUser() {
+        return SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals(Role.PREMIUM_USER.name()));
+    }
+
     @Transactional
     public void deleteUserData() {
         String sub = getUserSub();

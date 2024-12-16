@@ -1,10 +1,7 @@
 package com.rainy.homebudgettracker.transaction;
 
 import com.rainy.homebudgettracker.category.CategoryRequest;
-import com.rainy.homebudgettracker.handler.exception.ImageUploadException;
-import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
-import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
-import com.rainy.homebudgettracker.handler.exception.WrongFileTypeException;
+import com.rainy.homebudgettracker.handler.exception.*;
 import org.springframework.cglib.core.Local;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -58,7 +55,7 @@ public interface TransactionService {
             throws IOException;
 
     TransactionResponse addImageToCurrentUserTransaction(UUID id, MultipartFile file)
-            throws RecordDoesNotExistException, UserIsNotOwnerException, ImageUploadException, WrongFileTypeException;
+            throws RecordDoesNotExistException, UserIsNotOwnerException, ImageUploadException, WrongFileTypeException, PremiumStatusRequiredException;
 
     TransactionResponse deleteImageFromCurrentUserTransaction(UUID id)
             throws RecordDoesNotExistException, UserIsNotOwnerException;
