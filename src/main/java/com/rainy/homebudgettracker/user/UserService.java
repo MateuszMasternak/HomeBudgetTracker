@@ -31,4 +31,10 @@ public class UserService {
         categoryRepository.deleteAllByUserSub(sub);
         transactionRepository.deleteAllByUserSub(sub);
     }
+
+    public UserInfoResponse getUserInfo() {
+        return UserInfoResponse.builder()
+                .isPremiumUser(isPremiumUser())
+                .build();
+    }
 }
