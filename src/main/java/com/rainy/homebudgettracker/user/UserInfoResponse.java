@@ -10,5 +10,5 @@ import lombok.Setter;
 @Builder
 @EqualsAndHashCode
 public class UserInfoResponse {
-    private boolean isPremiumUser;
+    private boolean premiumUser;
 }

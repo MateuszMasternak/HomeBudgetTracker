@@ -34,7 +34,7 @@ public class UserService {
 
     public UserInfoResponse getUserInfo() {
         return UserInfoResponse.builder()
-                .isPremiumUser(isPremiumUser())
+                .premiumUser(isPremiumUser())
                 .build();
     }
 }
