@@ -1,10 +1,7 @@
 package com.rainy.homebudgettracker.transaction;
 
 import com.rainy.homebudgettracker.category.CategoryRequest;
-import com.rainy.homebudgettracker.handler.exception.ImageUploadException;
-import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
-import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
-import com.rainy.homebudgettracker.handler.exception.WrongFileTypeException;
+import com.rainy.homebudgettracker.handler.exception.*;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -153,7 +150,11 @@ public class TransactionController {
     public ResponseEntity<TransactionResponse> uploadImageForCurrentUserTransaction(
             @RequestParam(name = "id") UUID transactionId,
             @RequestParam("file") MultipartFile file
-    ) throws RecordDoesNotExistException, UserIsNotOwnerException, ImageUploadException, WrongFileTypeException {
+    ) throws RecordDoesNotExistException,
+            UserIsNotOwnerException,
+            ImageUploadException,
+            WrongFileTypeException,
+            PremiumStatusRequiredException {
 
         return ResponseEntity.accepted().body(
                 transactionService.addImageToCurrentUserTransaction(transactionId, file));

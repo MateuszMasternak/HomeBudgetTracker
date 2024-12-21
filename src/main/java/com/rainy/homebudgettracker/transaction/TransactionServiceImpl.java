@@ -10,10 +10,7 @@ import com.rainy.homebudgettracker.category.CategoryService;
 import com.rainy.homebudgettracker.exchange.CurrencyConverter;
 import com.rainy.homebudgettracker.exchange.ExchangeResponse;
 import com.rainy.homebudgettracker.exchange.ExchangeService;
-import com.rainy.homebudgettracker.handler.exception.ImageUploadException;
-import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
-import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
-import com.rainy.homebudgettracker.handler.exception.WrongFileTypeException;
+import com.rainy.homebudgettracker.handler.exception.*;
 import com.rainy.homebudgettracker.images.ImageService;
 import com.rainy.homebudgettracker.images.S3Service;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
@@ -354,7 +351,11 @@ public class TransactionServiceImpl implements TransactionService {
             throws RecordDoesNotExistException,
             UserIsNotOwnerException,
             ImageUploadException,
-            WrongFileTypeException {
+            WrongFileTypeException, PremiumStatusRequiredException {
+
+        if (!userService.isPremiumUser()) {
+            throw new PremiumStatusRequiredException("This feature is only available for premium users.");
+        }
 
         String userSub = userService.getUserSub();
         Optional<Transaction> transaction = transactionRepository.findById(transactionId);

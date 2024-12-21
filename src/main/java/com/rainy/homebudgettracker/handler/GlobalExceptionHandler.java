@@ -203,4 +203,18 @@ public class GlobalExceptionHandler {
                                 .build()
                 );
     }
+
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ExceptionHandler(PremiumStatusRequiredException.class)
+    public ResponseEntity<ExceptionResponse> handleException(PremiumStatusRequiredException e) {
+        return ResponseEntity
+                .status(PREMIUM_STATUS_REQUIRED.getCode())
+                .body(
+                        ExceptionResponse.builder()
+                                .businessErrorCode(PREMIUM_STATUS_REQUIRED.getCode())
+                                .businessErrorDescription(PREMIUM_STATUS_REQUIRED.getDescription())
+                                .error(e.getMessage())
+                                .build()
+                );
+    }
 }
