@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.s3.S3Client;
 
 @Configuration
@@ -29,6 +30,14 @@ public class AwsConfig {
     @Bean
     public S3Client s3Client() {
         return S3Client.builder()
+                .region(Region.of(region))
+                .credentialsProvider(awsCredentialsProvider())
+                .build();
+    }
+
+    @Bean
+    public CognitoIdentityProviderClient cognitoIdentityProviderClient() {
+        return CognitoIdentityProviderClient.builder()
                 .region(Region.of(region))
                 .credentialsProvider(awsCredentialsProvider())
                 .build();

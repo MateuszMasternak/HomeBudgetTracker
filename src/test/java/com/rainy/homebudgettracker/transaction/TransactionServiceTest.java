@@ -633,14 +633,13 @@ class TransactionServiceTest {
 
         assertEquals(1, returnedTransactionResponses.size());
     }
-
-//    // CSV EXPORT
+    
 //    @Test
 //    void shouldReturnCsvString() throws IOException {
 //        var csv = transactionService.generateCSVWithCurrentUserTransactions();
 //        var expectedCsv = "sep=,\n" +
-//                "ID,Amount,Category,Date,Currency code,Payment method\n" +
-//                "212a0e7e-24c3-4774-a46b-741d89072fad,100.00,Food,2024-01-01,USD,CASH\n";
+//                "Account name,Currency code,Amount,Category,Date,Transaction method,Description\n" +
+//                "USD Account,USD,100.00,Food,2024-01-01,USD,CASH,\n";
 //        var expectedCsvAsBytes = expectedCsv.getBytes();
 //
 //        assertArrayEquals(expectedCsvAsBytes, csv);
