@@ -20,9 +20,8 @@ Home Budget Tracker is a Java-based API designed to help users manage their pers
 * Signed AWS Cloudfront URL with database caching for image-related responses (pre-signed S3 URL and default Cloudfront URL are also available via aws.transaction-response-url-type property - cloudfront, s3 or cloudfront-signed values are allowed, the third one is set by default).  
 
 ## In Progress or Planned
-* Import transactions from a file (probably CSV, maybe PDF)
-* Frontend (I already have one that is written in Vue with Vite and PrimeVue, but it has only a few functions implemented and is not up to date). 
-![hbt_fe_demo.gif](hbt_fe_demo.gif)
+* Import transactions from a file (probably CSV, maybe PDF).
+* Frontend: [Deployed on Vercel](https://home-budget-tracker.vercel.app/) - work in progress.
 
 ## Technologies Used
 * Java
