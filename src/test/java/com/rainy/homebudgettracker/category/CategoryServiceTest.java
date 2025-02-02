@@ -1,144 +1,98 @@
 package com.rainy.homebudgettracker.category;
 
-import com.rainy.homebudgettracker.user.UserService;
-import com.rainy.homebudgettracker.handler.exception.CategoryAssociatedWithTransactionException;
-import com.rainy.homebudgettracker.handler.exception.RecordAlreadyExistsException;
-import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
-import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
+import com.rainy.homebudgettracker.handler.exception.*;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
 import com.rainy.homebudgettracker.transaction.TransactionRepository;
-import org.junit.jupiter.api.AfterEach;
+import com.rainy.homebudgettracker.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
+
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class CategoryServiceTest {
     @InjectMocks
-    CategoryServiceImpl categoryService;
+    private CategoryServiceImpl categoryService;
+
     @Mock
-    CategoryRepository categoryRepository;
+    private CategoryRepository categoryRepository;
     @Mock
-    TransactionRepository transactionRepository;
+    private TransactionRepository transactionRepository;
     @Mock
-    UserService userService;
+    private UserService userService;
     @Mock
-    ModelMapper modelMapper;
+    private ModelMapper modelMapper;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        var userSub = "550e8400-e29b-41d4-a716-446655440000";
-        when(userService.getUserSub()).thenReturn(userSub);
+        when(userService.getUserSub()).thenReturn(TestData.USER_SUB);
 
-        var category = Category.builder()
-                .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
-                .name("Food")
-                .userSub(userSub)
-                .build();
+        when(categoryRepository.findById(TestData.ASSOCIATED_CATEGORY_ID))
+                .thenReturn(Optional.of(TestData.CATEGORY_ASSOCIATED));
 
-        var categoryRequest = CategoryRequest.builder()
-                .name("Food")
-                .build();
+        when(categoryRepository.findByUserSubAndName(TestData.USER_SUB, "Food"))
+                .thenReturn(Optional.of(TestData.CATEGORY_FOOD));
 
-        var categoryRequest2 = CategoryRequest.builder()
-                .name("Healthcare")
-                .build();
+        when(categoryRepository.findByUserSubAndName(TestData.USER_SUB, "Healthcare"))
+                .thenReturn(Optional.empty());
 
-        var pageable = PageRequest.of(0, 10);
-        var categoryPage = new PageImpl<>(List.of(category));
+        when(categoryRepository.findById(TestData.CATEGORY_ID_FOOD))
+                .thenReturn(Optional.of(TestData.CATEGORY_FOOD));
 
-        when(modelMapper.map(category, CategoryResponse.class)).thenReturn(CategoryResponse.builder()
-                .id(category.getId())
-                .name(category.getName())
-                .build());
-        when(modelMapper.map(categoryRequest, Category.class, userSub)).thenReturn(category);
-        when(modelMapper.map(categoryRequest2, Category.class, userSub)).thenReturn(Category.builder()
-                .name("Healthcare")
-                .userSub(userSub)
-                .build());
+        when(categoryRepository.findById(TestData.OTHER_USER_CATEGORY_ID))
+                .thenReturn(Optional.of(TestData.CATEGORY_OTHER_USER));
 
-        when(transactionRepository.existsByCategory(category)).thenReturn(true);
-        when(transactionRepository.existsByCategory(any())).thenReturn(false);
-        when(categoryRepository.save(any())).thenReturn(category);
-        when(categoryRepository.findByUserSubAndName(userSub, "Food")).thenReturn(Optional.of(category));
-        when(categoryRepository.findByUserSubAndName(userSub, "Healthcare")).thenReturn(Optional.empty());
-        when(categoryRepository.findAllByUserSub(userSub, pageable)).thenReturn(categoryPage);
-        when(categoryRepository.findAllByUserSub(userSub)).thenReturn(List.of(category));
-        when(categoryRepository.save(Category.builder().name("Food").userSub(userSub).build())).thenReturn(category);
-        when(categoryRepository.existsByUserSubAndName(userSub, "Food")).thenReturn(false);
-        when(categoryRepository.existsByUserSubAndName(userSub, "Healthcare")).thenReturn(true);
-        doNothing().when(categoryRepository).deleteById(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"));
-        when(categoryRepository.findById(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))).thenReturn(Optional.of(category));
-        when(categoryRepository.findById(UUID.fromString("cb5f0153-5b1e-4f4b-9886-ae6791284043"))).thenReturn(Optional.empty());
-        when(categoryRepository.findById(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))).thenReturn(Optional.of(Category.builder()
-                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
-                .name("Healthcare")
-                .userSub("550e8400-e29b-41d4-a716-446655440001")
-                .build()));
-        Category category2 = Category.builder()
-                .id(UUID.fromString("c7e2fa7e-2267-4da5-ade1-5dc79948a773"))
-                .name("Healthcare")
-                .userSub(userSub)
-                .build();
-        when(categoryRepository.findById(UUID.fromString("c7e2fa7e-2267-4da5-ade1-5dc79948a773"))).thenReturn(Optional.of(category2));
-        when(transactionRepository.existsByCategory(category2)).thenReturn(true);
-    }
+        when(categoryRepository.findAllByUserSub(TestData.USER_SUB, TestData.PAGEABLE))
+                .thenReturn(new PageImpl<>(List.of(TestData.CATEGORY_FOOD)));
 
-    @AfterEach
-    void tearDown() {
+        when(transactionRepository.existsByCategory(TestData.CATEGORY_FOOD)).thenReturn(false);
+        when(transactionRepository.existsByCategory(TestData.CATEGORY_ASSOCIATED)).thenReturn(true);
+
+        when(categoryRepository.save(TestData.CATEGORY_TRANSPORT)).thenReturn(TestData.CATEGORY_TRANSPORT);
+        doNothing().when(categoryRepository).deleteById(TestData.CATEGORY_ID_FOOD);
+
+        when(categoryRepository.findAllByUserSub(TestData.USER_SUB))
+                .thenReturn(List.of(TestData.CATEGORY_FOOD));
+
+        when(categoryRepository.existsByUserSubAndName(TestData.USER_SUB, "Food")).thenReturn(true);
+        when(categoryRepository.existsByUserSubAndName(TestData.USER_SUB, "Healthcare")).thenReturn(true);
+        when(categoryRepository.existsByUserSubAndName(TestData.USER_SUB, "Transport")).thenReturn(false);
+
+        when(modelMapper.map(TestData.CATEGORY_FOOD, CategoryResponse.class))
+                .thenReturn(TestData.CATEGORY_RESPONSE_FOOD);
+        when(modelMapper.map(TestData.CATEGORY_REQUEST_TRANSPORT, Category.class, TestData.USER_SUB)).thenReturn(TestData.CATEGORY_TRANSPORT);
+        when(modelMapper.map(TestData.CATEGORY_TRANSPORT, CategoryResponse.class)).thenReturn(TestData.CATEGORY_RESPONSE_TRANSPORT);
     }
 
     @Test
     void shouldReturnPageWithCategoryResponse() {
-
-        var categoryPage = categoryService.findCurrentUserCategoriesAsResponses(
-                PageRequest.of(0, 10));
-
-        var categoryResponse = CategoryResponse.builder()
-                .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
-                .name("Food")
-                .build();
+        var categoryPage = categoryService.findCurrentUserCategoriesAsResponses(TestData.PAGEABLE);
 
         assertEquals(1, categoryPage.getTotalElements());
-        assertEquals(categoryResponse, categoryPage.getContent().get(0));
+        assertEquals(TestData.CATEGORY_RESPONSE_FOOD, categoryPage.getContent().get(0));
     }
 
     @Test
     void shouldReturnListWithCategoryResponse() {
         var categoryList = categoryService.findCurrentUserCategoriesAsResponses();
 
-        var categoryResponse = CategoryResponse.builder()
-                .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
-                .name("Food")
-                .build();
-
         assertEquals(1, categoryList.size());
-        assertEquals(categoryResponse, categoryList.get(0));
+        assertEquals(TestData.CATEGORY_RESPONSE_FOOD, categoryList.get(0));
     }
 
     @Test
     void shouldReturnCategoryResponse() throws RecordDoesNotExistException {
         var returnedCategoryResponse = categoryService.findCurrentUserCategoryAsResponse("Food");
 
-        var categoryResponse = CategoryResponse.builder()
-                .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
-                .name("Food")
-                .build();
-
-        assertEquals(categoryResponse, returnedCategoryResponse);
+        assertEquals(TestData.CATEGORY_RESPONSE_FOOD, returnedCategoryResponse);
     }
 
     @Test
@@ -151,13 +105,7 @@ class CategoryServiceTest {
     void shouldReturnCategory() throws RecordDoesNotExistException {
         var returnedCategory = categoryService.findCurrentUserCategory("Food");
 
-        var category = Category.builder()
-                .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
-                .name("Food")
-                .userSub("550e8400-e29b-41d4-a716-446655440000")
-                .build();
-
-        assertEquals(category, returnedCategory);
+        assertEquals(TestData.CATEGORY_FOOD, returnedCategory);
     }
 
     @Test
@@ -168,25 +116,16 @@ class CategoryServiceTest {
 
     @Test
     void shouldReturnCategoryResponseWhenCategoryIsCreated() throws RecordAlreadyExistsException {
-        var categoryRequest = CategoryRequest.builder()
-                .name("Food")
-                .build();
+        var categoryRequest = new CategoryRequest("Transport");
 
         var returnedCategoryResponse = categoryService.createCategoryForCurrentUser(categoryRequest);
 
-        var categoryResponse = CategoryResponse.builder()
-                .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
-                .name("Food")
-                .build();
-
-        assertEquals(categoryResponse, returnedCategoryResponse);
+        assertEquals(TestData.CATEGORY_RESPONSE_TRANSPORT, returnedCategoryResponse);
     }
 
     @Test
     void shouldThrowExceptionWhenCategoryAlreadyExists() {
-        var categoryRequest = CategoryRequest.builder()
-                .name("Healthcare")
-                .build();
+        var categoryRequest = new CategoryRequest("Healthcare");
 
         assertThrows(RecordAlreadyExistsException.class,
                 () -> categoryService.createCategoryForCurrentUser(categoryRequest));
@@ -194,24 +133,24 @@ class CategoryServiceTest {
 
     @Test
     void shouldDeleteCategory() {
-        assertDoesNotThrow(() -> categoryService.deleteCurrentUserCategory(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100")));
+        assertDoesNotThrow(() -> categoryService.deleteCurrentUserCategory(TestData.CATEGORY_ID_FOOD));
     }
 
     @Test
     void shouldThrowExceptionWhenCategoryIsAssociatedWithTransactionWhenDeleting() {
         assertThrows(CategoryAssociatedWithTransactionException.class,
-                () -> categoryService.deleteCurrentUserCategory(UUID.fromString("c7e2fa7e-2267-4da5-ade1-5dc79948a773")));
+                () -> categoryService.deleteCurrentUserCategory(TestData.ASSOCIATED_CATEGORY_ID));
     }
 
     @Test
     void shouldThrowExceptionWhenUserIsNotOwnerWhenDeleting() {
         assertThrows(UserIsNotOwnerException.class,
-                () -> categoryService.deleteCurrentUserCategory(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903")));
+                () -> categoryService.deleteCurrentUserCategory(TestData.OTHER_USER_CATEGORY_ID));
     }
 
     @Test
     void shouldThrowExceptionWhenCategoryDoesNotExistWhenDeleting() {
         assertThrows(RecordDoesNotExistException.class,
-                () -> categoryService.deleteCurrentUserCategory(UUID.fromString("cb5f0153-5b1e-4f4b-9886-ae6791284043")));
+                () -> categoryService.deleteCurrentUserCategory(TestData.NON_EXISTENT_CATEGORY_ID));
     }
 }

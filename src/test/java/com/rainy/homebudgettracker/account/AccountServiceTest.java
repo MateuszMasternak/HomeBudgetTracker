@@ -1,20 +1,15 @@
 package com.rainy.homebudgettracker.account;
 
+import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
-import com.rainy.homebudgettracker.transaction.BigDecimalNormalization;
+import com.rainy.homebudgettracker.mapper.ModelMapper;
 import com.rainy.homebudgettracker.transaction.TransactionRepository;
 import com.rainy.homebudgettracker.user.UserService;
-import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
-import com.rainy.homebudgettracker.mapper.ModelMapper;
-import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -23,144 +18,97 @@ import static org.mockito.Mockito.*;
 
 class AccountServiceTest {
     @InjectMocks
-    AccountServiceImpl accountService;
+    private AccountServiceImpl accountService;
+
     @Mock
-    AccountRepository accountRepository;
+    private AccountRepository accountRepository;
     @Mock
-    UserService userService;
+    private UserService userService;
     @Mock
-    ModelMapper modelMapper;
+    private ModelMapper modelMapper;
     @Mock
-    TransactionRepository transactionRepository;
+    private TransactionRepository transactionRepository;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        when(userService.getUserSub()).thenReturn(TestData.userSubs.get(0));
+        when(userService.getUserSub()).thenReturn(TestData.USER_SUB_1);
+        when(accountRepository.findById(TestData.ACCOUNT_1.getId())).thenReturn(Optional.of(TestData.ACCOUNT_1));
+        when(accountRepository.findById(TestData.ACCOUNT_OTHER_USER.getId())).thenReturn(Optional.of(TestData.ACCOUNT_OTHER_USER));
 
-        when(modelMapper.map(
-                eq(TestData.accounts.get(0)),
-                eq(AccountResponse.class),
-                any(BigDecimal.class)))
-                .thenReturn(TestData.accountResponses.get(0));
+        when(transactionRepository.sumAmountByAccount(any(Account.class))).thenReturn(BigDecimal.ZERO);
 
-        when(accountRepository.findAllByUserSub(TestData.userSubs.get(0)))
-                .thenReturn(List.of(TestData.accounts.get(0)));
+        when(modelMapper.map(any(Account.class), eq(AccountResponse.class)))
+                .thenAnswer(invocation -> {
+                    Account account = invocation.getArgument(0);
+                    return new AccountResponse(account.getId(), account.getName(), account.getCurrencyCode().toString(), "0.00");
+                });
 
-        when(transactionRepository.sumAmountByAccount(TestData.accounts.get(0)))
-                .thenReturn(BigDecimal.ZERO);
-
-        when(accountRepository.findById(TestData.accounts.get(0).getId()))
-                .thenReturn(Optional.of(TestData.accounts.get(0)));
-
-
-
-    }
-
-    @AfterEach
-    void tearDown() {
+        when(accountRepository.save(any(Account.class))).thenReturn(TestData.ACCOUNT_2);
     }
 
     @Test
-    void shouldReturnListWithAccountResponse() {
-        try (MockedStatic<BigDecimalNormalization> normalization = Mockito.mockStatic(BigDecimalNormalization.class)) {
-            normalization.when(() -> BigDecimalNormalization.normalize(any(), eq(2)))
-                    .thenReturn(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP));
+    void shouldThrowRecordDoesNotExistExceptionAccountResponse() {
+        UUID nonExistentId = UUID.randomUUID();
+        when(accountRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
-            var returnedAccountResponses = accountService.findCurrentUserAccountsAsResponses();
-
-            assertEquals(1, returnedAccountResponses.size());
-            assertEquals(TestData.accountResponses.get(0), returnedAccountResponses.get(0));
-        }
+        assertThrows(RecordDoesNotExistException.class,
+                () -> accountService.findCurrentUserAccountAsResponse(nonExistentId));
     }
 
     @Test
-    void shouldReturnAccountResponse() throws RecordDoesNotExistException, UserIsNotOwnerException {
-        try (MockedStatic<BigDecimalNormalization> normalization = Mockito.mockStatic(BigDecimalNormalization.class)) {
-            normalization.when(() -> BigDecimalNormalization.normalize(any(), eq(2)))
-                    .thenReturn(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP));
-
-            var returnedAccountResponse = accountService.findCurrentUserAccountAsResponse(TestData.accounts.get(0).getId());
-
-            assertEquals(TestData.accountResponses.get(0), returnedAccountResponse);
-        }
+    void shouldThrowUserIsNotOwnerException() {
+        assertThrows(UserIsNotOwnerException.class,
+                () -> accountService.findCurrentUserAccountAsResponse(TestData.ACCOUNT_OTHER_USER.getId()));
     }
-//
-//    @Test
-//    void shouldThrowRecordDoesNotExistExceptionAccountResponse() {
-//        assertThrows(RecordDoesNotExistException.class,
-//                () -> accountService.findCurrentUserAccountAsResponse(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903")));
-//    }
-//
-//    @Test
-//    void shouldThrowUserIsNotOwnerException() {
-//        assertThrows(UserIsNotOwnerException.class,
-//                () -> accountService.findCurrentUserAccountAsResponse(UUID.fromString("c7e2fa7e-2267-4da5-ade1-5dc79948a773")));
-//    }
-//
-//    @Test
-//    void shouldReturnAccount() throws RecordDoesNotExistException, UserIsNotOwnerException {
-//        var returnedAccount = accountService.findCurrentUserAccount(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"));
-//
-//        var userSub = "550e8400-e29b-41d4-a716-446655440000";
-//
-//        var account = Account.builder()
-//                .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
-//                .name("USD account")
-//                .currencyCode(CurrencyCode.USD)
-//                .userSub(userSub)
-//                .build();
-//
-//        assertEquals(account, returnedAccount);
-//    }
-//
-//    @Test
-//    void shouldThrowRecordDoesNotExistExceptionAccount() {
-//        assertThrows(RecordDoesNotExistException.class,
-//                () -> accountService.findCurrentUserAccount(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903")));
-//    }
-//
-//    @Test
-//    void shouldReturnAccountResponseWhenAccountIsCreated() {
-//        var accountRequest = AccountRequest.builder()
-//                .name("EUR account")
-//                .currencyCode(CurrencyCode.EUR)
-//                .build();
-//
-//        var returnedAccountResponse = accountService.createAccountForCurrentUser(accountRequest);
-//
-//        var accountResponse = AccountResponse.builder()
-//                .id(UUID.fromString("c7e2fa7e-2267-4da5-ade1-5dc79948a773"))
-//                .name("EUR account")
-//                .currencyCode(CurrencyCode.EUR.toString())
-//                .balance("0.00")
-//                .build();
-//
-//        assertEquals(accountResponse, returnedAccountResponse);
-//    }
-//
-//    @Test
-//    void shouldReturnAccountResponseWhenAccountNameIsUpdated()
-//            throws RecordDoesNotExistException, UserIsNotOwnerException {
-//
-//        var returnedAccountResponse = accountService.updateCurrentUserAccountName(
-//                AccountUpdateNameRequest.builder().id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100")).name("Changed name").build());
-//
-//        var accountResponse = AccountResponse.builder()
-//                .id(UUID.fromString("312a1af8-a338-49ea-b67c-860062a10100"))
-//                .name("Changed name")
-//                .currencyCode(CurrencyCode.USD.toString())
-//                .balance("0.00")
-//                .build();
-//
-//        assertEquals(accountResponse, returnedAccountResponse);
-//    }
-//
-//    @Test
-//    void shouldThrowRecordDoesNotExistExceptionWhenUpdatingName() {
-//        assertThrows(RecordDoesNotExistException.class,
-//                () -> accountService.updateCurrentUserAccountName(
-//                        AccountUpdateNameRequest.builder().id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903")).name("Changed name").build()));
-//    }
+
+    @Test
+    void shouldReturnAccount() throws RecordDoesNotExistException, UserIsNotOwnerException {
+        var returnedAccount = accountService.findCurrentUserAccount(TestData.ACCOUNT_1.getId());
+        assertEquals(TestData.ACCOUNT_1, returnedAccount);
+    }
+
+    @Test
+    void shouldThrowRecordDoesNotExistExceptionAccount() {
+        UUID nonExistentId = UUID.randomUUID();
+        when(accountRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+
+        assertThrows(RecordDoesNotExistException.class,
+                () -> accountService.findCurrentUserAccount(nonExistentId));
+    }
+
+    @Test
+    void shouldReturnAccountResponseWhenAccountIsCreated() {
+        when(modelMapper.map(eq(TestData.ACCOUNT_REQUEST_2), eq(Account.class), any(String.class)))
+                .thenReturn(TestData.ACCOUNT_2);
+
+        var returnedAccountResponse = accountService.createAccountForCurrentUser(TestData.ACCOUNT_REQUEST_2);
+        assertEquals(TestData.ACCOUNT_RESPONSE_2, returnedAccountResponse);
+    }
+
+    @Test
+    void shouldReturnAccountResponseWhenAccountNameIsUpdated()
+            throws RecordDoesNotExistException, UserIsNotOwnerException {
+        var accountUpdateNameRequest = new AccountUpdateNameRequest(TestData.ACCOUNT_1.getId(), "Changed name");
+
+        doNothing().when(accountRepository).updateAccountName(accountUpdateNameRequest.getId(), accountUpdateNameRequest.getName());
+
+        when(accountRepository.findById(accountUpdateNameRequest.getId())).thenReturn(Optional.of(TestData.ACCOUNT_1));
+
+        var returnedAccountResponse = accountService.updateCurrentUserAccountName(accountUpdateNameRequest);
+
+        assertEquals(TestData.ACCOUNT_RESPONSE_UPDATED, returnedAccountResponse);
+    }
+
+    @Test
+    void shouldThrowRecordDoesNotExistExceptionWhenUpdatingName() {
+        UUID nonExistentId = UUID.randomUUID();
+        var accountUpdateNameRequest = new AccountUpdateNameRequest(nonExistentId, "Changed name");
+
+        when(accountRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+
+        assertThrows(RecordDoesNotExistException.class,
+                () -> accountService.updateCurrentUserAccountName(accountUpdateNameRequest));
+    }
 }

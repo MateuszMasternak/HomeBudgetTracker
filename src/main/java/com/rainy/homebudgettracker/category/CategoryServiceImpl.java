@@ -20,7 +20,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class CategoryServiceImpl implements  CategoryService {
+public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
     private final TransactionRepository transactionRepository;
     private final UserService userService;
@@ -29,8 +29,8 @@ public class CategoryServiceImpl implements  CategoryService {
     @Override
     public Page<CategoryResponse> findCurrentUserCategoriesAsResponses(Pageable pageable) {
         String userSub = userService.getUserSub();
-        Page<Category> categories = categoryRepository.findAllByUserSub(userSub, pageable);
-        return categories.map(category -> modelMapper.map(category, CategoryResponse.class));
+        return categoryRepository.findAllByUserSub(userSub, pageable)
+                .map(category -> modelMapper.map(category, CategoryResponse.class));
     }
 
     @Override
@@ -42,53 +42,50 @@ public class CategoryServiceImpl implements  CategoryService {
 
     @Override
     public CategoryResponse findCurrentUserCategoryAsResponse(String name) throws RecordDoesNotExistException {
-        String userSub = userService.getUserSub();
-        Category category = categoryRepository.findByUserSubAndName(userSub, name).orElseThrow(
-                () -> new RecordDoesNotExistException("Category with name " + name + " does not exist.")
-        );
-        return modelMapper.map(category, CategoryResponse.class);
+        return modelMapper.map(findCurrentUserCategory(name), CategoryResponse.class);
     }
 
     @Override
     public Category findCurrentUserCategory(String name) throws RecordDoesNotExistException {
-        String userSub = userService.getUserSub();
-        return categoryRepository.findByUserSubAndName(userSub, name).orElseThrow(
-                () -> new RecordDoesNotExistException("Category with name " + name + " does not exist.")
-        );
+        return categoryRepository.findByUserSubAndName(userService.getUserSub(), name)
+                .orElseThrow(() -> new RecordDoesNotExistException("Category with name " + name + " does not exist."));
     }
 
     @Override
     public CategoryResponse createCategoryForCurrentUser(CategoryRequest categoryRequest)
             throws RecordAlreadyExistsException {
         String userSub = userService.getUserSub();
-        Category category = modelMapper.map(categoryRequest, Category.class, userSub);
-        if (categoryRepository.existsByUserSubAndName(category.getUserSub(), category.getName())) {
-            throw new RecordAlreadyExistsException(
-                    "Category with name " + categoryRequest.getName() + " already exists.");
-        } else {
-            Category savedCategory = categoryRepository.save(category);
-            return modelMapper.map(savedCategory, CategoryResponse.class);
+
+        if (categoryRepository.existsByUserSubAndName(userSub, categoryRequest.getName())) {
+            throw new RecordAlreadyExistsException("Category with name " + categoryRequest.getName() + " already exists.");
         }
+
+        Category category = modelMapper.map(categoryRequest, Category.class, userSub);
+        Category savedCategory = categoryRepository.save(category);
+        return modelMapper.map(savedCategory, CategoryResponse.class);
     }
 
     @Transactional
     @Override
-    public void deleteCurrentUserCategory(UUID categoryId) throws
-            RecordDoesNotExistException,
-            UserIsNotOwnerException,
-            CategoryAssociatedWithTransactionException
-    {
-        String userSub = userService.getUserSub();
-        Optional<Category> category = categoryRepository.findById(categoryId);
-        if (category.isEmpty()) {
+    public void deleteCurrentUserCategory(UUID categoryId)
+            throws RecordDoesNotExistException, UserIsNotOwnerException, CategoryAssociatedWithTransactionException {
+        Optional<Category> optionalCategory = categoryRepository.findById(categoryId);
+
+        if (optionalCategory.isEmpty()) {
             throw new RecordDoesNotExistException("Category with id " + categoryId + " does not exist.");
-        } else if (!category.get().getUserSub().equals(userSub)) {
-            throw new UserIsNotOwnerException("Category with id " + categoryId + " does not belong to user.");
-        } else if (transactionRepository.existsByCategory(category.get())) {
-            throw new CategoryAssociatedWithTransactionException("Category with id " + categoryId + " is associated with transactions.");
-        } else {
-            categoryRepository.deleteById(categoryId);
         }
+
+        Category category = optionalCategory.get();
+
+        if (transactionRepository.existsByCategory(category)) {
+            throw new CategoryAssociatedWithTransactionException("Category with id " + categoryId + " is associated with transactions.");
+        }
+
+        if (!category.getUserSub().equals(userService.getUserSub())) {
+            throw new UserIsNotOwnerException("Category with id " + categoryId + " does not belong to user.");
+        }
+
+        categoryRepository.deleteById(categoryId);
     }
 
     private List<CategoryResponse> mapIterableCategoryToResponseCategoryList(Iterable<Category> categories) {
