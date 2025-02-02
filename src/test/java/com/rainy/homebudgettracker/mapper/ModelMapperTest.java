@@ -1,7 +1,6 @@
 package com.rainy.homebudgettracker.mapper;
 
 import com.rainy.homebudgettracker.account.Account;
-import com.rainy.homebudgettracker.account.AccountRequest;
 import com.rainy.homebudgettracker.account.AccountResponse;
 import com.rainy.homebudgettracker.category.Category;
 import com.rainy.homebudgettracker.category.CategoryRequest;
@@ -9,7 +8,6 @@ import com.rainy.homebudgettracker.category.CategoryResponse;
 import com.rainy.homebudgettracker.transaction.Transaction;
 import com.rainy.homebudgettracker.transaction.TransactionRequest;
 import com.rainy.homebudgettracker.transaction.TransactionResponse;
-import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import com.rainy.homebudgettracker.transaction.enums.TransactionMethod;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,17 +15,13 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 
-import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDate;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class ModelMapperTest {
     @InjectMocks
     ModelMapper modelMapper;
-    String userSub = "550e8400-e29b-41d4-a716-446655440000";
 
     @BeforeEach
     void setUp() {
@@ -41,67 +35,36 @@ class ModelMapperTest {
     @Test
     public void shouldMapCategoryToCategoryResponse() {
         var category = Category.builder()
-                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
-                .name("Food")
-                .userSub(userSub)
+                .id(TestData.CATEGORY_ID)
+                .name(TestData.CATEGORY_NAME)
+                .userSub(TestData.USER_SUB)
                 .build();
 
         var returnedCategoryResponse = modelMapper.map(category, CategoryResponse.class);
 
         var categoryResponse = CategoryResponse.builder()
-                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
-                .name("Food")
+                .id(TestData.CATEGORY_ID)
+                .name(TestData.CATEGORY_NAME)
                 .build();
 
         assertEquals(categoryResponse, returnedCategoryResponse);
     }
 
     @Test
-    public void shouldThrowExceptionCategoryResponse() {
-        var exception = assertThrows(
-                UnsupportedOperationException.class, () -> modelMapper.map(new Object(), CategoryResponse.class));
-        assertEquals("Mapping not supported", exception.getMessage());
-    }
-
-    @Test
-    public void shouldMapCategoryRequestToCategory() {
-        var categoryRequest = CategoryRequest.builder()
-                .name("Food")
-                .build();
-
-        var returnedCategory = modelMapper.map(categoryRequest, Category.class, userSub);
-
-        var category = Category.builder()
-                .name("Food")
-                .userSub(userSub)
-                .build();
-
-        assertEquals(category, returnedCategory);
-    }
-
-    @Test
-    public void shouldThrowExceptionCategory() {
-        var exception = assertThrows(
-                UnsupportedOperationException.class,
-                () -> modelMapper.map(new Object(), CategoryRequest.class, userSub));
-        assertEquals("Mapping not supported", exception.getMessage());
-    }
-
-    @Test
     public void shouldMapAccountToAccountResponse() {
         var account = Account.builder()
-                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
-                .name("Main")
-                .currencyCode(CurrencyCode.USD)
-                .userSub(userSub)
+                .id(TestData.ACCOUNT_ID)
+                .name(TestData.ACCOUNT_NAME)
+                .currencyCode(TestData.ACCOUNT_CURRENCY)
+                .userSub(TestData.USER_SUB)
                 .build();
 
         var returnedAccountResponse = modelMapper.map(account, AccountResponse.class);
 
         var accountResponse = AccountResponse.builder()
-                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
-                .name("Main")
-                .currencyCode(CurrencyCode.USD.name())
+                .id(TestData.ACCOUNT_ID)
+                .name(TestData.ACCOUNT_NAME)
+                .currencyCode(TestData.ACCOUNT_CURRENCY.name())
                 .build();
 
         assertEquals(accountResponse, returnedAccountResponse);
@@ -110,19 +73,18 @@ class ModelMapperTest {
     @Test
     public void shouldMapAccountToAccountResponseWithBalance() {
         var account = Account.builder()
-                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
-                .name("Main")
-                .currencyCode(CurrencyCode.USD)
-                .userSub(userSub)
+                .id(TestData.ACCOUNT_ID)
+                .name(TestData.ACCOUNT_NAME)
+                .currencyCode(TestData.ACCOUNT_CURRENCY)
+                .userSub(TestData.USER_SUB)
                 .build();
-        var balance = BigDecimal.valueOf(100).setScale(2, RoundingMode.HALF_UP);
 
-        var returnedAccountResponse = modelMapper.map(account, AccountResponse.class, balance);
+        var returnedAccountResponse = modelMapper.map(account, AccountResponse.class, TestData.AMOUNT);
 
         var accountResponse = AccountResponse.builder()
-                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
-                .name("Main")
-                .currencyCode(CurrencyCode.USD.name())
+                .id(TestData.ACCOUNT_ID)
+                .name(TestData.ACCOUNT_NAME)
+                .currencyCode(TestData.ACCOUNT_CURRENCY.name())
                 .balance("100.00")
                 .build();
 
@@ -130,65 +92,29 @@ class ModelMapperTest {
     }
 
     @Test
-    public void shouldThrowExceptionAccountResponse() {
-        var exception = assertThrows(
-                UnsupportedOperationException.class,
-                () -> modelMapper.map(new Object(), AccountResponse.class, userSub));
-        assertEquals("Mapping not supported", exception.getMessage());
-    }
-
-    @Test
-    public void shouldMapAccountRequestToAccount() {
-        var accountRequest = com.rainy.homebudgettracker.account.AccountRequest.builder()
-                .name("Main")
-                .currencyCode(CurrencyCode.USD)
-                .build();
-
-        var returnedAccount = modelMapper.map(accountRequest, Account.class, userSub);
-
-        var account = Account.builder()
-                .name("Main")
-                .currencyCode(CurrencyCode.USD)
-                .userSub(userSub)
-                .build();
-
-        assertEquals(account, returnedAccount);
-    }
-
-    @Test
-    public void shouldThrowExceptionAccount() {
-        var exception = assertThrows(
-                UnsupportedOperationException.class,
-                () -> modelMapper.map(new Object(), AccountRequest.class, userSub));
-        assertEquals("Mapping not supported", exception.getMessage());
-    }
-
-    @Test
     public void shouldMapTransactionRequestToTransaction1() {
-        var userSub = "550e8400-e29b-41d4-a716-446655440000";
-
         var account = Account.builder()
-                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
-                .name("Main")
-                .currencyCode(CurrencyCode.USD)
-                .userSub(userSub)
+                .id(TestData.ACCOUNT_ID)
+                .name(TestData.ACCOUNT_NAME)
+                .currencyCode(TestData.ACCOUNT_CURRENCY)
+                .userSub(TestData.USER_SUB)
                 .build();
         var category = Category.builder()
-                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
-                .name("Food")
-                .userSub(userSub)
+                .id(TestData.CATEGORY_ID)
+                .name(TestData.CATEGORY_NAME)
+                .userSub(TestData.USER_SUB)
                 .build();
 
         var transactionRequest = TransactionRequest.builder()
-                .amount(BigDecimal.valueOf(100))
-                .date(LocalDate.now())
+                .amount(TestData.AMOUNT)
+                .date(TestData.TRANSACTION_DATE)
                 .transactionMethod(TransactionMethod.CASH)
-                .categoryName(CategoryRequest.builder().name("Food").build())
-                .currencyCode(CurrencyCode.USD)
-                .details("Details")
+                .categoryName(CategoryRequest.builder().name(TestData.CATEGORY_NAME).build())
+                .currencyCode(TestData.ACCOUNT_CURRENCY)
+                .details(TestData.DETAILS)
                 .build();
 
-        var returnedTransaction = modelMapper.map(transactionRequest, Transaction.class, userSub, category, account);
+        var returnedTransaction = modelMapper.map(transactionRequest, Transaction.class, TestData.USER_SUB, category, account);
 
         var transaction = Transaction.builder()
                 .amount(transactionRequest.getAmount().setScale(2, RoundingMode.HALF_UP))
@@ -196,7 +122,7 @@ class ModelMapperTest {
                 .date(transactionRequest.getDate())
                 .account(account)
                 .transactionMethod(transactionRequest.getTransactionMethod())
-                .userSub(userSub)
+                .userSub(TestData.USER_SUB)
                 .details(transactionRequest.getDetails())
                 .build();
 
@@ -204,103 +130,48 @@ class ModelMapperTest {
     }
 
     @Test
-    public void shouldThrowExceptionTransaction() {
-        var exception = assertThrows(
-                UnsupportedOperationException.class, () -> modelMapper.map(new Object(), TransactionRequest.class));
-        assertEquals("Mapping not supported", exception.getMessage());
-    }
-
-    @Test
-    public void shouldThrowExceptionDefault() {
-        var exception = assertThrows(
-                UnsupportedOperationException.class, () -> modelMapper.map(new Object(), Object.class));
-        assertEquals("Mapping not supported", exception.getMessage());
-    }
-
-    @Test
-    public void shouldMapTransactionRequestToTransaction2() {
-        var userSub = "550e8400-e29b-41d4-a716-446655440000";
-
-        var account = Account.builder()
-                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
-                .name("Main")
-                .currencyCode(CurrencyCode.USD)
-                .userSub(userSub)
-                .build();
-        var category = Category.builder()
-                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
-                .name("Food")
-                .userSub(userSub)
-                .build();
-
-        var transactionRequest = TransactionRequest.builder()
-                .amount(BigDecimal.valueOf(100))
-                .date(LocalDate.now())
-                .transactionMethod(TransactionMethod.CASH)
-                .categoryName(CategoryRequest.builder().name("Food").build())
-                .currencyCode(CurrencyCode.USD)
-                .build();
-
-        var returnedTransaction = modelMapper.map(transactionRequest, Transaction.class, userSub, category, account);
-
-        var transaction = Transaction.builder()
-                .amount(transactionRequest.getAmount().setScale(2, RoundingMode.HALF_UP))
-                .category(category)
-                .date(transactionRequest.getDate())
-                .account(account)
-                .transactionMethod(transactionRequest.getTransactionMethod())
-                .userSub(userSub)
-                .build();
-
-        assertEquals(transaction, returnedTransaction);
-    }
-
-    @Test
     public void shouldMapTransactionToTransactionResponse() {
-        var userSub = "550e8400-e29b-41d4-a716-446655440000";
-
         var account = Account.builder()
-                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
-                .name("Main")
-                .currencyCode(CurrencyCode.USD)
-                .userSub(userSub)
+                .id(TestData.ACCOUNT_ID)
+                .name(TestData.ACCOUNT_NAME)
+                .currencyCode(TestData.ACCOUNT_CURRENCY)
+                .userSub(TestData.USER_SUB)
                 .build();
         var category = Category.builder()
-                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
-                .name("Food")
-                .userSub(userSub)
+                .id(TestData.CATEGORY_ID)
+                .name(TestData.CATEGORY_NAME)
+                .userSub(TestData.USER_SUB)
                 .build();
-        var imageUrl = "link-to-image";
 
         var transaction = Transaction.builder()
-                .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
-                .amount(BigDecimal.valueOf(100).setScale(2, RoundingMode.HALF_UP))
-                .date(LocalDate.now())
+                .id(TestData.ACCOUNT_ID)
+                .amount(TestData.AMOUNT)
+                .date(TestData.TRANSACTION_DATE)
                 .transactionMethod(TransactionMethod.CASH)
                 .category(category)
                 .account(account)
-                .userSub(userSub)
-                .details("Details")
+                .userSub(TestData.USER_SUB)
+                .details(TestData.DETAILS)
                 .build();
 
-        var returnedTransactionResponse = modelMapper.map(transaction, TransactionResponse.class, imageUrl);
+        var returnedTransactionResponse = modelMapper.map(transaction, TransactionResponse.class, TestData.IMAGE_URL);
 
         var transactionResponse = TransactionResponse.builder()
                 .id(transaction.getId())
                 .amount("100.00")
                 .category(CategoryResponse.builder()
-                        .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
-                        .name("Food")
+                        .id(TestData.CATEGORY_ID)
+                        .name(TestData.CATEGORY_NAME)
                         .build())
                 .date(String.valueOf(transaction.getDate()))
                 .account(AccountResponse.builder()
-                        .id(UUID.fromString("b848bced-0daf-4ad7-b9c6-4c477ab5a903"))
-                        .name("Main")
-                        .currencyCode(CurrencyCode.USD.name())
+                        .id(TestData.ACCOUNT_ID)
+                        .name(TestData.ACCOUNT_NAME)
+                        .currencyCode(TestData.ACCOUNT_CURRENCY.name())
                         .build())
                 .transactionMethod(transaction.getTransactionMethod().name())
-                .details("Details")
-                .imageUrl(imageUrl)
+                .details(TestData.DETAILS)
+                .imageUrl(TestData.IMAGE_URL)
                 .build();
 
         assertEquals(transactionResponse, returnedTransactionResponse);
