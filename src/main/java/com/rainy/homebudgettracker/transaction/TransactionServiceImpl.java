@@ -323,6 +323,7 @@ public class TransactionServiceImpl implements TransactionService {
             writer.append("sep=,\n"); // separator for microsoft excel
             writer.append("Account name,Currency code,Amount,Category,Date,Transaction method,Description\n");
             for (TransactionResponse transactionResponse : transactionResponses) {
+                String details = transactionResponse.getDetails() == null ? "" : transactionResponse.getDetails();
                 writer.append(transactionResponse.getAccount().getName())
                         .append(",")
                         .append(transactionResponse.getAccount().getCurrencyCode())
@@ -335,7 +336,7 @@ public class TransactionServiceImpl implements TransactionService {
                         .append(",")
                         .append(transactionResponse.getTransactionMethod())
                         .append(",")
-                        .append(transactionResponse.getDetails())
+                        .append(details)
                         .append("\n");
             }
         }
