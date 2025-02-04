@@ -49,21 +49,9 @@ jobs:
 
       - name: Run tests
         env:
-          DB_HOST_DEV: localhost
-          DB_PORT_DEV: 5432
           DB_NAME_DEV: testdb
           DB_USERNAME_DEV: testuser
           DB_PASSWORD_DEV: testpassword
-          AWS_PROFILE_DEV: default
-          AWS_S3_REGION_DEV: us-east-1
-          AWS_S3_BUCKET_DEV: test-bucket
-          AWS_S3_PRESIGNED_URL_EXPIRATION_TIME_DEV: 1000
-          AWS_CLOUDFRONT_URL_DEV: https://test.cloudfront.net
-          AWS_CLOUDFRONT_PUBLIC_KEY_PAIR_ID_DEV: test-key-pair-id
-          AWS_CLOUDFRONT_PRIVATE_KEY_DEV: test-private-key
-          AWS_COGNITO_PUBLIC_KEY_DEV: test-jwks-url
-          EXCHANGE_RATE_URL: https://test.exchangerate-api.com
-          EXCHANGE_RATE_API_KEY: test-api-key
         run: mvn clean test
 
   deploy:
@@ -75,13 +63,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-        # Install Heroku CLI
       - name: Install Heroku CLI
         run: |
           curl https://cli-assets.heroku.com/install.sh | sh
           echo "heroku installed"
 
-      # Deploy to Heroku
       - name: Install Heroku CLI
         uses: akhileshns/heroku-deploy@v3.12.12
         with:

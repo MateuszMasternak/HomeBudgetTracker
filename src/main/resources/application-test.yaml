@@ -1,0 +1,42 @@
+application:
+  security:
+    frontend-url: http://localhost:5173
+  exchange:
+    rate:
+      url: https://test.exchangerate-api.com
+      api-key: test-api-key
+
+aws:
+  profile: default
+  s3:
+    region: us-east-1
+    bucket: test-bucket
+    expiration-time: 1000
+  cloudfront:
+    url: http://test.cloudfront.net
+    public-key-pair-id: test-key-pair-id
+    private-key: test-private-key
+  transaction-response-url-type: cloudfront-signed
+  cognito:
+    jwks-url: test-jwks-url
+
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/testdb
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USERNAME_DEV}
+    password: ${DB_PASSWORD_DEV}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+  config:
+    activate:
+      on-profile: test
+    import: optional:file:.env[.properties]
