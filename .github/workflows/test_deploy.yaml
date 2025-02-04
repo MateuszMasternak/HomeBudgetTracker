@@ -52,7 +52,7 @@ jobs:
           DB_NAME_DEV: testdb
           DB_USERNAME_DEV: testuser
           DB_PASSWORD_DEV: testpassword
-        run: mvn clean test
+        run: mvn clean test -Dspring.profiles.active=test
 
   deploy:
     runs-on: ubuntu-latest
