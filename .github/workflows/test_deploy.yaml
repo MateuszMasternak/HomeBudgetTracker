@@ -8,6 +8,12 @@ on:
     branches:
       - main
 
+env:
+  SPRING_PROFILES_ACTIVE: test
+  DB_NAME_DEV: testdb
+  DB_USERNAME_DEV: testuser
+  DB_PASSWORD_DEV: testpassword
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -18,9 +24,9 @@ jobs:
         ports:
           - 5432:5432
         env:
-          POSTGRES_DB: testdb
-          POSTGRES_USER: testuser
-          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: ${{ env.DB_NAME_DEV }}
+          POSTGRES_USER: ${{ env.DB_USERNAME_DEV }}
+          POSTGRES_PASSWORD: ${{ env.DB_PASSWORD_DEV }}
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -31,28 +37,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up JDK 17
+      - name: Set up JDK 17 and Cache Maven packages
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
-
-      - name: Cache Maven packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-maven
-
-      - name: Install dependencies
-        run: mvn verify -DskipTests
+          cache: 'maven'
 
       - name: Run tests
-        env:
-          DB_NAME_DEV: testdb
-          DB_USERNAME_DEV: testuser
-          DB_PASSWORD_DEV: testpassword
-        run: mvn clean test -Dspring.profiles.active=test
+        run: mvn clean test
 
   deploy:
     runs-on: ubuntu-latest
@@ -68,14 +61,10 @@ jobs:
           curl https://cli-assets.heroku.com/install.sh | sh
           echo "heroku installed"
 
-      - name: Install Heroku CLI
+      - name: Deploy to Heroku
         uses: akhileshns/heroku-deploy@v3.12.12
         with:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
           heroku_email: ${{ secrets.HEROKU_EMAIL }}
           usedocker: false
-
-      - name: Restart Heroku dynos
-        run: heroku restart -a ${{ secrets.HEROKU_APP_NAME }}
-
