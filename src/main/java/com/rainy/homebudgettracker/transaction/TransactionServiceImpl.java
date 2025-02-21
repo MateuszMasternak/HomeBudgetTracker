@@ -31,6 +31,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 
 import static com.rainy.homebudgettracker.transaction.BigDecimalNormalization.normalize;
@@ -135,27 +136,34 @@ public class TransactionServiceImpl implements TransactionService {
 
         Account account = accountService.findCurrentUserAccount(accountId);
         CurrencyCode targetCurrency = account.getCurrencyCode();
-        TransactionRequest convertedTransactionRequest = getTransactionRequestWithUpdatedCurrency(
-                transactionRequest,
-                CurrencyConverter.convert(
-                        transactionRequest.getAmount(),
-                        Objects.requireNonNullElseGet(
-                                exchangeRate,
-                                () -> {
-                                    BigDecimal currencyRate = getCurrencyRate(
-                                            transactionRequest.getCurrencyCode(),
-                                            targetCurrency);
-                                    addExchangeDetails(
-                                            transactionRequest,
-                                            targetCurrency.name(),
-                                            currencyRate.toString());
-                                    return currencyRate;
-                                }).setScale(2, RoundingMode.HALF_UP),
-                        2),
-                targetCurrency);
 
+        if (exchangeRate == null) {
+            exchangeRate = getCurrencyRate(
+                    transactionRequest.getCurrencyCode(),
+                    targetCurrency);
 
-        return saveTransactionForCurrentUser(account, convertedTransactionRequest);
+            addExchangeDetails(
+                    transactionRequest,
+                    targetCurrency.name(),
+                    exchangeRate.toString(),
+                    true);
+        } else {
+            addExchangeDetails(
+                    transactionRequest,
+                    targetCurrency.name(),
+                    exchangeRate.toString(),
+                    false);
+        }
+
+        BigDecimal convertedAmount = CurrencyConverter.convert(
+                transactionRequest.getAmount(),
+                normalize(exchangeRate, 2),
+                2);
+
+        transactionRequest.setAmount(convertedAmount);
+        transactionRequest.setCurrencyCode(targetCurrency);
+
+        return saveTransactionForCurrentUser(account, transactionRequest);
     }
 
     private TransactionResponse saveTransactionForCurrentUser(Account account, TransactionRequest transactionRequest)
@@ -170,28 +178,23 @@ public class TransactionServiceImpl implements TransactionService {
         return modelMapper.map(transactionRepository.save(transaction), TransactionResponse.class);
     }
 
-    private TransactionRequest getTransactionRequestWithUpdatedCurrency(
-            TransactionRequest transactionRequest, BigDecimal newValue, CurrencyCode targetCurrency) {
-
-        return TransactionRequest.builder()
-                .amount(newValue)
-                .categoryName(transactionRequest.getCategoryName())
-                .date(transactionRequest.getDate())
-                .currencyCode(targetCurrency)
-                .transactionMethod(transactionRequest.getTransactionMethod())
-                .details(transactionRequest.getDetails())
-                .build();
-    }
-
     private BigDecimal getCurrencyRate(CurrencyCode sourceCurrency, CurrencyCode targetCurrency) {
         ExchangeResponse exchangeResponse = exchangeService.getExchangeRate(sourceCurrency, targetCurrency);
         return new BigDecimal(exchangeResponse.getConversionRate()).setScale(2, RoundingMode.HALF_UP);
     }
 
     private void addExchangeDetails(
-            TransactionRequest transactionRequest, String targetCurrency, String apiExchangeRate) {
-        transactionRequest.setDetails(
-                transactionRequest.getCurrencyCode() + "->" + targetCurrency + ": " + apiExchangeRate);
+            TransactionRequest transactionRequest, String targetCurrency, String apiExchangeRate, boolean date) {
+        if (transactionRequest.getDetails() == null) {
+            transactionRequest.setDetails(
+                    transactionRequest.getCurrencyCode() + "->" + targetCurrency + ": " + apiExchangeRate
+                            + (date ? " - " + LocalDate.now(ZoneId.of("Europe/Warsaw")) : ""));
+        } else {
+            transactionRequest.setDetails(
+                    transactionRequest.getCurrencyCode() + "->" + targetCurrency + ": " + apiExchangeRate
+                            + (date ? " - " + LocalDate.now(ZoneId.of("Europe/Warsaw")) : "")
+                            + " | " + transactionRequest.getDetails());
+        }
     }
 
     @Transactional
