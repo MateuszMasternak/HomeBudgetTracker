@@ -155,15 +155,15 @@ public class TransactionServiceImpl implements TransactionService {
                     false);
         }
 
-        TransactionRequest convertedTransactionRequest = getTransactionRequestWithUpdatedCurrency(
-                transactionRequest,
-                CurrencyConverter.convert(
-                        transactionRequest.getAmount(),
-                        normalize(exchangeRate, 2),
-                        2),
-                targetCurrency);
+        BigDecimal convertedAmount = CurrencyConverter.convert(
+                transactionRequest.getAmount(),
+                normalize(exchangeRate, 2),
+                2);
 
-        return saveTransactionForCurrentUser(account, convertedTransactionRequest);
+        transactionRequest.setAmount(convertedAmount);
+        transactionRequest.setCurrencyCode(targetCurrency);
+
+        return saveTransactionForCurrentUser(account, transactionRequest);
     }
 
     private TransactionResponse saveTransactionForCurrentUser(Account account, TransactionRequest transactionRequest)
@@ -176,19 +176,6 @@ public class TransactionServiceImpl implements TransactionService {
         Transaction transaction = modelMapper.map(transactionRequest, Transaction.class, userSub, category, account);
         transaction = transactionRepository.save(transaction);
         return modelMapper.map(transactionRepository.save(transaction), TransactionResponse.class);
-    }
-
-    private TransactionRequest getTransactionRequestWithUpdatedCurrency(
-            TransactionRequest transactionRequest, BigDecimal newValue, CurrencyCode targetCurrency) {
-
-        return TransactionRequest.builder()
-                .amount(newValue)
-                .categoryName(transactionRequest.getCategoryName())
-                .date(transactionRequest.getDate())
-                .currencyCode(targetCurrency)
-                .transactionMethod(transactionRequest.getTransactionMethod())
-                .details(transactionRequest.getDetails())
-                .build();
     }
 
     private BigDecimal getCurrencyRate(CurrencyCode sourceCurrency, CurrencyCode targetCurrency) {

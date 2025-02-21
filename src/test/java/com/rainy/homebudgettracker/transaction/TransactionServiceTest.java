@@ -1,11 +1,8 @@
 package com.rainy.homebudgettracker.transaction;
 
-import com.rainy.homebudgettracker.account.Account;
 import com.rainy.homebudgettracker.account.AccountResponse;
 import com.rainy.homebudgettracker.account.AccountService;
-import com.rainy.homebudgettracker.category.Category;
 import com.rainy.homebudgettracker.category.CategoryRequest;
-import com.rainy.homebudgettracker.category.CategoryResponse;
 import com.rainy.homebudgettracker.category.CategoryService;
 import com.rainy.homebudgettracker.exchange.CurrencyConverter;
 import com.rainy.homebudgettracker.exchange.ExchangeResponse;
@@ -28,10 +25,7 @@ import org.springframework.data.domain.PageRequest;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -262,27 +256,30 @@ class TransactionServiceTest {
     @Test
     void shouldReturnTransactionResponseWhenTransactionIsCreated2()
             throws RecordDoesNotExistException, UserIsNotOwnerException {
+        try (MockedStatic<BigDecimalNormalization> normalization = Mockito.mockStatic(BigDecimalNormalization.class)) {
+            normalization.when(() -> BigDecimalNormalization.normalize(BigDecimal.valueOf(4.21), 2))
+                    .thenReturn(BigDecimal.valueOf(4.21).setScale(2, RoundingMode.HALF_UP));
+            try (MockedStatic<CurrencyConverter> converter = Mockito.mockStatic(CurrencyConverter.class)) {
+                converter.when(() -> CurrencyConverter.convert(BigDecimal.valueOf(100).setScale(2, RoundingMode.HALF_UP),
+                                BigDecimal.valueOf(4.21).setScale(2, RoundingMode.HALF_UP),
+                                2))
+                        .thenReturn(BigDecimal.valueOf(421).setScale(2, RoundingMode.HALF_UP));
 
-        try(MockedStatic<CurrencyConverter> converter = Mockito.mockStatic(CurrencyConverter.class)) {
-            converter.when(() -> CurrencyConverter.convert(BigDecimal.valueOf(100).setScale(2, RoundingMode.HALF_UP),
-                            BigDecimal.valueOf(4.21).setScale(2, RoundingMode.HALF_UP),
-                            2))
-                    .thenReturn(BigDecimal.valueOf(421).setScale(2, RoundingMode.HALF_UP));
+                var transactionRequest = TransactionRequest.builder()
+                        .amount(BigDecimal.valueOf(100).setScale(2, RoundingMode.HALF_UP))
+                        .categoryName(TestData.CATEGORY_REQUEST)
+                        .date(LocalDate.of(2024, 1, 1))
+                        .currencyCode(CurrencyCode.EUR)
+                        .transactionMethod(TransactionMethod.CASH)
+                        .build();
 
-            var transactionRequest = TransactionRequest.builder()
-                .amount(BigDecimal.valueOf(100).setScale(2, RoundingMode.HALF_UP))
-                .categoryName(TestData.CATEGORY_REQUEST)
-                .date(LocalDate.of(2024, 1, 1))
-                .currencyCode(CurrencyCode.EUR)
-                .transactionMethod(TransactionMethod.CASH)
-                    .build();
+                var returnedTransactionResponse = transactionService.createTransactionForCurrentUser(
+                        UUID.fromString(TestData.ACCOUNT_ID_2), BigDecimal.valueOf(4.21), transactionRequest);
 
-            var returnedTransactionResponse = transactionService.createTransactionForCurrentUser(
-                    UUID.fromString(TestData.ACCOUNT_ID_2), BigDecimal.valueOf(4.21), transactionRequest);
+                var transactionResponse = TestData.CONVERTED_TRANSACTION_RESPONSE;
 
-            var transactionResponse = TestData.CONVERTED_TRANSACTION_RESPONSE;
-
-            assertEquals(transactionResponse, returnedTransactionResponse);
+                assertEquals(transactionResponse, returnedTransactionResponse);
+            }
         }
     }
 
@@ -290,26 +287,31 @@ class TransactionServiceTest {
     void shouldReturnTransactionResponseWhenTransactionIsCreated2NullExchangeRate()
             throws RecordDoesNotExistException, UserIsNotOwnerException {
 
-        try(MockedStatic<CurrencyConverter> converter = Mockito.mockStatic(CurrencyConverter.class)) {
-            converter.when(() -> CurrencyConverter.convert(BigDecimal.valueOf(100).setScale(2, RoundingMode.HALF_UP),
-                            BigDecimal.valueOf(4.22).setScale(2, RoundingMode.HALF_UP),
-                            2))
-                    .thenReturn(BigDecimal.valueOf(422).setScale(2, RoundingMode.HALF_UP));
+        try (MockedStatic<BigDecimalNormalization> normalization = Mockito.mockStatic(BigDecimalNormalization.class)) {
+            normalization.when(() -> BigDecimalNormalization.normalize(BigDecimal.valueOf(4.22), 2))
+                    .thenReturn(BigDecimal.valueOf(4.22).setScale(2, RoundingMode.HALF_UP));
+            try (MockedStatic<CurrencyConverter> converter = Mockito.mockStatic(CurrencyConverter.class)) {
+                converter.when(() -> CurrencyConverter.convert(BigDecimal.valueOf(100).setScale(2, RoundingMode.HALF_UP),
+                                BigDecimal.valueOf(4.22).setScale(2, RoundingMode.HALF_UP),
+                                2))
+                        .thenReturn(BigDecimal.valueOf(422).setScale(2, RoundingMode.HALF_UP));
 
-            var transactionRequest = TransactionRequest.builder()
-                .amount(BigDecimal.valueOf(100).setScale(2, RoundingMode.HALF_UP))
-                .categoryName(TestData.CATEGORY_REQUEST)
-                .date(LocalDate.of(2024, 1, 1))
-                .currencyCode(CurrencyCode.EUR)
-                .transactionMethod(TransactionMethod.CASH)
-                    .build();
+                var transactionRequest = TransactionRequest.builder()
+                        .amount(BigDecimal.valueOf(100).setScale(2, RoundingMode.HALF_UP))
+                        .categoryName(TestData.CATEGORY_REQUEST)
+                        .date(LocalDate.of(2024, 1, 1))
+                        .currencyCode(CurrencyCode.EUR)
+                        .transactionMethod(TransactionMethod.CASH)
+                        .build();
 
-            var returnedTransactionResponse = transactionService.createTransactionForCurrentUser(
-                    UUID.fromString(TestData.ACCOUNT_ID_2), null, transactionRequest);
+                var returnedTransactionResponse = transactionService.createTransactionForCurrentUser(
+                        UUID.fromString(TestData.ACCOUNT_ID_2), null, transactionRequest);
 
-            var transactionResponse = TestData.CONVERTED_TRANSACTION_RESPONSE_3;
+                var transactionResponse = TestData.CONVERTED_TRANSACTION_RESPONSE_3;
 
-            assertEquals(transactionResponse, returnedTransactionResponse);
+                assertEquals(transactionResponse, returnedTransactionResponse);
+
+            }
         }
     }
 

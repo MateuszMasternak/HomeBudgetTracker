@@ -14,6 +14,7 @@ import org.springframework.data.domain.Sort;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.UUID;
 
 public class TestData {
@@ -102,6 +103,7 @@ public class TestData {
             .transactionMethod(TransactionMethod.CASH)
             .category(CATEGORY)
             .account(ACCOUNT)
+            .details("USD->PLN: 4.21")
             .build();
     public static final Transaction CONVERTED_TRANSACTION_2 = Transaction.builder()
             .id(UUID.fromString(TRANSACTION_ID))
@@ -118,7 +120,7 @@ public class TestData {
             .transactionMethod(TransactionMethod.CASH)
             .category(CATEGORY)
             .account(ACCOUNT_2)
-            .details("EUR->PLN: 4.22")
+            .details("EUR->PLN: 4.22 - " + LocalDate.now(ZoneId.of("Europe/Warsaw")))
             .build();
 
     public static final TransactionResponse TRANSACTION_RESPONSE = TransactionResponse.builder()
@@ -168,6 +170,7 @@ public class TestData {
             .date(LocalDate.of(2024, 1, 1))
             .currencyCode(CurrencyCode.PLN)
             .transactionMethod(TransactionMethod.CASH)
+            .details("EUR->PLN: 4.21")
             .build();
     public static final TransactionRequest CONVERTED_TRANSACTION_REQUEST_2 = TransactionRequest.builder()
             .amount(BigDecimal.valueOf(421).setScale(2, RoundingMode.HALF_UP))
@@ -182,7 +185,7 @@ public class TestData {
             .date(LocalDate.of(2024, 1, 1))
             .currencyCode(CurrencyCode.PLN)
             .transactionMethod(TransactionMethod.CASH)
-            .details("EUR->PLN: 4.22")
+            .details("EUR->PLN: 4.22 - " + LocalDate.now(ZoneId.of("Europe/Warsaw")))
             .build();
 
     public static final SumResponse SUM_RESPONSE = SumResponse.builder().amount("100.10").build();
