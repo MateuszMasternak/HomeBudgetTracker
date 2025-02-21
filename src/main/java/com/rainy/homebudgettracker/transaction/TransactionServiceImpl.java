@@ -31,6 +31,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 
 import static com.rainy.homebudgettracker.transaction.BigDecimalNormalization.normalize;
@@ -135,25 +136,32 @@ public class TransactionServiceImpl implements TransactionService {
 
         Account account = accountService.findCurrentUserAccount(accountId);
         CurrencyCode targetCurrency = account.getCurrencyCode();
+
+        if (exchangeRate == null) {
+            exchangeRate = getCurrencyRate(
+                    transactionRequest.getCurrencyCode(),
+                    targetCurrency);
+
+            addExchangeDetails(
+                    transactionRequest,
+                    targetCurrency.name(),
+                    exchangeRate.toString(),
+                    true);
+        } else {
+            addExchangeDetails(
+                    transactionRequest,
+                    targetCurrency.name(),
+                    exchangeRate.toString(),
+                    false);
+        }
+
         TransactionRequest convertedTransactionRequest = getTransactionRequestWithUpdatedCurrency(
                 transactionRequest,
                 CurrencyConverter.convert(
                         transactionRequest.getAmount(),
-                        Objects.requireNonNullElseGet(
-                                exchangeRate,
-                                () -> {
-                                    BigDecimal currencyRate = getCurrencyRate(
-                                            transactionRequest.getCurrencyCode(),
-                                            targetCurrency);
-                                    addExchangeDetails(
-                                            transactionRequest,
-                                            targetCurrency.name(),
-                                            currencyRate.toString());
-                                    return currencyRate;
-                                }).setScale(2, RoundingMode.HALF_UP),
+                        normalize(exchangeRate, 2),
                         2),
                 targetCurrency);
-
 
         return saveTransactionForCurrentUser(account, convertedTransactionRequest);
     }
@@ -189,9 +197,17 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     private void addExchangeDetails(
-            TransactionRequest transactionRequest, String targetCurrency, String apiExchangeRate) {
-        transactionRequest.setDetails(
-                transactionRequest.getCurrencyCode() + "->" + targetCurrency + ": " + apiExchangeRate);
+            TransactionRequest transactionRequest, String targetCurrency, String apiExchangeRate, boolean date) {
+        if (transactionRequest.getDetails() == null) {
+            transactionRequest.setDetails(
+                    transactionRequest.getCurrencyCode() + "->" + targetCurrency + ": " + apiExchangeRate
+                            + (date ? " - " + LocalDate.now(ZoneId.of("Europe/Warsaw")) : ""));
+        } else {
+            transactionRequest.setDetails(
+                    transactionRequest.getCurrencyCode() + "->" + targetCurrency + ": " + apiExchangeRate
+                            + (date ? " - " + LocalDate.now(ZoneId.of("Europe/Warsaw")) : "")
+                            + " | " + transactionRequest.getDetails());
+        }
     }
 
     @Transactional
