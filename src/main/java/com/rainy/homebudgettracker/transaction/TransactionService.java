@@ -80,4 +80,7 @@ public interface TransactionService {
 
     SumResponse sumCurrentUserNegativeAmount(UUID accountId, CategoryRequest categoryName, LocalDate startDate, LocalDate endDate)
             throws RecordDoesNotExistException, UserIsNotOwnerException;
+
+    TransactionResponse updateTransactionForCurrentUser(UUID transactionId, TransactionUpdateRequest request)
+            throws RecordDoesNotExistException, UserIsNotOwnerException;
 }
