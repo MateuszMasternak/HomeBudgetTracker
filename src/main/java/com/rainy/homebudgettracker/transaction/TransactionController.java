@@ -214,7 +214,7 @@ public class TransactionController {
                 accountId, category, LocalDate.parse(startDate), LocalDate.parse(endDate)));
     }
 
-    @GetMapping("update-data")
+    @PatchMapping("update-data")
     public ResponseEntity<TransactionResponse> updateTransactionData(
             @RequestParam(name = "transaction-id") UUID transactionId,
             @RequestBody @Valid TransactionUpdateRequest request)

@@ -396,10 +396,10 @@ public class TransactionServiceImpl implements TransactionService {
             throws RecordDoesNotExistException, UserIsNotOwnerException {
 
         Transaction transaction = getTransactionByTransactionId(transactionId);
-        Category category = categoryService.findCurrentUserCategory(
-                request.getCategoryName().getName());
 
         if (request.getCategoryName() != null) {
+            Category category = categoryService.findCurrentUserCategory(
+                    request.getCategoryName().getName());
             transaction.setCategory(category);
         }
 
