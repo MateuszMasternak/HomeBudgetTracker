@@ -213,4 +213,13 @@ public class TransactionController {
         return ResponseEntity.ok(transactionService.sumCurrentUserNegativeAmount(
                 accountId, category, LocalDate.parse(startDate), LocalDate.parse(endDate)));
     }
+
+    @GetMapping("update-data")
+    public ResponseEntity<TransactionResponse> updateTransactionData(
+            @RequestParam(name = "transaction-id") UUID transactionId,
+            @RequestBody @Valid TransactionUpdateRequest request)
+            throws RecordDoesNotExistException, UserIsNotOwnerException {
+
+        return ResponseEntity.ok(transactionService.updateTransactionForCurrentUser(transactionId, request));
+    }
 }
