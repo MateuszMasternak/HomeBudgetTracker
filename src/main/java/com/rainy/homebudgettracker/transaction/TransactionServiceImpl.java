@@ -361,29 +361,62 @@ public class TransactionServiceImpl implements TransactionService {
             throw new PremiumStatusRequiredException("This feature is only available for premium users.");
         }
 
-        String userSub = userService.getUserSub();
-        Optional<Transaction> transaction = transactionRepository.findById(transactionId);
+        Transaction transaction = getTransactionByTransactionId(transactionId);
 
-        if (transaction.isEmpty()) {
-            throw new RecordDoesNotExistException("Transaction with id " + transactionId + " does not exist.");
-        } else if (!transaction.get().getUserSub().equals(userSub)) {
-            throw new UserIsNotOwnerException("Transaction with id " + transactionId + " does not belong to the user.");
-        } else if (file.getContentType() == null || !file.getContentType().startsWith("image")) {
+        if (file.getContentType() == null || !file.getContentType().startsWith("image")) {
             throw new WrongFileTypeException("Invalid file type. Only images are allowed.");
         }
 
-        String key = s3Service.uploadFile(file, userSub, transactionId);
+        String key = s3Service.uploadFile(file, userService.getUserSub(), transactionId);
 
-        transaction.get().setImageFilePath(key);
+        transaction.setImageFilePath(key);
 
-        transactionRepository.save(transaction.get());
-        String imageUrl = imageService.getImageUrl(transaction.get());
-        return modelMapper.map(transaction.get(), TransactionResponse.class, imageUrl);
+        transactionRepository.save(transaction);
+        String imageUrl = imageService.getImageUrl(transaction);
+        return modelMapper.map(transaction, TransactionResponse.class, imageUrl);
     }
 
     @Override
     public TransactionResponse deleteImageFromCurrentUserTransaction(UUID transactionId)
             throws RecordDoesNotExistException, UserIsNotOwnerException {
+
+        Transaction transaction = getTransactionByTransactionId(transactionId);
+
+        String key = transaction.getImageFilePath();
+        s3Service.deleteFile(key);
+
+        transaction.setImageFilePath(null);
+
+        transactionRepository.save(transaction);
+        return modelMapper.map(transaction, TransactionResponse.class);
+    }
+
+    @Override
+    public TransactionResponse updateTransactionForCurrentUser(UUID transactionId, TransactionUpdateRequest request)
+            throws RecordDoesNotExistException, UserIsNotOwnerException {
+
+        Transaction transaction = getTransactionByTransactionId(transactionId);
+
+        if (request.getCategoryName() != null) {
+            Category category = categoryService.findCurrentUserCategory(
+                    request.getCategoryName().getName());
+            transaction.setCategory(category);
+        }
+
+        if (request.getTransactionMethod() != null) {
+            transaction.setTransactionMethod(request.getTransactionMethod());
+        }
+
+        if (request.getDetails() != null) {
+            transaction.setDetails(request.getDetails());
+        }
+
+        return modelMapper.map(transactionRepository.save(transaction), TransactionResponse.class);
+    }
+
+    private Transaction getTransactionByTransactionId(UUID transactionId)
+            throws RecordDoesNotExistException, UserIsNotOwnerException {
+
         String userSub = userService.getUserSub();
         Optional<Transaction> transaction = transactionRepository.findById(transactionId);
 
@@ -393,12 +426,6 @@ public class TransactionServiceImpl implements TransactionService {
             throw new UserIsNotOwnerException("Transaction with id " + transactionId + " does not belong to the user.");
         }
 
-        String key = transaction.get().getImageFilePath();
-        s3Service.deleteFile(key);
-
-        transaction.get().setImageFilePath(null);
-
-        transactionRepository.save(transaction.get());
-        return modelMapper.map(transaction.get(), TransactionResponse.class);
+        return transaction.get();
     }
 }

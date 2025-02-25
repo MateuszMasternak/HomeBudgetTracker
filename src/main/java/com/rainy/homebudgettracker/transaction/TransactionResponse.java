@@ -10,6 +10,7 @@ import java.util.UUID;
 @Setter
 @Builder
 @EqualsAndHashCode
+@ToString
 public class TransactionResponse {
     private UUID id;
     private String amount;

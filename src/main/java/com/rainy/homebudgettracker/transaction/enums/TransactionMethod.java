@@ -8,4 +8,8 @@ public enum TransactionMethod {
     PAYPAL,
     APPLE_PAY,
     GOOGLE_PAY,
+    BLIK,
+    BLIK_TRANSFER,
+    EXPRESS_TRANSFER,
+    OTHER,
 }
