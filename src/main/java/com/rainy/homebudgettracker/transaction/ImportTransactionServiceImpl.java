@@ -1,5 +1,8 @@
 package com.rainy.homebudgettracker.transaction;
 
+import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
+import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
+import com.rainy.homebudgettracker.mapper.ModelMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,6 +19,9 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class ImportTransactionServiceImpl implements ImportTransactionService {
+    private final ModelMapper modelMapper;
+    private final TransactionService transactionService;
+
     @Override
     public List<TransactionResponse> extractTransactions(MultipartFile file) throws IOException {
         // WORKING WITH CSV FILE FROM ING BANK
@@ -47,8 +53,14 @@ public class ImportTransactionServiceImpl implements ImportTransactionService {
     }
 
     @Override
-    public boolean importTransactions(UUID accountId, List<TransactionRequest> transactions) {
-        return false;
+    public boolean importTransactions(UUID accountId, List<TransactionRequest> transactions)
+            throws RecordDoesNotExistException, UserIsNotOwnerException {
+
+            for (TransactionRequest transaction : transactions) {
+                transactionService.createTransactionForCurrentUser(accountId, transaction);
+            }
+
+        return true;
     }
 
     private File convert(MultipartFile file) throws IOException {
