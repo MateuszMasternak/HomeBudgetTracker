@@ -37,7 +37,7 @@ public class ImportTransactionServiceImpl implements ImportTransactionService {
                                 date(values[0]).
                                 details(values[3]).
                                 transactionMethod(mapToTransactionMethod(values[6])).
-                                amount(values[8]).
+                                amount(values[8].replace(",", ".")).
                                 build();
                         transactions.add(transaction);
                     }
