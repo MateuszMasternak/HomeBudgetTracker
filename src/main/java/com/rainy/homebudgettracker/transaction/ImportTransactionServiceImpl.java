@@ -87,8 +87,9 @@ public class ImportTransactionServiceImpl implements ImportTransactionService {
     }
 
     private String mapToTransactionMethod(String value) {
-        return switch (value) {
-            case "TR.KART" -> " DEBIT_CARD";
+        String name = value.replace(" ", "").replace("\"", "");
+        return switch (name) {
+            case "TR.KART" -> "DEBIT_CARD";
             case "PRZELEW" -> "TRANSFER";
             case "EXPRESS" -> "EXPRESS_TRANSFER";
             case "TR.BLIK" -> "BLIK";
