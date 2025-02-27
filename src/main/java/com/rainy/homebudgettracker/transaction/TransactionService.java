@@ -2,6 +2,7 @@ package com.rainy.homebudgettracker.transaction;
 
 import com.rainy.homebudgettracker.category.CategoryRequest;
 import com.rainy.homebudgettracker.handler.exception.*;
+import com.rainy.homebudgettracker.transaction.enums.PeriodType;
 import org.springframework.cglib.core.Local;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -79,6 +80,9 @@ public interface TransactionService {
             throws RecordDoesNotExistException, UserIsNotOwnerException;
 
     SumResponse sumCurrentUserNegativeAmount(UUID accountId, CategoryRequest categoryName, LocalDate startDate, LocalDate endDate)
+            throws RecordDoesNotExistException, UserIsNotOwnerException;
+
+    List<SumResponse> sumCurrentUserAmountInPeriod(UUID accountId, LocalDate date, PeriodType periodType)
             throws RecordDoesNotExistException, UserIsNotOwnerException;
 
     TransactionResponse updateTransactionForCurrentUser(UUID transactionId, TransactionUpdateRequest request)

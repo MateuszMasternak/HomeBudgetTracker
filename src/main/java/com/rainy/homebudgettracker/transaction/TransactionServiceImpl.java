@@ -15,6 +15,7 @@ import com.rainy.homebudgettracker.images.ImageService;
 import com.rainy.homebudgettracker.images.S3Service;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
+import com.rainy.homebudgettracker.transaction.enums.PeriodType;
 import com.rainy.homebudgettracker.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -304,6 +305,43 @@ public class TransactionServiceImpl implements TransactionService {
         response.setCategory(modelMapper.map(category, CategoryResponse.class));
 
         return response;
+    }
+
+    @Override
+    public List<SumResponse> sumCurrentUserAmountInPeriod(
+            UUID accountId,
+            LocalDate date,
+            PeriodType periodType
+    ) throws RecordDoesNotExistException, UserIsNotOwnerException {
+
+        Account account = accountService.findCurrentUserAccount(accountId);
+        List<SumResponse> sumResponses = new ArrayList<>();
+
+        int periods = switch (periodType) {
+            case MONTH -> date.getMonth().length(date.isLeapYear());
+            case YEAR -> 12;
+        };
+
+        for (int i = 1; i < periods + 1; i++) {
+            BigDecimal sum;
+            if (periodType == PeriodType.MONTH) {
+                LocalDate searchedDay = date.withDayOfMonth(i);
+                sum = normalize(transactionRepository.sumAmountByAccountAndDateBetween(
+                        account, searchedDay, searchedDay), 2);
+            } else {
+                LocalDate startDate = date.withMonth(i).withDayOfMonth(1);
+                int daysCount = startDate.getMonth().length(startDate.isLeapYear());
+                LocalDate endDate = date.withMonth(i).withDayOfMonth(daysCount);
+                sum = normalize(transactionRepository.sumAmountByAccountAndDateBetween(
+                        account, startDate, endDate), 2);
+            }
+
+            SumResponse response = modelMapper.map(sum, SumResponse.class);
+            response.setAccount(modelMapper.map(account, AccountResponse.class));
+            sumResponses.add(response);
+        }
+
+        return sumResponses;
     }
 
     @Override
