@@ -3,6 +3,7 @@ package com.rainy.homebudgettracker.transaction;
 import com.rainy.homebudgettracker.category.CategoryRequest;
 import com.rainy.homebudgettracker.handler.exception.*;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
+import com.rainy.homebudgettracker.transaction.enums.SortingParam;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,10 +32,12 @@ public class TransactionController {
     public ResponseEntity<Page<TransactionResponse>> getCurrentUserTransactions(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(name = "account-id") UUID accountId
+            @RequestParam(name = "account-id") UUID accountId,
+            @RequestParam(defaultValue = "DATE", name = "sort-by") SortingParam sortBy,
+            @RequestParam(defaultValue = "false") boolean ascending
     ) throws RecordDoesNotExistException, UserIsNotOwnerException {
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
+        Pageable pageable = getPageRequest(page, size, sortBy, ascending);
         return ResponseEntity.ok(transactionService.findCurrentUserTransactionsAsResponses(accountId, pageable));
     }
 
@@ -43,10 +46,12 @@ public class TransactionController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(name = "account-id") UUID accountId,
-            @RequestParam(name = "category-name") CategoryRequest category
+            @RequestParam(name = "category-name") CategoryRequest category,
+            @RequestParam(defaultValue = "DATE", name = "sort-by") SortingParam sortBy,
+            @RequestParam(defaultValue = "false") boolean ascending
     ) throws RecordDoesNotExistException, UserIsNotOwnerException {
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
+        Pageable pageable = getPageRequest(page, size, sortBy, ascending);
         return ResponseEntity.ok(
                 transactionService.findCurrentUserTransactionsAsResponses(accountId, category, pageable));
     }
@@ -57,10 +62,12 @@ public class TransactionController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(name = "account-id") UUID accountId,
             @RequestParam(name = "start-date") String startDate,
-            @RequestParam(name = "end-date") String endDate
+            @RequestParam(name = "end-date") String endDate,
+            @RequestParam(defaultValue = "DATE", name = "sort-by") SortingParam sortBy,
+            @RequestParam(defaultValue = "false") boolean ascending
     ) throws RecordDoesNotExistException, UserIsNotOwnerException {
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
+        Pageable pageable = getPageRequest(page, size, sortBy, ascending);
         return ResponseEntity.ok(
                 transactionService.findCurrentUserTransactionsAsResponses(accountId, LocalDate.parse(startDate),
                         LocalDate.parse(endDate), pageable));
@@ -73,13 +80,31 @@ public class TransactionController {
             @RequestParam(name = "account-id") UUID accountId,
             @RequestParam(name = "category-name") CategoryRequest category,
             @RequestParam(name = "start-date") String startDate,
-            @RequestParam(name = "end-date") String endDate
+            @RequestParam(name = "end-date") String endDate,
+            @RequestParam(defaultValue = "DATE", name = "sort-by") SortingParam sortBy,
+            @RequestParam(defaultValue = "false") boolean ascending
     ) throws RecordDoesNotExistException, UserIsNotOwnerException {
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
+        Pageable pageable = getPageRequest(page, size, sortBy, ascending);
         return ResponseEntity.ok(
                 transactionService.findCurrentUserTransactionsAsResponses(
                         accountId, category, LocalDate.parse(startDate), LocalDate.parse(endDate), pageable));
+    }
+
+    private Pageable getPageRequest(int page, int size, SortingParam sortingParam, boolean ascending) {
+        Sort sort = switch (sortingParam) {
+            case AMOUNT -> Sort.by("amount");
+            case DATE -> Sort.by("date");
+            case CATEGORY -> Sort.by("category");
+        };
+
+        if (!ascending) {
+            sort = sort.descending();
+        } else {
+            sort = sort.ascending();
+        }
+
+        return PageRequest.of(page, size, sort);
     }
 
     @PostMapping("/create")
