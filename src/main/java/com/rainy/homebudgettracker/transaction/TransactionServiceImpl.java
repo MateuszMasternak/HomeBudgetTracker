@@ -315,33 +315,70 @@ public class TransactionServiceImpl implements TransactionService {
     ) throws RecordDoesNotExistException, UserIsNotOwnerException {
 
         Account account = accountService.findCurrentUserAccount(accountId);
-        List<SumResponse> sumResponses = new ArrayList<>();
 
-        int periods = switch (periodType) {
+        LocalDate dateToSumBeforeAmounts = getDateBeforePeriod(periodType, date);
+        BigDecimal total = normalize(transactionRepository.sumAmountByAccountToDate(
+                account, dateToSumBeforeAmounts), 2);
+
+        return getSumResponses(account, date, periodType, total);
+    }
+
+    private int getPeriodCount(PeriodType periodType, LocalDate date) {
+        return switch (periodType) {
             case MONTH -> date.getMonth().length(date.isLeapYear());
             case YEAR -> 12;
         };
+    }
 
-        for (int i = 1; i < periods + 1; i++) {
-            BigDecimal sum;
-            if (periodType == PeriodType.MONTH) {
-                LocalDate searchedDay = date.withDayOfMonth(i);
-                sum = normalize(transactionRepository.sumAmountByAccountAndDateBetween(
-                        account, searchedDay, searchedDay), 2);
-            } else {
-                LocalDate startDate = date.withMonth(i).withDayOfMonth(1);
-                int daysCount = startDate.getMonth().length(startDate.isLeapYear());
-                LocalDate endDate = date.withMonth(i).withDayOfMonth(daysCount);
-                sum = normalize(transactionRepository.sumAmountByAccountAndDateBetween(
-                        account, startDate, endDate), 2);
-            }
+    private LocalDate getDateBeforePeriod(PeriodType periodType, LocalDate date) {
+        return switch (periodType) {
+            case MONTH -> date.minusMonths(1)
+                    .withDayOfMonth(date.minusMonths(1).lengthOfMonth());
+            case YEAR -> date.minusYears(1).withMonth(12).withDayOfMonth(31);
+        };
+    }
 
-            SumResponse response = modelMapper.map(sum, SumResponse.class);
+    private List<SumResponse> getSumResponses(
+            Account account,
+            LocalDate date,
+            PeriodType periodType,
+            BigDecimal total
+    ) {
+
+        List<SumResponse> sumResponses = new ArrayList<>();
+
+        for (int i = 1; i < getPeriodCount(periodType, date) + 1; i++) {
+
+            total = total.add(normalize(getSumInPeriod(account, date, periodType, i), 2));
+
+            SumResponse response = modelMapper.map(total, SumResponse.class);
             response.setAccount(modelMapper.map(account, AccountResponse.class));
             sumResponses.add(response);
         }
 
         return sumResponses;
+    }
+
+    private BigDecimal getSumInPeriod(
+            Account account,
+            LocalDate date,
+            PeriodType periodType,
+            int periodCount
+    ) {
+        BigDecimal sum;
+        if (periodType == PeriodType.MONTH) {
+            LocalDate searchedDay = date.withDayOfMonth(periodCount);
+            sum = transactionRepository.sumAmountByAccountAndDateBetween(
+                    account, searchedDay, searchedDay);
+        } else {
+            LocalDate startDate = date.withMonth(periodCount).withDayOfMonth(1);
+            int daysCount = startDate.getMonth().length(startDate.isLeapYear());
+            LocalDate endDate = date.withMonth(periodCount).withDayOfMonth(daysCount);
+            sum = transactionRepository.sumAmountByAccountAndDateBetween(
+                    account, startDate, endDate);
+        }
+
+        return normalize(sum, 2);
     }
 
     @Override

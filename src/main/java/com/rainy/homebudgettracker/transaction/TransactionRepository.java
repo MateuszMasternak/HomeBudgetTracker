@@ -72,4 +72,9 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             "WHERE t.account = :account AND t.date BETWEEN :startDate AND :endDate")
     BigDecimal sumAmountByAccountAndDateBetween(
             Account account, LocalDate startDate, LocalDate endDate);
+
+    @Query("SELECT SUM(t.amount) FROM Transaction t " +
+            "WHERE t.account = :account AND t.date <= :date")
+    BigDecimal sumAmountByAccountToDate(
+            Account account,LocalDate date);
 }
