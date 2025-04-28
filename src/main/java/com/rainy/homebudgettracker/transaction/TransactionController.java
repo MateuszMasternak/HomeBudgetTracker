@@ -3,6 +3,7 @@ package com.rainy.homebudgettracker.transaction;
 import com.rainy.homebudgettracker.category.CategoryRequest;
 import com.rainy.homebudgettracker.handler.exception.*;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
+import com.rainy.homebudgettracker.transaction.enums.PeriodType;
 import com.rainy.homebudgettracker.transaction.enums.SortingParam;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -237,6 +239,17 @@ public class TransactionController {
 
         return ResponseEntity.ok(transactionService.sumCurrentUserNegativeAmount(
                 accountId, category, LocalDate.parse(startDate), LocalDate.parse(endDate)));
+    }
+
+    @GetMapping("sum-totals-in-period")
+    public ResponseEntity<List<SumResponse>> sumCurrentUserAmount(
+            @RequestParam(name = "account-id") UUID accountId,
+            @RequestParam() String date,
+            @RequestParam(name = "type") PeriodType periodType
+    ) throws RecordDoesNotExistException, UserIsNotOwnerException {
+
+        return ResponseEntity.ok(transactionService.sumCurrentUserAmountInPeriod(
+                accountId, LocalDate.parse(date), periodType));
     }
 
     @PatchMapping("update-data")
