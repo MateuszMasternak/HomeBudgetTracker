@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -36,6 +37,8 @@ class AccountServiceTest {
         when(userService.getUserSub()).thenReturn(TestData.USER_SUB_1);
         when(accountRepository.findById(TestData.ACCOUNT_1.getId())).thenReturn(Optional.of(TestData.ACCOUNT_1));
         when(accountRepository.findById(TestData.ACCOUNT_OTHER_USER.getId())).thenReturn(Optional.of(TestData.ACCOUNT_OTHER_USER));
+        when(accountRepository.findAllByUserSub(TestData.USER_SUB_1)).thenReturn(List.of(TestData.ACCOUNT_1));
+        when(accountRepository.findAllByUserSub(TestData.USER_SUB_2)).thenReturn(List.of());
 
         when(transactionRepository.sumAmountByAccount(any(Account.class))).thenReturn(BigDecimal.ZERO);
 
@@ -46,6 +49,19 @@ class AccountServiceTest {
                 });
 
         when(accountRepository.save(any(Account.class))).thenReturn(TestData.ACCOUNT_2);
+    }
+
+    @Test
+    void shouldReturnAccountList() {
+        var returnedAccounts = accountService.findCurrentUserAccounts();
+        assertEquals(List.of(TestData.ACCOUNT_1), returnedAccounts);
+    }
+
+    @Test
+    void shouldReturnEmptyAccountList() {
+        when(userService.getUserSub()).thenReturn(TestData.USER_SUB_2);
+        var returnedAccounts = accountService.findCurrentUserAccounts();
+        assertEquals(List.of(), returnedAccounts);
     }
 
     @Test

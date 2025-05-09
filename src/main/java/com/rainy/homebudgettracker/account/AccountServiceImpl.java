@@ -25,6 +25,12 @@ public class AccountServiceImpl implements AccountService {
     private final ModelMapper modelMapper;
 
     @Override
+    public List<Account> findCurrentUserAccounts() {
+        String userSub = userService.getUserSub();
+        return (List<Account>) accountRepository.findAllByUserSub(userSub);
+    }
+
+    @Override
     public List<AccountResponse> findCurrentUserAccountsAsResponses() {
         String userSub = userService.getUserSub();
         Iterable<Account> accounts = accountRepository.findAllByUserSub(userSub);
