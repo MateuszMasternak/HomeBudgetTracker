@@ -10,6 +10,8 @@ import com.rainy.homebudgettracker.category.CategoryResponse;
 import com.rainy.homebudgettracker.transaction.Transaction;
 import com.rainy.homebudgettracker.transaction.TransactionRequest;
 import com.rainy.homebudgettracker.transaction.TransactionResponse;
+import com.rainy.homebudgettracker.user.DefaultCurrency;
+import com.rainy.homebudgettracker.user.DefaultCurrencyResponseRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -81,6 +83,21 @@ public class ModelMapper {
                 if (source instanceof BigDecimal sum) {
                     yield (T) mapBigDecimalToSumResponse(sum);
                 }
+                else
+                    throw new UnsupportedOperationException(message);
+            }
+            case "DefaultCurrency": {
+                if (source instanceof DefaultCurrencyResponseRequest defaultCurrencyResponseRequest
+                        && args.length == 1
+                        && args[0] instanceof String userSub)
+                    yield (T) mapDefaultCurrencyRequestToDefaultCurrency(defaultCurrencyResponseRequest, userSub);
+                else
+                    throw new UnsupportedOperationException(message);
+            }
+            case "DefaultCurrencyResponseRequest": {
+                if (source instanceof DefaultCurrency defaultCurrency
+                        && args.length == 0)
+                    yield (T) mapDefaultCurrencyToResponse(defaultCurrency);
                 else
                     throw new UnsupportedOperationException(message);
             }
@@ -157,6 +174,20 @@ public class ModelMapper {
     private SumResponse mapBigDecimalToSumResponse(BigDecimal sum) {
         return SumResponse.builder()
                 .amount(String.valueOf(sum))
+                .build();
+    }
+
+    private DefaultCurrency mapDefaultCurrencyRequestToDefaultCurrency(
+            DefaultCurrencyResponseRequest defaultCurrencyResponseRequest, String userSub) {
+        return DefaultCurrency.builder()
+                .currencyCode(defaultCurrencyResponseRequest.getCurrencyCode())
+                .userSub(userSub)
+                .build();
+    }
+
+    private DefaultCurrencyResponseRequest mapDefaultCurrencyToResponse(DefaultCurrency defaultCurrency) {
+        return DefaultCurrencyResponseRequest.builder()
+                .currencyCode(defaultCurrency.getCurrencyCode())
                 .build();
     }
 }

@@ -2,7 +2,9 @@ package com.rainy.homebudgettracker.user;
 
 import com.rainy.homebudgettracker.account.AccountRepository;
 import com.rainy.homebudgettracker.category.CategoryRepository;
+import com.rainy.homebudgettracker.mapper.ModelMapper;
 import com.rainy.homebudgettracker.transaction.TransactionRepository;
+import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,6 +20,8 @@ public class UserService {
     private final CategoryRepository categoryRepository;
     private final TransactionRepository transactionRepository;
     private final CognitoIdentityProviderClient cognitoClient;
+    private final UserDefaultCurrencyRepository userDefaultCurrencyRepository;
+    private final ModelMapper modelMapper;
 
     public String getUserSub() {
         return String.valueOf(SecurityContextHolder.getContext().getAuthentication().getPrincipal());
@@ -50,11 +54,27 @@ public class UserService {
         accountRepository.deleteAllByUserSub(sub);
         categoryRepository.deleteAllByUserSub(sub);
         transactionRepository.deleteAllByUserSub(sub);
+        userDefaultCurrencyRepository.deleteById(sub);
     }
 
     public UserInfoResponse getUserInfo() {
         return UserInfoResponse.builder()
                 .premiumUser(isPremiumUser())
                 .build();
+    }
+
+    public DefaultCurrencyResponseRequest getDefaultCurrency() {
+        return modelMapper.map(userDefaultCurrencyRepository.findById(getUserSub()).orElse(
+                DefaultCurrency.builder()
+                        .userSub(getUserSub())
+                        .currencyCode(CurrencyCode.USD.name())
+                        .build()), DefaultCurrencyResponseRequest.class);
+    }
+
+    public DefaultCurrencyResponseRequest setDefaultCurrency(DefaultCurrencyResponseRequest request) {
+        DefaultCurrency defaultCurrency = modelMapper.map(request, DefaultCurrency.class);
+        defaultCurrency.setUserSub(getUserSub());
+        userDefaultCurrencyRepository.save(defaultCurrency);
+        return modelMapper.map(defaultCurrency, DefaultCurrencyResponseRequest.class);
     }
 }
