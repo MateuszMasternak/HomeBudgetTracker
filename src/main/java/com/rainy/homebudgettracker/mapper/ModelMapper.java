@@ -10,6 +10,7 @@ import com.rainy.homebudgettracker.category.CategoryResponse;
 import com.rainy.homebudgettracker.transaction.Transaction;
 import com.rainy.homebudgettracker.transaction.TransactionRequest;
 import com.rainy.homebudgettracker.transaction.TransactionResponse;
+import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import com.rainy.homebudgettracker.user.DefaultCurrency;
 import com.rainy.homebudgettracker.user.DefaultCurrencyResponseRequest;
 import lombok.RequiredArgsConstructor;
@@ -180,14 +181,14 @@ public class ModelMapper {
     private DefaultCurrency mapDefaultCurrencyRequestToDefaultCurrency(
             DefaultCurrencyResponseRequest defaultCurrencyResponseRequest, String userSub) {
         return DefaultCurrency.builder()
-                .currencyCode(defaultCurrencyResponseRequest.getCurrencyCode())
+                .currencyCode(CurrencyCode.valueOf(defaultCurrencyResponseRequest.getCurrencyCode()))
                 .userSub(userSub)
                 .build();
     }
 
     private DefaultCurrencyResponseRequest mapDefaultCurrencyToResponse(DefaultCurrency defaultCurrency) {
         return DefaultCurrencyResponseRequest.builder()
-                .currencyCode(defaultCurrency.getCurrencyCode())
+                .currencyCode(defaultCurrency.getCurrencyCode().name())
                 .build();
     }
 }

@@ -1,5 +1,6 @@
 package com.rainy.homebudgettracker.user;
 
+import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.*;
@@ -14,5 +15,5 @@ import lombok.*;
 public class DefaultCurrency {
     @Id
     private String userSub;
-    private String currencyCode;
+    private CurrencyCode currencyCode;
 }
