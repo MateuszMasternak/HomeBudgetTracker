@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import java.time.LocalDate;
+
 @Service
 @RequiredArgsConstructor
 public class ExchangeServiceImpl implements ExchangeService {
@@ -28,6 +30,18 @@ public class ExchangeServiceImpl implements ExchangeService {
         }
 
         return exchangeResponse;
+    }
+
+    @Override
+    public ExchangeResponse getHistoricalExchangeRate(
+            CurrencyCode baseCurrency, CurrencyCode targetCurrency, LocalDate date
+    ) {
+        if (date == null) {
+            throw new IllegalArgumentException("Date cannot be null");
+        }
+
+        // TODO: Find out how to get historical exchange rates - exchangerate-api.com does not support this in the free plan
+        return getExchangeRate(baseCurrency, targetCurrency);
     }
 
     private ExchangeResponse getExchangeResponse(CurrencyCode baseCurrency, CurrencyCode targetCurrency) {
