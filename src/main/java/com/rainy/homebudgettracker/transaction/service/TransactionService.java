@@ -1,9 +1,12 @@
-package com.rainy.homebudgettracker.transaction;
+package com.rainy.homebudgettracker.transaction.service;
 
 import com.rainy.homebudgettracker.category.CategoryRequest;
 import com.rainy.homebudgettracker.handler.exception.*;
+import com.rainy.homebudgettracker.transaction.SumResponse;
+import com.rainy.homebudgettracker.transaction.TransactionRequest;
+import com.rainy.homebudgettracker.transaction.TransactionResponse;
+import com.rainy.homebudgettracker.transaction.TransactionUpdateRequest;
 import com.rainy.homebudgettracker.transaction.enums.PeriodType;
-import org.springframework.cglib.core.Local;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
@@ -59,30 +62,6 @@ public interface TransactionService {
             throws RecordDoesNotExistException, UserIsNotOwnerException, ImageUploadException, WrongFileTypeException, PremiumStatusRequiredException;
 
     TransactionResponse deleteImageFromCurrentUserTransaction(UUID id)
-            throws RecordDoesNotExistException, UserIsNotOwnerException;
-
-    SumResponse sumCurrentUserPositiveAmount(UUID accountId)
-            throws RecordDoesNotExistException, UserIsNotOwnerException;
-
-    SumResponse sumCurrentUserNegativeAmount(UUID accountId)
-            throws RecordDoesNotExistException, UserIsNotOwnerException;
-
-    SumResponse sumCurrentUserAmount(UUID accountId)
-            throws RecordDoesNotExistException, UserIsNotOwnerException;
-
-    SumResponse sumCurrentUserPositiveAmount(UUID accountId, LocalDate startDate, LocalDate endDate)
-            throws RecordDoesNotExistException, UserIsNotOwnerException;
-
-    SumResponse sumCurrentUserPositiveAmount(UUID accountId, CategoryRequest categoryName, LocalDate startDate, LocalDate endDate)
-            throws RecordDoesNotExistException, UserIsNotOwnerException;
-
-    SumResponse sumCurrentUserNegativeAmount(UUID accountId, LocalDate startDate, LocalDate endDate)
-            throws RecordDoesNotExistException, UserIsNotOwnerException;
-
-    SumResponse sumCurrentUserNegativeAmount(UUID accountId, CategoryRequest categoryName, LocalDate startDate, LocalDate endDate)
-            throws RecordDoesNotExistException, UserIsNotOwnerException;
-
-    List<SumResponse> sumCurrentUserAmountInPeriod(UUID accountId, LocalDate date, PeriodType periodType)
             throws RecordDoesNotExistException, UserIsNotOwnerException;
 
     TransactionResponse updateTransactionForCurrentUser(UUID transactionId, TransactionUpdateRequest request)
