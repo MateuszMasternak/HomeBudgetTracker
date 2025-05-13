@@ -1,14 +1,13 @@
 package com.rainy.homebudgettracker.user;
 
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @Builder
 @EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
 public class DefaultCurrencyResponseRequest {
     private String currencyCode;
 }

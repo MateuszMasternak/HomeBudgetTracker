@@ -67,12 +67,12 @@ public class UserService {
         return modelMapper.map(userDefaultCurrencyRepository.findById(getUserSub()).orElse(
                 DefaultCurrency.builder()
                         .userSub(getUserSub())
-                        .currencyCode(CurrencyCode.USD.name())
+                        .currencyCode(CurrencyCode.USD)
                         .build()), DefaultCurrencyResponseRequest.class);
     }
 
     public DefaultCurrencyResponseRequest setDefaultCurrency(DefaultCurrencyResponseRequest request) {
-        DefaultCurrency defaultCurrency = modelMapper.map(request, DefaultCurrency.class);
+        DefaultCurrency defaultCurrency = modelMapper.map(request, DefaultCurrency.class, getUserSub());
         defaultCurrency.setUserSub(getUserSub());
         userDefaultCurrencyRepository.save(defaultCurrency);
         return modelMapper.map(defaultCurrency, DefaultCurrencyResponseRequest.class);
