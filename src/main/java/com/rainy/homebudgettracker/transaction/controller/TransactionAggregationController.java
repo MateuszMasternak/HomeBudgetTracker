@@ -103,4 +103,9 @@ public class TransactionAggregationController {
         return ResponseEntity.ok(transactionAggregationService.sumCurrentUserAmountInPeriod(
                 accountId, LocalDate.parse(date), periodType));
     }
+
+    @GetMapping("sum-in-one-currency")
+    public ResponseEntity<SumResponse> sumCurrentUserAmountInOneCurrency() throws UserIsNotOwnerException {
+        return ResponseEntity.ok(transactionAggregationService.sumCurrentUserTotalAmountInDefaultCurrency());
+    }
 }

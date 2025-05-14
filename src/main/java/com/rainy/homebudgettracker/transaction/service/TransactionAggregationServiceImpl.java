@@ -7,20 +7,25 @@ import com.rainy.homebudgettracker.category.Category;
 import com.rainy.homebudgettracker.category.CategoryRequest;
 import com.rainy.homebudgettracker.category.CategoryResponse;
 import com.rainy.homebudgettracker.category.CategoryService;
+import com.rainy.homebudgettracker.exchange.ExchangeResponse;
+import com.rainy.homebudgettracker.exchange.ExchangeService;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
 import com.rainy.homebudgettracker.transaction.SumResponse;
+import com.rainy.homebudgettracker.transaction.Transaction;
 import com.rainy.homebudgettracker.transaction.TransactionRepository;
+import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import com.rainy.homebudgettracker.transaction.enums.PeriodType;
+import com.rainy.homebudgettracker.user.DefaultCurrency;
+import com.rainy.homebudgettracker.user.DefaultCurrencyResponseRequest;
+import com.rainy.homebudgettracker.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static com.rainy.homebudgettracker.transaction.BigDecimalNormalization.normalize;
 
@@ -31,6 +36,8 @@ public class TransactionAggregationServiceImpl implements TransactionAggregation
     private final ModelMapper modelMapper;
     private final AccountService accountService;
     private final CategoryService categoryService;
+    private final ExchangeService exchangeService;
+    private final UserService userService;
 
     @Override
     public SumResponse sumCurrentUserPositiveAmount(UUID accountId)
@@ -196,5 +203,49 @@ public class TransactionAggregationServiceImpl implements TransactionAggregation
         }
 
         return normalize(sum, 2);
+    }
+
+    @Override
+    public SumResponse sumCurrentUserTotalAmountInDefaultCurrency() {
+        List<BigDecimal> sums = new ArrayList<>();
+        accountService.findCurrentUserAccounts()
+                .forEach(account -> {
+                    List<Transaction> transactions = (List<Transaction>) transactionRepository.findAllByAccount(account);
+                    DefaultCurrencyResponseRequest defaultCurrency = userService.getDefaultCurrency();
+                    if (account.getCurrencyCode().name().equals(defaultCurrency.getCurrencyCode())) {
+                        sums.add(normalize(transactionRepository.sumAmountByAccount(account), 2));
+                    } else {
+                        Map<LocalDate, BigDecimal> rates = new HashMap<>();
+                        BigDecimal sum = BigDecimal.ZERO;
+                        for (Transaction transaction : transactions) {
+                            ExchangeResponse exchangeResponse;
+                            BigDecimal rate;
+                            if (rates.containsKey(transaction.getDate())) {
+                                rate = rates.get(transaction.getDate());
+                            } else {
+                                if (transaction.getDate().isBefore(LocalDate.now())) {
+                                    exchangeResponse = exchangeService.getHistoricalExchangeRate(
+                                            account.getCurrencyCode(),
+                                            CurrencyCode.valueOf(defaultCurrency.getCurrencyCode()),
+                                            transaction.getDate());
+                                } else {
+                                    exchangeResponse = exchangeService.getExchangeRate(
+                                            account.getCurrencyCode(),
+                                            CurrencyCode.valueOf(defaultCurrency.getCurrencyCode()));
+                                }
+                                rate = BigDecimal.valueOf(Double.parseDouble(exchangeResponse.getConversionRate()));
+                                rates.put(transaction.getDate(), rate);
+                            }
+
+                            sum = sum.add(transaction.getAmount().multiply(rate));
+                        }
+                        sums.add(normalize(sum, 2));
+                    }
+                });
+
+        BigDecimal totalSum = normalize(sums.stream()
+                .reduce(BigDecimal.ZERO, BigDecimal::add), 2);
+
+        return modelMapper.map(totalSum, SumResponse.class);
     }
 }

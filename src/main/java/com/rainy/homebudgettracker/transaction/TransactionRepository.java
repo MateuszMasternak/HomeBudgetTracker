@@ -15,6 +15,8 @@ import java.util.UUID;
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
     Iterable<Transaction> findAllByUserSub(String userSub);
 
+    Iterable<Transaction> findAllByAccount(Account account);
+
     Page<Transaction> findAllByAccount(Account account, Pageable pageable);
 
     Page<Transaction> findAllByAccountAndCategory(

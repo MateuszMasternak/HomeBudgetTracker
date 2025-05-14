@@ -34,4 +34,7 @@ public interface TransactionAggregationService {
 
     List<SumResponse> sumCurrentUserAmountInPeriod(UUID accountId, LocalDate date, PeriodType periodType)
             throws RecordDoesNotExistException, UserIsNotOwnerException;
+
+    SumResponse sumCurrentUserTotalAmountInDefaultCurrency()
+            throws UserIsNotOwnerException;
 }
