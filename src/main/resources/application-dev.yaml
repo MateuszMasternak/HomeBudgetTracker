@@ -19,6 +19,14 @@ aws:
   transaction-response-url-type: cloudfront-signed
   cognito:
     jwks-url: ${AWS_COGNITO_PUBLIC_KEY_DEV}
+  auth:
+    development:
+      static-token:
+        enabled: true
+        token: ${STATIC_TOKEN_DEV}
+        claims:
+          sub: ${STATIC_TOKEN_SUB_DEV}
+          custom_access_level_: ${STATIC_TOKEN_CUSTOM_ACCESS_LEVEL_DEV}
 
 server:
   port: 8080

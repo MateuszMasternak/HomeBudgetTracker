@@ -1,9 +1,13 @@
 package com.rainy.homebudgettracker.config;
 
 import com.rainy.homebudgettracker.auth.JwtAuthenticationFilter;
+import com.rainy.homebudgettracker.auth.JwtAuthenticationFilterDev;
+import com.rainy.homebudgettracker.auth.JwtAuthenticationFilterProd;
 import com.rainy.homebudgettracker.limiter.RateLimitFilter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.servlet.Filter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,8 +32,10 @@ import static org.springframework.http.HttpHeaders.*;
 @EnableWebSecurity
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
+@Slf4j
 public class SecurityConfig {
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtAuthenticationFilterProd jwtAuthenticationFilterProd;
+    private final JwtAuthenticationFilterDev jwtAuthenticationFilterDev;
     private final RateLimitFilter rateLimitFilter;
     private static final String[] WHITE_LIST = {
             "/v3/api-docs/**",
@@ -40,10 +46,20 @@ public class SecurityConfig {
     @Value("${application.security.frontend-url}")
     private String frontendUrl;
 
+    @Value("${aws.auth.development.static-token.enabled:false}")
+    private boolean isStaticTokenEnabled;
+
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http
     ) throws Exception {
+
+        Filter jwtAuthenticationFilter = isStaticTokenEnabled
+                ? jwtAuthenticationFilterDev
+                : jwtAuthenticationFilterProd;
+
+        log.info("Static token enabled: {}", isStaticTokenEnabled);
+
         http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
