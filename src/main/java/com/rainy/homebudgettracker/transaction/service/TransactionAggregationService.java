@@ -49,4 +49,8 @@ public interface TransactionAggregationService {
     List<SumResponse> getCurrentUserTopFiveExpensesConvertedToDefaultCurrency(
             LocalDate startDate, LocalDate endDate)
             throws UserIsNotOwnerException;
+
+    public SumResponse sumCurrentUserPositiveAmountInDefaultCurrency(LocalDate startDate, LocalDate endDate);
+
+    public SumResponse sumCurrentUserNegativeAmountInDefaultCurrency(LocalDate startDate, LocalDate endDate);
 }

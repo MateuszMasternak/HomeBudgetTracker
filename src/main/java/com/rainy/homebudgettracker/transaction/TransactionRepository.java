@@ -44,6 +44,22 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     Iterable<Transaction> findAllNegativeByUserSubAndCategoryAndDateBetween(
             String userSub, Category category, LocalDate startDate, LocalDate endDate);
 
+    @Query("SELECT t FROM Transaction t " +
+            "WHERE t.userSub = :userSub " +
+            "AND t.account = :account " +
+            "AND t.date BETWEEN :startDate AND :endDate " +
+            "AND t.amount > 0")
+    Iterable<Transaction> findAllPositiveByUserSubAndAccountAndDateBetween(
+            String userSub, Account account, LocalDate startDate, LocalDate endDate);
+
+    @Query("SELECT t FROM Transaction t " +
+            "WHERE t.userSub = :userSub " +
+            "AND t.account = :account " +
+            "AND t.date BETWEEN :startDate AND :endDate " +
+            "AND t.amount < 0")
+    Iterable<Transaction> findAllNegativeByUserSubAndAccountAndDateBetween(
+            String userSub, Account account, LocalDate startDate, LocalDate endDate);
+
     boolean existsByCategory(Category category);
 
     void deleteAllByUserSub(String userSub);

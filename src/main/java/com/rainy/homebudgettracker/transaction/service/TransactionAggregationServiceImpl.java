@@ -360,4 +360,44 @@ public class TransactionAggregationServiceImpl implements TransactionAggregation
 
         return getTopFiveAsResponse(sums, true);
     }
+
+    @Override
+    public SumResponse sumCurrentUserPositiveAmountInDefaultCurrency(LocalDate startDate, LocalDate endDate) {
+        BigDecimal sum = BigDecimal.ZERO;
+        List<Account> accounts = accountService.findCurrentUserAccounts();
+        for (Account account : accounts) {
+            List<Transaction> transactions = (List<Transaction>) transactionRepository
+                    .findAllPositiveByUserSubAndAccountAndDateBetween(
+                            userService.getUserSub(),
+                            account,
+                            startDate,
+                            endDate);
+
+            CurrencyCode defaultCurrency = getDefaultCurrency();
+
+            sum = normalize(sum.add(getSumOfConvertedTransactions(transactions, defaultCurrency)), 2);
+        }
+
+        return modelMapper.map(sum, SumResponse.class);
+    }
+
+    @Override
+    public SumResponse sumCurrentUserNegativeAmountInDefaultCurrency(LocalDate startDate, LocalDate endDate) {
+        BigDecimal sum = BigDecimal.ZERO;
+        List<Account> accounts = accountService.findCurrentUserAccounts();
+        for (Account account : accounts) {
+            List<Transaction> transactions = (List<Transaction>) transactionRepository
+                    .findAllNegativeByUserSubAndAccountAndDateBetween(
+                            userService.getUserSub(),
+                            account,
+                            startDate,
+                            endDate);
+
+            CurrencyCode defaultCurrency = getDefaultCurrency();
+
+            sum = normalize(sum.add(getSumOfConvertedTransactions(transactions, defaultCurrency)), 2);
+        }
+
+        return modelMapper.map(sum, SumResponse.class);
+    }
 }

@@ -130,4 +130,22 @@ public class TransactionAggregationController {
         return ResponseEntity.ok(transactionAggregationService.getCurrentUserTopFiveExpensesConvertedToDefaultCurrency(
                 LocalDate.parse(startDate), LocalDate.parse(endDate)));
     }
+
+    @GetMapping("sum-positive-in-default-currency")
+    public ResponseEntity<SumResponse> sumCurrentUserPositiveAmountInDefaultCurrency(
+            @RequestParam(name = "start-date") String startDate,
+            @RequestParam(name = "end-date") String endDate
+    ) {
+        return ResponseEntity.ok(transactionAggregationService.sumCurrentUserPositiveAmountInDefaultCurrency(
+                LocalDate.parse(startDate), LocalDate.parse(endDate)));
+    }
+
+    @GetMapping("sum-negative-in-default-currency")
+    public ResponseEntity<SumResponse> sumCurrentUserNegativeAmountInDefaultCurrency(
+            @RequestParam(name = "start-date") String startDate,
+            @RequestParam(name = "end-date") String endDate
+    ) {
+        return ResponseEntity.ok(transactionAggregationService.sumCurrentUserNegativeAmountInDefaultCurrency(
+                LocalDate.parse(startDate), LocalDate.parse(endDate)));
+    }
 }
