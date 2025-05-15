@@ -1,6 +1,7 @@
 package com.rainy.homebudgettracker.transaction.controller;
 
 import com.rainy.homebudgettracker.category.CategoryRequest;
+import com.rainy.homebudgettracker.category.CategoryResponse;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.transaction.SumResponse;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -107,5 +109,25 @@ public class TransactionAggregationController {
     @GetMapping("sum-in-one-currency")
     public ResponseEntity<SumResponse> sumCurrentUserAmountInOneCurrency() throws UserIsNotOwnerException {
         return ResponseEntity.ok(transactionAggregationService.sumCurrentUserTotalAmountInDefaultCurrency());
+    }
+
+    @GetMapping("top-five-incomes-converted")
+    public ResponseEntity<List<SumResponse>> getCurrentUserTopFiveIncomesConvertedToDefaultCurrency(
+            @RequestParam(name = "start-date") String startDate,
+            @RequestParam(name = "end-date") String endDate
+    ) throws UserIsNotOwnerException {
+
+        return ResponseEntity.ok(transactionAggregationService.getCurrentUserTopFiveIncomesConvertedToDefaultCurrency(
+                LocalDate.parse(startDate), LocalDate.parse(endDate)));
+    }
+
+    @GetMapping("top-five-expenses-converted")
+    public ResponseEntity<List<SumResponse>> getCurrentUserTopFiveExpensesConvertedToDefaultCurrency(
+            @RequestParam(name = "start-date") String startDate,
+            @RequestParam(name = "end-date") String endDate
+    ) throws UserIsNotOwnerException {
+
+        return ResponseEntity.ok(transactionAggregationService.getCurrentUserTopFiveExpensesConvertedToDefaultCurrency(
+                LocalDate.parse(startDate), LocalDate.parse(endDate)));
     }
 }

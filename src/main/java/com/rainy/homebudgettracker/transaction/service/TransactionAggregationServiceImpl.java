@@ -17,7 +17,6 @@ import com.rainy.homebudgettracker.transaction.Transaction;
 import com.rainy.homebudgettracker.transaction.TransactionRepository;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import com.rainy.homebudgettracker.transaction.enums.PeriodType;
-import com.rainy.homebudgettracker.user.DefaultCurrency;
 import com.rainy.homebudgettracker.user.DefaultCurrencyResponseRequest;
 import com.rainy.homebudgettracker.user.UserService;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +25,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.rainy.homebudgettracker.transaction.BigDecimalNormalization.normalize;
 
@@ -38,6 +38,8 @@ public class TransactionAggregationServiceImpl implements TransactionAggregation
     private final CategoryService categoryService;
     private final ExchangeService exchangeService;
     private final UserService userService;
+
+    private final Map<LocalDate, BigDecimal> rates = new HashMap<>();
 
     @Override
     public SumResponse sumCurrentUserPositiveAmount(UUID accountId)
@@ -205,39 +207,53 @@ public class TransactionAggregationServiceImpl implements TransactionAggregation
         return normalize(sum, 2);
     }
 
+    private BigDecimal convertTransactionAmountToDefaultCurrency(
+            Transaction transaction,
+            CurrencyCode defaultCurrency
+    ) {
+        ExchangeResponse exchangeResponse;
+        BigDecimal rate;
+        if (rates.containsKey(transaction.getDate())) {
+            rate = rates.get(transaction.getDate());
+        } else {
+            CurrencyCode accountCurrency = transaction.getAccount().getCurrencyCode();
+            if (transaction.getDate().isBefore(LocalDate.now())) {
+                exchangeResponse = exchangeService.getHistoricalExchangeRate(
+                        accountCurrency,
+                        defaultCurrency,
+                        transaction.getDate());
+            } else {
+                exchangeResponse = exchangeService.getExchangeRate(
+                        accountCurrency,
+                        defaultCurrency);
+            }
+            rate = BigDecimal.valueOf(Double.parseDouble(exchangeResponse.getConversionRate()));
+            rates.put(transaction.getDate(), rate);
+        }
+
+        return transaction.getAmount().multiply(rate);
+    }
+
+    private CurrencyCode getDefaultCurrency() {
+        DefaultCurrencyResponseRequest defaultCurrencyResponse = userService.getDefaultCurrency();
+        return CurrencyCode.valueOf(defaultCurrencyResponse.getCurrencyCode());
+    }
+
     @Override
     public SumResponse sumCurrentUserTotalAmountInDefaultCurrency() {
         List<BigDecimal> sums = new ArrayList<>();
         accountService.findCurrentUserAccounts()
                 .forEach(account -> {
                     List<Transaction> transactions = (List<Transaction>) transactionRepository.findAllByAccount(account);
-                    DefaultCurrencyResponseRequest defaultCurrency = userService.getDefaultCurrency();
-                    if (account.getCurrencyCode().name().equals(defaultCurrency.getCurrencyCode())) {
+                    CurrencyCode defaultCurrency = getDefaultCurrency();
+                    if (account.getCurrencyCode().name().equals(defaultCurrency.name())) {
                         sums.add(normalize(transactionRepository.sumAmountByAccount(account), 2));
                     } else {
-                        Map<LocalDate, BigDecimal> rates = new HashMap<>();
                         BigDecimal sum = BigDecimal.ZERO;
                         for (Transaction transaction : transactions) {
-                            ExchangeResponse exchangeResponse;
-                            BigDecimal rate;
-                            if (rates.containsKey(transaction.getDate())) {
-                                rate = rates.get(transaction.getDate());
-                            } else {
-                                if (transaction.getDate().isBefore(LocalDate.now())) {
-                                    exchangeResponse = exchangeService.getHistoricalExchangeRate(
-                                            account.getCurrencyCode(),
-                                            CurrencyCode.valueOf(defaultCurrency.getCurrencyCode()),
-                                            transaction.getDate());
-                                } else {
-                                    exchangeResponse = exchangeService.getExchangeRate(
-                                            account.getCurrencyCode(),
-                                            CurrencyCode.valueOf(defaultCurrency.getCurrencyCode()));
-                                }
-                                rate = BigDecimal.valueOf(Double.parseDouble(exchangeResponse.getConversionRate()));
-                                rates.put(transaction.getDate(), rate);
-                            }
-
-                            sum = sum.add(transaction.getAmount().multiply(rate));
+                            sum = sum.add(convertTransactionAmountToDefaultCurrency(
+                                    transaction,
+                                    defaultCurrency));
                         }
                         sums.add(normalize(sum, 2));
                     }
@@ -247,5 +263,101 @@ public class TransactionAggregationServiceImpl implements TransactionAggregation
                 .reduce(BigDecimal.ZERO, BigDecimal::add), 2);
 
         return modelMapper.map(totalSum, SumResponse.class);
+    }
+
+    private BigDecimal getSumOfConvertedTransactions(
+            List<Transaction> transactions,
+            CurrencyCode defaultCurrency
+    ) {
+        BigDecimal sum = BigDecimal.ZERO;
+        for (Transaction transaction : transactions) {
+            if (transaction.getAccount().getCurrencyCode() == defaultCurrency) {
+                sum = normalize(sum.add(transaction.getAmount()), 2);
+            } else {
+                sum = normalize(sum.add(convertTransactionAmountToDefaultCurrency(
+                        transaction,
+                        defaultCurrency)), 2);
+            }
+        }
+
+        return sum;
+    }
+
+    private SumResponse mapToSumResponse(Category category, BigDecimal sum) {
+        SumResponse sumResponse = modelMapper.map(sum, SumResponse.class);
+        sumResponse.setCategory(modelMapper.map(category, CategoryResponse.class));
+        return sumResponse;
+    }
+
+    private List<SumResponse> getTopFiveAsResponse(Map<Category, BigDecimal> sums, boolean isNegative) {
+        Comparator<Map.Entry<Category, BigDecimal>> comparator = Map.Entry.comparingByValue();
+        if (!isNegative) {
+            comparator = comparator.reversed();
+        }
+
+        return sums.entrySet().stream()
+                .sorted(comparator)
+                .limit(5)
+                .map(entry -> {
+                    Category category = entry.getKey();
+                    BigDecimal sum = entry.getValue();
+                    if (!isNegative && sum.compareTo(BigDecimal.ZERO) > 0) {
+                        return mapToSumResponse(category, sum);
+                    } else if (isNegative && sum.compareTo(BigDecimal.ZERO) < 0) {
+                        return mapToSumResponse(category, sum);
+                    } else {
+                        return null;
+                    }
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<SumResponse> getCurrentUserTopFiveIncomesConvertedToDefaultCurrency(
+            LocalDate startDate,
+            LocalDate endDate
+    ) {
+        List<Category> categories = categoryService.findCurrentUserCategories();
+        Map<Category, BigDecimal> sums = new HashMap<>();
+        categories.forEach(category -> {
+            List<Transaction> transactions = (List<Transaction>) transactionRepository
+                    .findAllPositiveByUserSubAndCategoryAndDateBetween(
+                    userService.getUserSub(),
+                    category,
+                    startDate,
+                    endDate);
+
+            CurrencyCode defaultCurrency = getDefaultCurrency();
+
+            BigDecimal sum = getSumOfConvertedTransactions(transactions, defaultCurrency);
+            sums.put(category, sum);
+        });
+
+        return getTopFiveAsResponse(sums, false);
+    }
+
+
+    @Override
+    public List<SumResponse> getCurrentUserTopFiveExpensesConvertedToDefaultCurrency(
+            LocalDate startDate,
+            LocalDate endDate
+    ) {
+        List<Category> categories = categoryService.findCurrentUserCategories();
+        Map<Category, BigDecimal> sums = new HashMap<>();
+        categories.forEach(category -> {
+            List<Transaction> transactions = (List<Transaction>) transactionRepository
+                    .findAllNegativeByUserSubAndCategoryAndDateBetween(
+                    userService.getUserSub(),
+                    category,
+                    startDate,
+                    endDate);
+
+            CurrencyCode defaultCurrency = getDefaultCurrency();
+
+            BigDecimal sum = getSumOfConvertedTransactions(transactions, defaultCurrency);
+            sums.put(category, sum);
+        });
+
+        return getTopFiveAsResponse(sums, true);
     }
 }
