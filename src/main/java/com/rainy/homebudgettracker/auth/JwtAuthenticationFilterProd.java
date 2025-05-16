@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,6 +23,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @Order(2)
+@Slf4j
 public class JwtAuthenticationFilterProd extends OncePerRequestFilter implements JwtAuthenticationFilter {
     private final JwtService jwtService;
 
@@ -46,14 +48,14 @@ public class JwtAuthenticationFilterProd extends OncePerRequestFilter implements
         }
 
         if (sub != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            String premiumStatus;
+            String status;
             try {
-                premiumStatus = jwtService.getClaim(token, "custom:access_level_");
+                status = jwtService.getClaim(token, "custom:access_level_");
             } catch (Exception e) {
-                premiumStatus = "basic";
+                status = "basic";
             }
             List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-            if (premiumStatus.equals("premium")) {
+            if (status.equals("premium")) {
                 authorities.add(new SimpleGrantedAuthority(Role.PREMIUM_USER.name()));
             } else {
                 authorities.add(new SimpleGrantedAuthority(Role.USER.name()));
@@ -64,6 +66,10 @@ public class JwtAuthenticationFilterProd extends OncePerRequestFilter implements
                     new WebAuthenticationDetailsSource().buildDetails(request)
             );
             SecurityContextHolder.getContext().setAuthentication(authToken);
+
+            log.info("Request: '{}'. Sub: {}. Status: {}. Authenticated using COGNITO token: {}.", request.getRequestURI(), sub, status, token);
+            filterChain.doFilter(request, response);
+            return;
         }
 
         filterChain.doFilter(request, response);

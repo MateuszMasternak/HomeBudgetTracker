@@ -1,6 +1,5 @@
 package com.rainy.homebudgettracker.config;
 
-import com.rainy.homebudgettracker.auth.JwtAuthenticationFilter;
 import com.rainy.homebudgettracker.auth.JwtAuthenticationFilterDev;
 import com.rainy.homebudgettracker.auth.JwtAuthenticationFilterProd;
 import com.rainy.homebudgettracker.limiter.RateLimitFilter;

@@ -45,7 +45,6 @@ public class JwtAuthenticationFilterDev extends OncePerRequestFilter implements 
                 authHeader.startsWith("Bearer ") &&
                 !jwtToken.isEmpty()) {
 
-            log.info("Static token is ok: {}", jwtToken);
             final String tokenFromHeader = authHeader.substring(7);
             if (jwtToken.equals(tokenFromHeader)) {
                 if (SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -56,8 +55,6 @@ public class JwtAuthenticationFilterDev extends OncePerRequestFilter implements 
                         authorities.add(new SimpleGrantedAuthority(Role.USER.name()));
                     }
 
-                    log.info("Status is: {}", authorities.get(0).getAuthority());
-
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             sub,
                             tokenFromHeader,
@@ -67,9 +64,12 @@ public class JwtAuthenticationFilterDev extends OncePerRequestFilter implements 
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
 
-                log.info("Logged in!");
+                log.info("Request: '{}'. Sub: {}. Status: {}. Authenticated using STATIC token: {}.", request.getRequestURI(), sub, status, jwtToken);
                 filterChain.doFilter(request, response);
+                return;
             }
         }
+
+        filterChain.doFilter(request, response);
     }
 }

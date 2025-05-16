@@ -22,7 +22,7 @@ aws:
   auth:
     development:
       static-token:
-        enabled: true
+        enabled: ${STATIC_TOKEN_ENABLED_DEV}
         token: ${STATIC_TOKEN_DEV}
         claims:
           sub: ${STATIC_TOKEN_SUB_DEV}
