@@ -67,11 +67,18 @@ public class JwtAuthenticationFilterProd extends OncePerRequestFilter implements
             );
             SecurityContextHolder.getContext().setAuthentication(authToken);
 
-            log.info("Request: '{}'. Sub: {}. Status: {}. Authenticated using COGNITO token: {}.", request.getRequestURI(), sub, status, token);
+            log.info("Request: '{}'. Sub: {}. Status: {}. Authenticated using COGNITO token: {}.", request.getRequestURI(), sub, status, maskToken(token));
             filterChain.doFilter(request, response);
             return;
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private String maskToken(String token) {
+        if (token == null || token.length() <= 10) {
+            return "****";
+        }
+        return token.substring(0, 4) + "****" + token.substring(token.length() - 4);
     }
 }
