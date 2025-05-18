@@ -44,7 +44,6 @@ public class AccountServiceImpl implements AccountService {
             accountResponses.add(accountResponse);
         });
 
-        log.info("Account responses: {}", accountResponses);
         return accountResponses;
     }
 
