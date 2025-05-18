@@ -15,6 +15,8 @@ import java.util.UUID;
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
     Iterable<Transaction> findAllByUserSub(String userSub);
 
+    Iterable<Transaction> findAllByAccount(Account account);
+
     Page<Transaction> findAllByAccount(Account account, Pageable pageable);
 
     Page<Transaction> findAllByAccountAndCategory(
@@ -25,6 +27,38 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     Page<Transaction> findAllByAccountAndCategoryAndDateBetween(
             Account account, Category category, LocalDate startDate, LocalDate endDate, Pageable pageable);
+
+    @Query("SELECT t FROM Transaction t " +
+            "WHERE t.userSub = :userSub " +
+            "AND t.category = :category " +
+            "AND t.date BETWEEN :startDate AND :endDate " +
+            "AND t.amount > 0")
+    Iterable<Transaction> findAllPositiveByUserSubAndCategoryAndDateBetween(
+            String userSub, Category category, LocalDate startDate, LocalDate endDate);
+
+    @Query("SELECT t FROM Transaction t " +
+            "WHERE t.userSub = :userSub " +
+            "AND t.category = :category " +
+            "AND t.date BETWEEN :startDate AND :endDate " +
+            "AND t.amount < 0")
+    Iterable<Transaction> findAllNegativeByUserSubAndCategoryAndDateBetween(
+            String userSub, Category category, LocalDate startDate, LocalDate endDate);
+
+    @Query("SELECT t FROM Transaction t " +
+            "WHERE t.userSub = :userSub " +
+            "AND t.account = :account " +
+            "AND t.date BETWEEN :startDate AND :endDate " +
+            "AND t.amount > 0")
+    Iterable<Transaction> findAllPositiveByUserSubAndAccountAndDateBetween(
+            String userSub, Account account, LocalDate startDate, LocalDate endDate);
+
+    @Query("SELECT t FROM Transaction t " +
+            "WHERE t.userSub = :userSub " +
+            "AND t.account = :account " +
+            "AND t.date BETWEEN :startDate AND :endDate " +
+            "AND t.amount < 0")
+    Iterable<Transaction> findAllNegativeByUserSubAndAccountAndDateBetween(
+            String userSub, Account account, LocalDate startDate, LocalDate endDate);
 
     boolean existsByCategory(Category category);
 

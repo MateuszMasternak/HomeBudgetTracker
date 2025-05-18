@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.UUID;
 
 public interface AccountService {
+    List<Account> findCurrentUserAccounts();
+
     List<AccountResponse> findCurrentUserAccountsAsResponses();
 
     AccountResponse findCurrentUserAccountAsResponse(UUID id)

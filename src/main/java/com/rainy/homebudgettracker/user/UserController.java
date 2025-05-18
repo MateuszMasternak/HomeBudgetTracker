@@ -20,4 +20,15 @@ public class UserController {
     public ResponseEntity<UserInfoResponse> getUserInfo() {
         return ResponseEntity.ok(userService.getUserInfo());
     }
+
+    @GetMapping("/default-currency")
+    public ResponseEntity<DefaultCurrencyResponseRequest> getDefaultCurrency() {
+        return ResponseEntity.ok(userService.getDefaultCurrency());
+    }
+
+    @PostMapping("/default-currency")
+    public ResponseEntity<DefaultCurrencyResponseRequest> setDefaultCurrency(
+            @RequestBody DefaultCurrencyResponseRequest request) {
+        return ResponseEntity.ok(userService.setDefaultCurrency(request));
+    }
 }

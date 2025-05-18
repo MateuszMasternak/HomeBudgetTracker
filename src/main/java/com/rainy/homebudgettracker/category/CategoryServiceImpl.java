@@ -41,6 +41,13 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    public List<Category> findCurrentUserCategories() {
+        String userSub = userService.getUserSub();
+        Iterable<Category> categories = categoryRepository.findAllByUserSub(userSub);
+        return (List<Category>) categories;
+    }
+
+    @Override
     public CategoryResponse findCurrentUserCategoryAsResponse(String name) throws RecordDoesNotExistException {
         return modelMapper.map(findCurrentUserCategory(name), CategoryResponse.class);
     }

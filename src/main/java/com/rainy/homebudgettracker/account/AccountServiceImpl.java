@@ -6,6 +6,7 @@ import com.rainy.homebudgettracker.user.UserService;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,11 +19,18 @@ import static com.rainy.homebudgettracker.transaction.BigDecimalNormalization.no
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
     private final UserService userService;
     private final ModelMapper modelMapper;
+
+    @Override
+    public List<Account> findCurrentUserAccounts() {
+        String userSub = userService.getUserSub();
+        return (List<Account>) accountRepository.findAllByUserSub(userSub);
+    }
 
     @Override
     public List<AccountResponse> findCurrentUserAccountsAsResponses() {
@@ -35,6 +43,7 @@ public class AccountServiceImpl implements AccountService {
             AccountResponse accountResponse = modelMapper.map(account, AccountResponse.class, balance);
             accountResponses.add(accountResponse);
         });
+
         return accountResponses;
     }
 

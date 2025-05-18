@@ -13,6 +13,7 @@ import java.util.UUID;
 public interface CategoryService {
     Page<CategoryResponse> findCurrentUserCategoriesAsResponses(Pageable pageable);
     List<CategoryResponse> findCurrentUserCategoriesAsResponses();
+    List<Category> findCurrentUserCategories();
     CategoryResponse findCurrentUserCategoryAsResponse(String name) throws RecordDoesNotExistException;
     Category findCurrentUserCategory(String name) throws RecordDoesNotExistException;
     CategoryResponse createCategoryForCurrentUser(CategoryRequest categoryRequest) throws RecordAlreadyExistsException;
