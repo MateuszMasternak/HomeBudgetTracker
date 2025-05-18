@@ -64,7 +64,7 @@ public class JwtAuthenticationFilterDev extends OncePerRequestFilter implements 
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
 
-                log.info("Request: '{}'. Sub: {}. Status: {}. Authenticated using STATIC token: {}.", request.getRequestURI(), sub, status, jwtToken);
+                log.info("Request: '{}'. Sub: {}. Status: {}. Authenticated using STATIC token.", request.getRequestURI(), sub, status);
                 filterChain.doFilter(request, response);
                 return;
             }
