@@ -49,7 +49,7 @@ public class TransactionAggregationController {
         return ResponseEntity.ok(transactionAggregationService.sumCurrentUserAmount(accountId));
     }
 
-    @GetMapping("sum-positive-by-date")
+    @GetMapping("/sum-positive-by-date")
     public ResponseEntity<SumResponse> sumCurrentUserPositiveAmount(
             @RequestParam(name = "account-id") UUID accountId,
             @RequestParam(name = "start-date") String startDate,
