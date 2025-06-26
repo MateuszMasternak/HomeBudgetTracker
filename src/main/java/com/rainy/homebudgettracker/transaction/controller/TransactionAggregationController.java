@@ -49,7 +49,7 @@ public class TransactionAggregationController {
         return ResponseEntity.ok(transactionAggregationService.sumCurrentUserAmount(accountId));
     }
 
-    @GetMapping("sum-positive-by-date")
+    @GetMapping("/sum-positive-by-date")
     public ResponseEntity<SumResponse> sumCurrentUserPositiveAmount(
             @RequestParam(name = "account-id") UUID accountId,
             @RequestParam(name = "start-date") String startDate,
@@ -60,7 +60,7 @@ public class TransactionAggregationController {
                 accountId, LocalDate.parse(startDate), LocalDate.parse(endDate)));
     }
 
-    @GetMapping("sum-positive-by-date-and-category")
+    @GetMapping("/sum-positive-by-date-and-category")
     public ResponseEntity<SumResponse> sumCurrentUserPositiveAmount(
             @RequestParam(name = "account-id") UUID accountId,
             @RequestParam(name = "category-name") CategoryRequest category,
@@ -72,7 +72,7 @@ public class TransactionAggregationController {
                 accountId, category, LocalDate.parse(startDate), LocalDate.parse(endDate)));
     }
 
-    @GetMapping("sum-negative-by-date")
+    @GetMapping("/sum-negative-by-date")
     public ResponseEntity<SumResponse> sumCurrentUserNegativeAmount(
             @RequestParam(name = "account-id") UUID accountId,
             @RequestParam(name = "start-date") String startDate,
@@ -83,7 +83,7 @@ public class TransactionAggregationController {
                 accountId, LocalDate.parse(startDate), LocalDate.parse(endDate)));
     }
 
-    @GetMapping("sum-negative-by-date-and-category")
+    @GetMapping("/sum-negative-by-date-and-category")
     public ResponseEntity<SumResponse> sumCurrentUserNegativeAmount(
             @RequestParam(name = "account-id") UUID accountId,
             @RequestParam(name = "category-name") CategoryRequest category,
@@ -95,7 +95,7 @@ public class TransactionAggregationController {
                 accountId, category, LocalDate.parse(startDate), LocalDate.parse(endDate)));
     }
 
-    @GetMapping("sum-totals-in-period")
+    @GetMapping("/sum-totals-in-period")
     public ResponseEntity<List<SumResponse>> sumCurrentUserAmount(
             @RequestParam(name = "account-id") UUID accountId,
             @RequestParam() String date,
@@ -106,12 +106,12 @@ public class TransactionAggregationController {
                 accountId, LocalDate.parse(date), periodType));
     }
 
-    @GetMapping("sum-in-one-currency")
+    @GetMapping("/sum-in-one-currency")
     public ResponseEntity<SumResponse> sumCurrentUserAmountInOneCurrency() throws UserIsNotOwnerException {
         return ResponseEntity.ok(transactionAggregationService.sumCurrentUserTotalAmountInDefaultCurrency());
     }
 
-    @GetMapping("top-five-incomes-converted")
+    @GetMapping("/top-five-incomes-converted")
     public ResponseEntity<List<SumResponse>> getCurrentUserTopFiveIncomesConvertedToDefaultCurrency(
             @RequestParam(name = "start-date") String startDate,
             @RequestParam(name = "end-date") String endDate
@@ -121,7 +121,7 @@ public class TransactionAggregationController {
                 LocalDate.parse(startDate), LocalDate.parse(endDate)));
     }
 
-    @GetMapping("top-five-expenses-converted")
+    @GetMapping("/top-five-expenses-converted")
     public ResponseEntity<List<SumResponse>> getCurrentUserTopFiveExpensesConvertedToDefaultCurrency(
             @RequestParam(name = "start-date") String startDate,
             @RequestParam(name = "end-date") String endDate
@@ -131,7 +131,7 @@ public class TransactionAggregationController {
                 LocalDate.parse(startDate), LocalDate.parse(endDate)));
     }
 
-    @GetMapping("sum-positive-in-default-currency")
+    @GetMapping("/sum-positive-in-default-currency")
     public ResponseEntity<SumResponse> sumCurrentUserPositiveAmountInDefaultCurrency(
             @RequestParam(name = "start-date") String startDate,
             @RequestParam(name = "end-date") String endDate
@@ -140,7 +140,7 @@ public class TransactionAggregationController {
                 LocalDate.parse(startDate), LocalDate.parse(endDate)));
     }
 
-    @GetMapping("sum-negative-in-default-currency")
+    @GetMapping("/sum-negative-in-default-currency")
     public ResponseEntity<SumResponse> sumCurrentUserNegativeAmountInDefaultCurrency(
             @RequestParam(name = "start-date") String startDate,
             @RequestParam(name = "end-date") String endDate

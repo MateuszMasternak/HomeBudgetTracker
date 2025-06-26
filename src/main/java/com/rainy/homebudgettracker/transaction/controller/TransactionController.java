@@ -172,7 +172,7 @@ public class TransactionController {
         return ResponseEntity.accepted().body(transactionService.deleteImageFromCurrentUserTransaction(transactionId));
     }
 
-    @PatchMapping("update-data")
+    @PatchMapping("/update-data")
     public ResponseEntity<TransactionResponse> updateTransactionData(
             @RequestParam(name = "transaction-id") UUID transactionId,
             @RequestBody @Valid TransactionUpdateRequest request)
