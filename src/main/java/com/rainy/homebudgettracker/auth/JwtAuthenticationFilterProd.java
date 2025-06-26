@@ -67,7 +67,7 @@ public class JwtAuthenticationFilterProd extends OncePerRequestFilter implements
             );
             SecurityContextHolder.getContext().setAuthentication(authToken);
 
-            log.info("Request: '{}'. Sub: {}. Status: {}. Authenticated using COGNITO token: {}.", request.getRequestURI(), sub, status, token);
+            log.info("Request: '{}'. Sub: {}. Status: {}. Authenticated using COGNITO token.", request.getRequestURI(), sub, status);
             filterChain.doFilter(request, response);
             return;
         }
