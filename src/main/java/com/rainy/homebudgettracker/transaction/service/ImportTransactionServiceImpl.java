@@ -21,7 +21,6 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class ImportTransactionServiceImpl implements ImportTransactionService {
-    private final ModelMapper modelMapper;
     private final TransactionService transactionService;
 
     @Override
@@ -92,7 +91,7 @@ public class ImportTransactionServiceImpl implements ImportTransactionService {
         String name = value.replace(" ", "").replace("\"", "");
         return switch (name) {
             case "TR.KART" -> "DEBIT_CARD";
-            case "PRZELEW" -> "TRANSFER";
+            case "PRZELEW" -> "BANK_TRANSFER";
             case "EXPRESS" -> "EXPRESS_TRANSFER";
             case "TR.BLIK" -> "BLIK";
             case "P.BLIK" -> "BLIK_TRANSFER";
