@@ -6,13 +6,13 @@ import com.rainy.homebudgettracker.mapper.ModelMapper;
 import com.rainy.homebudgettracker.transaction.TransactionRequest;
 import com.rainy.homebudgettracker.transaction.TransactionResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets; // Zaimportuj StandardCharsets
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -20,13 +20,16 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Log4j2
 public class ImportTransactionServiceImpl implements ImportTransactionService {
     private final TransactionService transactionService;
 
     @Override
     public List<TransactionResponse> extractTransactions(MultipartFile file) throws IOException {
         // WORKING WITH CSV FILE FROM ING BANK
-        try (BufferedReader reader = new BufferedReader(new FileReader(convert(file)))) {
+        File tempFile = convert(file);
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(tempFile), Charset.forName("Windows-1250")))) {
             if (skipToTableInCsv(reader, 22)) {
                 List<TransactionResponse> transactions = new ArrayList<>();
                 String line;
@@ -36,7 +39,7 @@ public class ImportTransactionServiceImpl implements ImportTransactionService {
                         TransactionResponse transaction = TransactionResponse.builder().
                                 id(UUID.randomUUID()).
                                 date(values[0]).
-                                details(values[3]).
+                                details(cleanDetails(values[3])).
                                 transactionMethod(mapToTransactionMethod(values[6])).
                                 amount(values[8].replace(",", ".")).
                                 build();
@@ -50,6 +53,14 @@ public class ImportTransactionServiceImpl implements ImportTransactionService {
             }
         } catch (IOException e) {
             throw new RuntimeException("Error while extracting data from CSV", e);
+        } finally {
+            if (tempFile.exists()) {
+                if (!tempFile.delete()) {
+                    log.warn("Failed to delete temporary file: {}", tempFile.getAbsolutePath());
+                } else {
+                    log.info("Temporary file deleted successfully: {}", tempFile.getAbsolutePath());
+                }
+            }
         }
     }
 
@@ -57,15 +68,25 @@ public class ImportTransactionServiceImpl implements ImportTransactionService {
     public boolean importTransactions(UUID accountId, List<TransactionRequest> transactions)
             throws RecordDoesNotExistException, UserIsNotOwnerException {
 
-            for (TransactionRequest transaction : transactions) {
-                transactionService.createTransactionForCurrentUser(accountId, transaction);
-            }
+        for (TransactionRequest transaction : transactions) {
+            transactionService.createTransactionForCurrentUser(accountId, transaction);
+        }
 
         return true;
     }
 
+    private String cleanDetails(String rawDetails) {
+        if (rawDetails == null || rawDetails.isEmpty()) {
+            return rawDetails;
+        }
+        String cleaned = rawDetails.replaceAll("^\"|\"$", "");
+        return cleaned.trim();
+    }
+
+
     private File convert(MultipartFile file) throws IOException {
-        File tempFile = File.createTempFile("temp_", file.getOriginalFilename());
+        String originalFilename = file.getOriginalFilename() != null ? file.getOriginalFilename() : "csv";
+        File tempFile = File.createTempFile("temp_", "." + originalFilename);
         file.transferTo(tempFile);
 
         return tempFile;
@@ -73,9 +94,11 @@ public class ImportTransactionServiceImpl implements ImportTransactionService {
 
     private boolean skipToTableInCsv(BufferedReader reader, int rows) throws IOException {
         for (int i = 0; i < rows; i++) {
-            reader.readLine();
+            if (reader.readLine() == null) {
+                // Plik skończył się przedwcześnie
+                return false;
+            }
         }
-
         return true;
     }
 
