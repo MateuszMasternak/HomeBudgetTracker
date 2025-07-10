@@ -2,6 +2,7 @@ package com.rainy.homebudgettracker.transaction.controller;
 
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
+import com.rainy.homebudgettracker.transaction.enums.BankName;
 import com.rainy.homebudgettracker.transaction.service.ImportTransactionServiceImpl;
 import com.rainy.homebudgettracker.transaction.TransactionRequest;
 import com.rainy.homebudgettracker.transaction.TransactionResponse;
@@ -21,10 +22,11 @@ public class ImportTransactionController {
     private final ImportTransactionServiceImpl importTransactionService;
 
     @PostMapping("/csv/upload")
-    public ResponseEntity<List<TransactionResponse>> uploadTransactionsFromPdf(
-            @RequestParam("file") MultipartFile file
-    ) throws IOException {
-        return ResponseEntity.ok(importTransactionService.extractTransactions(file));
+    public ResponseEntity<List<TransactionResponse>> uploadTransactionsFromCSV(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("bank-name")BankName bankName
+            ) throws IOException {
+        return ResponseEntity.ok(importTransactionService.extractTransactions(file, bankName));
     }
 
     @PostMapping("/save")
