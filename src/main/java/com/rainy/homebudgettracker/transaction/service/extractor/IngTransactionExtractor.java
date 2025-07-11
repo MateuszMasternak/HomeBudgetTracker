@@ -1,7 +1,10 @@
 package com.rainy.homebudgettracker.transaction.service.extractor;
 
+import com.rainy.homebudgettracker.handler.exception.FileProcessingException;
+import com.rainy.homebudgettracker.handler.exception.WrongFileFormatException;
 import com.rainy.homebudgettracker.transaction.TransactionResponse;
 import com.rainy.homebudgettracker.transaction.enums.BankName;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
@@ -15,7 +18,10 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Component
+@Log4j2
 public class IngTransactionExtractor implements TransactionExtractor {
+    private static final String EXPECTED_HEADER = "\"Data transakcji\";\"Data księgowania\";\"Dane kontrahenta\";\"Tytuł\";\"Nr rachunku\";\"Nazwa banku\";\"Szczegóły\";\"Nr transakcji\";\"Kwota transakcji (waluta rachunku)\";\"Waluta\";\"Kwota blokady/zwolnienie blokady\";\"Waluta\";\"Kwota płatności w walucie\";\"Waluta\";\"Konto\";\"Saldo po transakcji\";\"Waluta\";;;;";
+    private static final int HEADER_ROW_NUMBER = 22;
 
     @Override
     public boolean supports(BankName bankName) {
@@ -27,12 +33,12 @@ public class IngTransactionExtractor implements TransactionExtractor {
         try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(inputStream, Charset.forName("Windows-1250"))))
         {
-            skipToTableInCsv(reader, 22);
+            validateHeaderAndSkip(reader);
 
             List<TransactionResponse> transactions = new ArrayList<>();
             String line;
             while ((line = reader.readLine()) != null) {
-                String[] values = line.split(";");
+                String[] values = line.split(";", -1);
                 if (checkIfProperRow(values)) {
                     TransactionResponse transaction = TransactionResponse.builder()
                             .id(UUID.randomUUID())
@@ -46,7 +52,8 @@ public class IngTransactionExtractor implements TransactionExtractor {
             }
             return transactions;
         } catch (IOException e) {
-            throw new RuntimeException("Error while extracting data from CSV (ING)", e);
+            log.error("Error while extracting data from CSV (ING): {}", e.getMessage(), e);
+            throw new FileProcessingException("Error while extracting data from CSV (ING)");
         }
     }
 
@@ -75,11 +82,18 @@ public class IngTransactionExtractor implements TransactionExtractor {
         };
     }
 
-    private void skipToTableInCsv(BufferedReader reader, int rows) throws IOException {
-        for (int i = 0; i < rows; i++) {
+    private void validateHeaderAndSkip(BufferedReader reader) throws IOException {
+        for (int i = 0; i < HEADER_ROW_NUMBER - 1; i++) {
             if (reader.readLine() == null) {
-                throw new IOException("Failed to skip to table in CSV (ING), unexpected end of file.");
+                throw new WrongFileFormatException("The file is too short. The expected header was not found in the line "
+                        + HEADER_ROW_NUMBER);
             }
+        }
+
+        String headerLine = reader.readLine();
+        if (headerLine == null || !headerLine.trim().equals(EXPECTED_HEADER)) {
+            throw new WrongFileFormatException("Incorrect file format. The header in line " + HEADER_ROW_NUMBER
+                    + " does not match the expected export format from ING");
         }
     }
 }
