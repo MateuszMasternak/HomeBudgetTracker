@@ -217,4 +217,32 @@ public class GlobalExceptionHandler {
                                 .build()
                 );
     }
+
+    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    @ExceptionHandler(WrongFileFormatException.class)
+    public ResponseEntity<ExceptionResponse> handleException(WrongFileFormatException e) {
+        return ResponseEntity
+                .status(INVALID_FILE_FORMAT.getCode())
+                .body(
+                        ExceptionResponse.builder()
+                                .businessErrorCode(INVALID_FILE_FORMAT.getCode())
+                                .businessErrorDescription(INVALID_FILE_FORMAT.getDescription())
+                                .error(e.getMessage())
+                                .build()
+                );
+    }
+
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(FileProcessingException.class)
+    public ResponseEntity<ExceptionResponse> handleException(FileProcessingException e) {
+        return ResponseEntity
+                .status(FILE_PROCESSING_ERROR.getCode())
+                .body(
+                        ExceptionResponse.builder()
+                                .businessErrorCode(FILE_PROCESSING_ERROR.getCode())
+                                .businessErrorDescription(FILE_PROCESSING_ERROR.getDescription())
+                                .error(e.getMessage())
+                                .build()
+                );
+    }
 }

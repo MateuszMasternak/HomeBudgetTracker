@@ -16,6 +16,8 @@ public enum BusinessErrorCodes {
     RECORD_ALREADY_EXISTS(405, CONFLICT, "Record already exists"),
     RECORD_ASSOCIATED_WITH_ANOTHER_RECORD(406, CONFLICT, "Record is associated with other records"),
     INVALID_FILE(407, UNSUPPORTED_MEDIA_TYPE, "Invalid file"),
+    INVALID_FILE_FORMAT(409, UNSUPPORTED_MEDIA_TYPE, "Invalid file format"),
+    FILE_PROCESSING_ERROR(410, HttpStatus.INTERNAL_SERVER_ERROR, "File processing error. Please try again later or contact support"),
     PREMIUM_STATUS_REQUIRED(408, UNAUTHORIZED, "Premium status required"),
     MAXIMUM_FILE_SIZE_EXCEEDED(411, PAYLOAD_TOO_LARGE, "Maximum file size exceeded. Maximum file size is 10MB"),
     EXCHANGE_RATE_API_QUOTA_REACHED(412, FAILED_DEPENDENCY, "Quota exceeded. Enter custom exchange rate or try later"),
