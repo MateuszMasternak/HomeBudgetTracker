@@ -28,7 +28,7 @@ public class S3Service {
     @Value("${aws.s3.expiration-time}")
     private Long expirationTime;
 
-    public String uploadFile(MultipartFile file, String userSub, UUID transactionId) throws ImageUploadException {
+    public String uploadFile(MultipartFile file, String userSub, UUID transactionId) {
         try {
             File tempFile = convertMultipartFileToCompressedFile(file);
             String key = createKeyForImage(userSub, transactionId);
@@ -36,7 +36,7 @@ public class S3Service {
             tempFile.delete();
             return key;
         } catch (IOException e) {
-            throw new ImageUploadException("Failed to upload image");
+            throw new ImageUploadException("Failed to upload image", e);
         }
     }
 

@@ -1,11 +1,9 @@
 package com.rainy.homebudgettracker.transaction.service;
 
 import com.rainy.homebudgettracker.account.Account;
-import com.rainy.homebudgettracker.account.AccountResponse;
 import com.rainy.homebudgettracker.account.AccountService;
 import com.rainy.homebudgettracker.category.Category;
 import com.rainy.homebudgettracker.category.CategoryRequest;
-import com.rainy.homebudgettracker.category.CategoryResponse;
 import com.rainy.homebudgettracker.category.CategoryService;
 import com.rainy.homebudgettracker.exchange.CurrencyConverter;
 import com.rainy.homebudgettracker.exchange.ExchangeResponse;
@@ -16,7 +14,6 @@ import com.rainy.homebudgettracker.images.S3Service;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
 import com.rainy.homebudgettracker.transaction.*;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
-import com.rainy.homebudgettracker.transaction.enums.PeriodType;
 import com.rainy.homebudgettracker.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -25,10 +22,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -58,9 +58,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public Page<TransactionResponse> findCurrentUserTransactionsAsResponses(UUID accountId, Pageable pageable)
-            throws RecordDoesNotExistException, UserIsNotOwnerException {
-
+    public Page<TransactionResponse> findCurrentUserTransactionsAsResponses(UUID accountId, Pageable pageable) {
         Account account = accountService.findCurrentUserAccount(accountId);
         Page<Transaction> transactions = transactionRepository.findAllByAccount(account, pageable);
         return transactions.map(this::mapToTransactionResponse);
@@ -226,15 +224,14 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public byte[] generateCSVWithCurrentUserTransactions() throws IOException {
-        String userSub = userService.getUserSub();
+    public byte[] generateCSVWithCurrentUserTransactions() {
         List<TransactionResponse> transactionResponses = findCurrentUserTransactionsAsResponses();
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             OutputStreamWriter writer = new OutputStreamWriter(baos, StandardCharsets.UTF_8)) {
 
-        Path csvFilePath = Paths.get("temp_transactions_" + userSub + "_" + LocalDate.now() + ".csv");
-
-        try (FileWriter writer = new FileWriter(csvFilePath.toString())) {
-            writer.append("sep=,\n"); // separator for microsoft excel
+            writer.append("sep=,\n"); // Microsoft Excel compatibility
             writer.append("Account name,Currency code,Amount,Category,Date,Transaction method,Description\n");
+
             for (TransactionResponse transactionResponse : transactionResponses) {
                 String details = transactionResponse.getDetails() == null ? "" : transactionResponse.getDetails();
                 writer.append(transactionResponse.getAccount().getName())
@@ -252,21 +249,17 @@ public class TransactionServiceImpl implements TransactionService {
                         .append(details)
                         .append("\n");
             }
+
+            writer.flush();
+            return baos.toByteArray();
+
+        } catch (IOException e) {
+            throw new FileProcessingException("Error generating CSV file content in memory", e);
         }
-
-        byte[] fileContent = Files.readAllBytes(csvFilePath);
-        Files.delete(csvFilePath);
-
-        return fileContent;
     }
 
     @Override
-    public TransactionResponse addImageToCurrentUserTransaction(UUID transactionId, MultipartFile file)
-            throws RecordDoesNotExistException,
-            UserIsNotOwnerException,
-            ImageUploadException,
-            WrongFileTypeException, PremiumStatusRequiredException {
-
+    public TransactionResponse addImageToCurrentUserTransaction(UUID transactionId, MultipartFile file) {
         if (!userService.isPremiumUser()) {
             throw new PremiumStatusRequiredException("This feature is only available for premium users.");
         }
@@ -287,9 +280,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public TransactionResponse deleteImageFromCurrentUserTransaction(UUID transactionId)
-            throws RecordDoesNotExistException, UserIsNotOwnerException {
-
+    public TransactionResponse deleteImageFromCurrentUserTransaction(UUID transactionId) {
         Transaction transaction = getTransactionByTransactionId(transactionId);
 
         String key = transaction.getImageFilePath();
@@ -302,9 +293,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public TransactionResponse updateTransactionForCurrentUser(UUID transactionId, TransactionUpdateRequest request)
-            throws RecordDoesNotExistException, UserIsNotOwnerException {
-
+    public TransactionResponse updateTransactionForCurrentUser(UUID transactionId, TransactionUpdateRequest request) {
         Transaction transaction = getTransactionByTransactionId(transactionId);
 
         if (request.getCategoryName() != null) {
@@ -324,9 +313,7 @@ public class TransactionServiceImpl implements TransactionService {
         return modelMapper.map(transactionRepository.save(transaction), TransactionResponse.class);
     }
 
-    private Transaction getTransactionByTransactionId(UUID transactionId)
-            throws RecordDoesNotExistException, UserIsNotOwnerException {
-
+    private Transaction getTransactionByTransactionId(UUID transactionId) {
         String userSub = userService.getUserSub();
         Optional<Transaction> transaction = transactionRepository.findById(transactionId);
 

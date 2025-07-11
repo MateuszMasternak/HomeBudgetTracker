@@ -2,7 +2,7 @@ package com.rainy.homebudgettracker.limiter;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 @Order(1)
-@Log4j2
+@Slf4j
 public class RateLimitFilter implements Filter {
     private final ScheduledExecutorService executor;
     private final ConcurrentHashMap<String, AtomicLong> requestCount;

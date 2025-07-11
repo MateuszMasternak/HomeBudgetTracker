@@ -42,9 +42,7 @@ public class TransactionAggregationServiceImpl implements TransactionAggregation
     private final Map<LocalDate, BigDecimal> rates = new HashMap<>();
 
     @Override
-    public SumResponse sumCurrentUserPositiveAmount(UUID accountId)
-            throws RecordDoesNotExistException, UserIsNotOwnerException {
-
+    public SumResponse sumCurrentUserPositiveAmount(UUID accountId) {
         Account account = accountService.findCurrentUserAccount(accountId);
         BigDecimal sum = normalize(transactionRepository.sumPositiveAmountByAccount(account), 2);
         SumResponse response = modelMapper.map(sum, SumResponse.class);
@@ -54,9 +52,7 @@ public class TransactionAggregationServiceImpl implements TransactionAggregation
     }
 
     @Override
-    public SumResponse sumCurrentUserNegativeAmount(UUID accountId)
-            throws RecordDoesNotExistException, UserIsNotOwnerException {
-
+    public SumResponse sumCurrentUserNegativeAmount(UUID accountId) {
         Account account = accountService.findCurrentUserAccount(accountId);
         BigDecimal sum = normalize(transactionRepository.sumNegativeAmountByAccount(account), 2);
         SumResponse response = modelMapper.map(sum, SumResponse.class);
@@ -66,9 +62,7 @@ public class TransactionAggregationServiceImpl implements TransactionAggregation
     }
 
     @Override
-    public SumResponse sumCurrentUserAmount(UUID accountId)
-            throws RecordDoesNotExistException, UserIsNotOwnerException {
-
+    public SumResponse sumCurrentUserAmount(UUID accountId) {
         Account account = accountService.findCurrentUserAccount(accountId);
         BigDecimal sum = normalize(transactionRepository.sumAmountByAccount(account), 2);
         SumResponse response = modelMapper.map(sum, SumResponse.class);
@@ -78,9 +72,7 @@ public class TransactionAggregationServiceImpl implements TransactionAggregation
     }
 
     @Override
-    public SumResponse sumCurrentUserPositiveAmount(UUID accountId, LocalDate startDate, LocalDate endDate)
-            throws RecordDoesNotExistException, UserIsNotOwnerException {
-
+    public SumResponse sumCurrentUserPositiveAmount(UUID accountId, LocalDate startDate, LocalDate endDate) {
         Account account = accountService.findCurrentUserAccount(accountId);
         BigDecimal sum = normalize(transactionRepository.sumPositiveAmountByAccountAndDateBetween(
                 account, startDate, endDate), 2);
@@ -91,9 +83,8 @@ public class TransactionAggregationServiceImpl implements TransactionAggregation
     }
 
     @Override
-    public SumResponse sumCurrentUserPositiveAmount(UUID accountId, CategoryRequest categoryName, LocalDate startDate, LocalDate endDate)
-            throws RecordDoesNotExistException, UserIsNotOwnerException {
-
+    public SumResponse sumCurrentUserPositiveAmount(
+            UUID accountId, CategoryRequest categoryName, LocalDate startDate, LocalDate endDate) {
         Account account = accountService.findCurrentUserAccount(accountId);
         Category category = categoryService.findCurrentUserCategory(categoryName.getName());
         BigDecimal sum = normalize(transactionRepository.sumPositiveAmountByAccountAndCategoryAndDateBetween(
@@ -106,9 +97,7 @@ public class TransactionAggregationServiceImpl implements TransactionAggregation
     }
 
     @Override
-    public SumResponse sumCurrentUserNegativeAmount(UUID accountId, LocalDate startDate, LocalDate endDate)
-            throws RecordDoesNotExistException, UserIsNotOwnerException {
-
+    public SumResponse sumCurrentUserNegativeAmount(UUID accountId, LocalDate startDate, LocalDate endDate) {
         Account account = accountService.findCurrentUserAccount(accountId);
         BigDecimal sum = normalize(transactionRepository.sumNegativeAmountByAccountAndDateBetween(
                 account, startDate, endDate), 2);
@@ -119,9 +108,8 @@ public class TransactionAggregationServiceImpl implements TransactionAggregation
     }
 
     @Override
-    public SumResponse sumCurrentUserNegativeAmount(UUID accountId, CategoryRequest categoryName, LocalDate startDate, LocalDate endDate)
-            throws RecordDoesNotExistException, UserIsNotOwnerException {
-
+    public SumResponse sumCurrentUserNegativeAmount(
+            UUID accountId, CategoryRequest categoryName, LocalDate startDate, LocalDate endDate) {
         Account account = accountService.findCurrentUserAccount(accountId);
         Category category = categoryService.findCurrentUserCategory(categoryName.getName());
         BigDecimal sum = normalize(transactionRepository.sumNegativeAmountByAccountAndCategoryAndDateBetween(
@@ -138,8 +126,7 @@ public class TransactionAggregationServiceImpl implements TransactionAggregation
             UUID accountId,
             LocalDate date,
             PeriodType periodType
-    ) throws RecordDoesNotExistException, UserIsNotOwnerException {
-
+    ) {
         Account account = accountService.findCurrentUserAccount(accountId);
 
         LocalDate dateToSumBeforeAmounts = getDateBeforePeriod(periodType, date);

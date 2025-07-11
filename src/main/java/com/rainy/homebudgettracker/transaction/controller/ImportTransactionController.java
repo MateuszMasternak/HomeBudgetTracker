@@ -1,8 +1,5 @@
 package com.rainy.homebudgettracker.transaction.controller;
 
-import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
-import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
-import com.rainy.homebudgettracker.handler.exception.WrongFileFormatException;
 import com.rainy.homebudgettracker.transaction.enums.BankName;
 import com.rainy.homebudgettracker.transaction.service.ImportTransactionServiceImpl;
 import com.rainy.homebudgettracker.transaction.TransactionRequest;
@@ -12,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,7 +30,7 @@ public class ImportTransactionController {
     public ResponseEntity<Boolean> saveTransactions(
             @RequestParam(name = "account-id") UUID accountId,
             @RequestBody List<TransactionRequest> transactions
-    ) throws RecordDoesNotExistException, UserIsNotOwnerException {
+    ) {
         importTransactionService.importTransactions(accountId, transactions);
         return ResponseEntity.accepted().build();
     }
