@@ -22,10 +22,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -222,14 +225,13 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public byte[] generateCSVWithCurrentUserTransactions() {
-        String userSub = userService.getUserSub();
         List<TransactionResponse> transactionResponses = findCurrentUserTransactionsAsResponses();
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             OutputStreamWriter writer = new OutputStreamWriter(baos, StandardCharsets.UTF_8)) {
 
-        Path csvFilePath = Paths.get("temp_transactions_" + userSub + "_" + LocalDate.now() + ".csv");
-
-        try (FileWriter writer = new FileWriter(csvFilePath.toString())) {
-            writer.append("sep=,\n"); // separator for microsoft excel
+            writer.append("sep=,\n"); // Microsoft Excel compatibility
             writer.append("Account name,Currency code,Amount,Category,Date,Transaction method,Description\n");
+
             for (TransactionResponse transactionResponse : transactionResponses) {
                 String details = transactionResponse.getDetails() == null ? "" : transactionResponse.getDetails();
                 writer.append(transactionResponse.getAccount().getName())
@@ -248,12 +250,11 @@ public class TransactionServiceImpl implements TransactionService {
                         .append("\n");
             }
 
-            byte[] fileContent = Files.readAllBytes(csvFilePath);
-            Files.delete(csvFilePath);
+            writer.flush();
+            return baos.toByteArray();
 
-            return fileContent;
         } catch (IOException e) {
-            throw new FileProcessingException("Error generating CSV file with transactions", e);
+            throw new FileProcessingException("Error generating CSV file content in memory", e);
         }
     }
 
