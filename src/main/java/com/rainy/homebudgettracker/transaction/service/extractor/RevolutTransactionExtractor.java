@@ -61,6 +61,8 @@ public class RevolutTransactionExtractor implements TransactionExtractor {
     private String mapToTransactionMethod(String name) {
         return switch (name) {
             case "CARD_PAYMENT" -> "DEBIT_CARD";
+            case "TRANSFER", "TOPUP" -> "BANK_TRANSFER";
+            case "OTP_PAYMENT" -> "BLIK";
             default -> "OTHER";
         };
     }
