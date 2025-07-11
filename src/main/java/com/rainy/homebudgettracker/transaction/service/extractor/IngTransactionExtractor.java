@@ -22,6 +22,10 @@ import java.util.UUID;
 public class IngTransactionExtractor implements TransactionExtractor {
     private static final String EXPECTED_HEADER = "\"Data transakcji\";\"Data księgowania\";\"Dane kontrahenta\";\"Tytuł\";\"Nr rachunku\";\"Nazwa banku\";\"Szczegóły\";\"Nr transakcji\";\"Kwota transakcji (waluta rachunku)\";\"Waluta\";\"Kwota blokady/zwolnienie blokady\";\"Waluta\";\"Kwota płatności w walucie\";\"Waluta\";\"Konto\";\"Saldo po transakcji\";\"Waluta\";;;;";
     private static final int HEADER_ROW_NUMBER = 22;
+    private static final int COL_DATE = 0;
+    private static final int COL_DETAILS = 3;
+    private static final int COL_TRANSACTION_METHOD = 6;
+    private static final int COL_AMOUNT = 8;
 
     @Override
     public boolean supports(BankName bankName) {
@@ -42,10 +46,10 @@ public class IngTransactionExtractor implements TransactionExtractor {
                 if (checkIfProperRow(values)) {
                     TransactionResponse transaction = TransactionResponse.builder()
                             .id(UUID.randomUUID())
-                            .date(values[0])
-                            .details(cleanDetails(values[3]))
-                            .transactionMethod(mapToTransactionMethod(values[6]))
-                            .amount(values[8].replace(",", "."))
+                            .date(values[COL_DATE])
+                            .details(cleanDetails(values[COL_DETAILS]))
+                            .transactionMethod(mapToTransactionMethod(values[COL_TRANSACTION_METHOD]))
+                            .amount(values[COL_AMOUNT].replace(",", "."))
                             .build();
                     transactions.add(transaction);
                 }
@@ -59,10 +63,10 @@ public class IngTransactionExtractor implements TransactionExtractor {
 
     private boolean checkIfProperRow(String[] values) {
         return values.length >= 9
-                && !Objects.equals(values[0], "")
-                && !Objects.equals(values[3], "")
-                && !Objects.equals(values[6], "")
-                && !Objects.equals(values[8], "");
+                && !Objects.equals(values[COL_DATE], "")
+                && !Objects.equals(values[COL_DETAILS], "")
+                && !Objects.equals(values[COL_TRANSACTION_METHOD], "")
+                && !Objects.equals(values[COL_AMOUNT], "");
     }
 
     private String cleanDetails(String rawDetails) {
