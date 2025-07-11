@@ -56,8 +56,8 @@ public class IngTransactionExtractor implements TransactionExtractor {
             }
             return transactions;
         } catch (IOException e) {
-            log.error("Error while extracting data from CSV (ING): {}", e.getMessage(), e);
-            throw new FileProcessingException("Error while extracting data from CSV (ING)");
+            log.error("I/O error while reading ING file stream", e);
+            throw new FileProcessingException("Could not read the Revolut file due to a system error.", e);
         }
     }
 
