@@ -11,21 +11,25 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 
 public class RsaPrivateKeyGenerator {
-    public static RSAPrivateKey generatePrivateKeyFromString(String privateKey)
-            throws NoSuchAlgorithmException, InvalidKeySpecException
-    {
+    public static RSAPrivateKey generatePrivateKeyFromString(String privateKey) {
         String privateKeyPEMCleaned = cleanPrivateKey(privateKey);
         byte[] privateKeyBytes = getDecodedPrivateKey(privateKeyPEMCleaned);
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateKeyBytes);
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        return (RSAPrivateKey) keyFactory.generatePrivate(keySpec);
+        try {
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            return (RSAPrivateKey) keyFactory.generatePrivate(keySpec);
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            throw new RuntimeException("Failed to generate the private key", e);
+        }
     }
 
-    public static RSAPrivateKey generatePrivateKeyFromFile(String filePath)
-            throws IOException, NoSuchAlgorithmException, InvalidKeySpecException
-    {
-        String privateKey = getEncodedPrivateKey(filePath);
-        return generatePrivateKeyFromString(privateKey);
+    public static RSAPrivateKey generatePrivateKeyFromFile(String filePath) {
+        try {
+            String privateKey = getEncodedPrivateKey(filePath);
+            return generatePrivateKeyFromString(privateKey);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read private key from file", e);
+        }
     }
 
     private static byte[] getDecodedPrivateKey(String privateKey) {

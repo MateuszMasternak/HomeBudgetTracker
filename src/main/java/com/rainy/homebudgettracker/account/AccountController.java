@@ -24,7 +24,7 @@ public class AccountController {
     @GetMapping("/{id}")
     public ResponseEntity<AccountResponse> getCurrentUserAccount(
             @PathVariable(name = "id") UUID accountId
-    ) throws RecordDoesNotExistException, UserIsNotOwnerException {
+    ) {
         return ResponseEntity.ok(accountService.findCurrentUserAccountAsResponse(accountId));
     }
 
@@ -37,14 +37,14 @@ public class AccountController {
     @PatchMapping
     public ResponseEntity<AccountResponse> updateCurrentUserAccountName(
             @RequestBody @Valid AccountUpdateNameRequest request
-    ) throws RecordDoesNotExistException, UserIsNotOwnerException {
+    ) {
         return ResponseEntity.ok(accountService.updateCurrentUserAccountName(request));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCurrentUserAccount(
             @PathVariable(name = "id") UUID accountId
-    ) throws RecordDoesNotExistException, UserIsNotOwnerException {
+    ) {
         accountService.deleteCurrentUserAccount(accountId);
         return ResponseEntity.noContent().build();
     }

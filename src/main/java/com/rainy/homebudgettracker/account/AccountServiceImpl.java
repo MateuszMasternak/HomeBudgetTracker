@@ -6,7 +6,6 @@ import com.rainy.homebudgettracker.user.UserService;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,7 +18,6 @@ import static com.rainy.homebudgettracker.transaction.BigDecimalNormalization.no
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
@@ -48,8 +46,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public AccountResponse findCurrentUserAccountAsResponse(UUID id)
-            throws RecordDoesNotExistException, UserIsNotOwnerException {
+    public AccountResponse findCurrentUserAccountAsResponse(UUID id) {
             String userSub = userService.getUserSub();
 
             Account account = accountRepository.findById(id).orElseThrow(
@@ -62,8 +59,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public Account findCurrentUserAccount(UUID id)
-            throws RecordDoesNotExistException, UserIsNotOwnerException {
+    public Account findCurrentUserAccount(UUID id) {
         String userSub = userService.getUserSub();
 
         Account account = accountRepository.findById(id).orElseThrow(
@@ -84,8 +80,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Transactional
     @Override
-    public AccountResponse updateCurrentUserAccountName(AccountUpdateNameRequest request)
-            throws RecordDoesNotExistException, UserIsNotOwnerException {
+    public AccountResponse updateCurrentUserAccountName(AccountUpdateNameRequest request) {
         Account account = findCurrentUserAccount(request.getId());
         accountRepository.updateAccountName(request.getId(), request.getName());
         account.setName(request.getName());
@@ -93,7 +88,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public void deleteCurrentUserAccount(UUID id) throws RecordDoesNotExistException, UserIsNotOwnerException {
+    public void deleteCurrentUserAccount(UUID id) {
         Account account = findCurrentUserAccount(id);
         accountRepository.delete(account);
     }

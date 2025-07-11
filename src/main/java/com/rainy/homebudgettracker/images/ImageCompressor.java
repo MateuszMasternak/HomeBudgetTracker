@@ -1,5 +1,8 @@
 package com.rainy.homebudgettracker.images;
 
+import com.rainy.homebudgettracker.handler.exception.FileProcessingException;
+import lombok.extern.slf4j.Slf4j;
+
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageWriteParam;
@@ -12,25 +15,38 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Iterator;
 
+@Slf4j
 public class ImageCompressor {
-    public static File compressImage(File inputFile) throws IOException {
-        BufferedImage image = ImageIO.read(inputFile);
-        // JPEG does not support alpha channel
-        image = removeAlphaChannel(image);
+    private static final float COMPRESSION_QUALITY = 0.5f;
 
-        Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpg");
-        ImageWriter writer = writers.next();
-        ImageWriteParam param = writer.getDefaultWriteParam();
+    public static File compressImage(File inputFile) {
+        ImageWriter writer = null;
+        try {
+            BufferedImage image = ImageIO.read(inputFile);
+            // JPEG does not support alpha channel
+            image = removeAlphaChannel(image);
 
-        param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-        param.setCompressionQuality(0.5f);
+            Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpg");
+            writer = writers.next();
+            ImageWriteParam param = writer.getDefaultWriteParam();
 
-        File outputFile = File.createTempFile("compressed", ".jpg");
-        try (FileOutputStream fos = new FileOutputStream(outputFile);
-             ImageOutputStream ios = ImageIO.createImageOutputStream(fos)) {
-            writer.setOutput(ios);
-            writer.write(null, new IIOImage(image, null, null), param);
-            return outputFile;
+            param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+            param.setCompressionQuality(COMPRESSION_QUALITY);
+
+            File outputFile = File.createTempFile("compressed", ".jpg");
+            try (FileOutputStream fos = new FileOutputStream(outputFile);
+                 ImageOutputStream ios = ImageIO.createImageOutputStream(fos)) {
+                writer.setOutput(ios);
+                writer.write(null, new IIOImage(image, null, null), param);
+                return outputFile;
+            }
+        } catch (IOException e) {
+            log.error("Error compressing image: {}", e.getMessage(), e);
+            throw new FileProcessingException("Failed to compress image", e);
+        } finally {
+            if (writer != null) {
+                writer.dispose();
+            }
         }
     }
 
@@ -38,17 +54,10 @@ public class ImageCompressor {
         if (!img.getColorModel().hasAlpha()) {
             return img;
         }
-
-        BufferedImage target = createImage(img.getWidth(), img.getHeight(), false);
+        BufferedImage target = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_RGB);
         Graphics2D g = target.createGraphics();
-        g.fillRect(0, 0, img.getWidth(), img.getHeight());
         g.drawImage(img, 0, 0, null);
         g.dispose();
-
         return target;
-    }
-
-    private static BufferedImage createImage(int width, int height, boolean hasAlpha) {
-        return new BufferedImage(width, height, hasAlpha ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB);
     }
 }

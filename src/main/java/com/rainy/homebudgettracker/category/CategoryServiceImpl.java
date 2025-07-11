@@ -48,19 +48,18 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public CategoryResponse findCurrentUserCategoryAsResponse(String name) throws RecordDoesNotExistException {
+    public CategoryResponse findCurrentUserCategoryAsResponse(String name) {
         return modelMapper.map(findCurrentUserCategory(name), CategoryResponse.class);
     }
 
     @Override
-    public Category findCurrentUserCategory(String name) throws RecordDoesNotExistException {
+    public Category findCurrentUserCategory(String name) {
         return categoryRepository.findByUserSubAndName(userService.getUserSub(), name)
                 .orElseThrow(() -> new RecordDoesNotExistException("Category with name " + name + " does not exist."));
     }
 
     @Override
-    public CategoryResponse createCategoryForCurrentUser(CategoryRequest categoryRequest)
-            throws RecordAlreadyExistsException {
+    public CategoryResponse createCategoryForCurrentUser(CategoryRequest categoryRequest) {
         String userSub = userService.getUserSub();
 
         if (categoryRepository.existsByUserSubAndName(userSub, categoryRequest.getName())) {
@@ -74,8 +73,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Transactional
     @Override
-    public void deleteCurrentUserCategory(UUID categoryId)
-            throws RecordDoesNotExistException, UserIsNotOwnerException, CategoryAssociatedWithTransactionException {
+    public void deleteCurrentUserCategory(UUID categoryId) {
         Optional<Category> optionalCategory = categoryRepository.findById(categoryId);
 
         if (optionalCategory.isEmpty()) {

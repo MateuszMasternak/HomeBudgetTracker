@@ -1,9 +1,6 @@
 package com.rainy.homebudgettracker.transaction.controller;
 
 import com.rainy.homebudgettracker.category.CategoryRequest;
-import com.rainy.homebudgettracker.category.CategoryResponse;
-import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
-import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.transaction.SumResponse;
 import com.rainy.homebudgettracker.transaction.enums.PeriodType;
 import com.rainy.homebudgettracker.transaction.service.TransactionAggregationService;
@@ -16,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -28,24 +24,21 @@ public class TransactionAggregationController {
     @GetMapping("/sum-positive")
     public ResponseEntity<SumResponse> sumCurrentUserPositiveAmount(
             @RequestParam(name = "account-id") UUID accountId
-    ) throws RecordDoesNotExistException, UserIsNotOwnerException {
-
+    ) {
         return ResponseEntity.ok(transactionAggregationService.sumCurrentUserPositiveAmount(accountId));
     }
 
     @GetMapping("/sum-negative")
     public ResponseEntity<SumResponse> sumCurrentUserNegativeAmount(
             @RequestParam(name = "account-id") UUID accountId
-    ) throws RecordDoesNotExistException, UserIsNotOwnerException {
-
+    ) {
         return ResponseEntity.ok(transactionAggregationService.sumCurrentUserNegativeAmount(accountId));
     }
 
     @GetMapping("/sum")
     public ResponseEntity<SumResponse> sumCurrentUserAmount(
             @RequestParam(name = "account-id") UUID accountId
-    ) throws RecordDoesNotExistException, UserIsNotOwnerException {
-
+    ) {
         return ResponseEntity.ok(transactionAggregationService.sumCurrentUserAmount(accountId));
     }
 
@@ -54,8 +47,7 @@ public class TransactionAggregationController {
             @RequestParam(name = "account-id") UUID accountId,
             @RequestParam(name = "start-date") String startDate,
             @RequestParam(name = "end-date") String endDate
-    ) throws RecordDoesNotExistException, UserIsNotOwnerException {
-
+    ) {
         return ResponseEntity.ok(transactionAggregationService.sumCurrentUserPositiveAmount(
                 accountId, LocalDate.parse(startDate), LocalDate.parse(endDate)));
     }
@@ -66,8 +58,7 @@ public class TransactionAggregationController {
             @RequestParam(name = "category-name") CategoryRequest category,
             @RequestParam(name = "start-date") String startDate,
             @RequestParam(name = "end-date") String endDate
-    ) throws RecordDoesNotExistException, UserIsNotOwnerException {
-
+    ) {
         return ResponseEntity.ok(transactionAggregationService.sumCurrentUserPositiveAmount(
                 accountId, category, LocalDate.parse(startDate), LocalDate.parse(endDate)));
     }
@@ -77,8 +68,7 @@ public class TransactionAggregationController {
             @RequestParam(name = "account-id") UUID accountId,
             @RequestParam(name = "start-date") String startDate,
             @RequestParam(name = "end-date") String endDate
-    ) throws RecordDoesNotExistException, UserIsNotOwnerException {
-
+    ) {
         return ResponseEntity.ok(transactionAggregationService.sumCurrentUserNegativeAmount(
                 accountId, LocalDate.parse(startDate), LocalDate.parse(endDate)));
     }
@@ -89,8 +79,7 @@ public class TransactionAggregationController {
             @RequestParam(name = "category-name") CategoryRequest category,
             @RequestParam(name = "start-date") String startDate,
             @RequestParam(name = "end-date") String endDate
-    ) throws RecordDoesNotExistException, UserIsNotOwnerException {
-
+    ) {
         return ResponseEntity.ok(transactionAggregationService.sumCurrentUserNegativeAmount(
                 accountId, category, LocalDate.parse(startDate), LocalDate.parse(endDate)));
     }
@@ -100,14 +89,13 @@ public class TransactionAggregationController {
             @RequestParam(name = "account-id") UUID accountId,
             @RequestParam() String date,
             @RequestParam(name = "type") PeriodType periodType
-    ) throws RecordDoesNotExistException, UserIsNotOwnerException {
-
+    ) {
         return ResponseEntity.ok(transactionAggregationService.sumCurrentUserAmountInPeriod(
                 accountId, LocalDate.parse(date), periodType));
     }
 
     @GetMapping("/sum-in-one-currency")
-    public ResponseEntity<SumResponse> sumCurrentUserAmountInOneCurrency() throws UserIsNotOwnerException {
+    public ResponseEntity<SumResponse> sumCurrentUserAmountInOneCurrency() {
         return ResponseEntity.ok(transactionAggregationService.sumCurrentUserTotalAmountInDefaultCurrency());
     }
 
@@ -115,8 +103,7 @@ public class TransactionAggregationController {
     public ResponseEntity<List<SumResponse>> getCurrentUserTopFiveIncomesConvertedToDefaultCurrency(
             @RequestParam(name = "start-date") String startDate,
             @RequestParam(name = "end-date") String endDate
-    ) throws UserIsNotOwnerException {
-
+    ) {
         return ResponseEntity.ok(transactionAggregationService.getCurrentUserTopFiveIncomesConvertedToDefaultCurrency(
                 LocalDate.parse(startDate), LocalDate.parse(endDate)));
     }
@@ -125,8 +112,7 @@ public class TransactionAggregationController {
     public ResponseEntity<List<SumResponse>> getCurrentUserTopFiveExpensesConvertedToDefaultCurrency(
             @RequestParam(name = "start-date") String startDate,
             @RequestParam(name = "end-date") String endDate
-    ) throws UserIsNotOwnerException {
-
+    ) {
         return ResponseEntity.ok(transactionAggregationService.getCurrentUserTopFiveExpensesConvertedToDefaultCurrency(
                 LocalDate.parse(startDate), LocalDate.parse(endDate)));
     }

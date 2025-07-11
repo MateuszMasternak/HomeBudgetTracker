@@ -9,9 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.cloudfront.url.SignedUrl;
 
-import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPrivateKey;
-import java.security.spec.InvalidKeySpecException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
@@ -30,6 +28,7 @@ public class CloudfrontService {
 
     public String createGetUrl (String key) {
         if (key == null) {
+            log.error("Null key provided for creating get URL");
             throw new IllegalArgumentException("Key cannot be null");
         }
 
@@ -38,6 +37,7 @@ public class CloudfrontService {
 
     public String createSignedGetURL(String key) {
         if (key == null) {
+            log.error("Null key provided for creating signed URL");
             throw new IllegalArgumentException("Key cannot be null");
         }
 
@@ -57,12 +57,13 @@ public class CloudfrontService {
     }
 
     private CannedSignerRequest createCannedSignerRequest(String key) {
-        RSAPrivateKey rsaPrivateKey;
-        try {
-            rsaPrivateKey = RsaPrivateKeyGenerator.generatePrivateKeyFromString(privateKey);
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-            throw new IllegalArgumentException("Invalid private key args", e);
+        if (key == null) {
+            log.error("Null key provided for creating canned signer request");
+            throw new IllegalArgumentException("Key cannot be null");
         }
+
+        RSAPrivateKey rsaPrivateKey;
+        rsaPrivateKey = RsaPrivateKeyGenerator.generatePrivateKeyFromString(privateKey);
 
         Instant expirationDate = Instant.now().plus(1, ChronoUnit.DAYS);
 

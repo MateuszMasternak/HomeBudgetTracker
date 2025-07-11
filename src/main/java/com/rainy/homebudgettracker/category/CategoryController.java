@@ -1,9 +1,5 @@
 package com.rainy.homebudgettracker.category;
 
-import com.rainy.homebudgettracker.handler.exception.CategoryAssociatedWithTransactionException;
-import com.rainy.homebudgettracker.handler.exception.RecordAlreadyExistsException;
-import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
-import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -39,14 +35,12 @@ public class CategoryController {
 
     @PostMapping
     public ResponseEntity<CategoryResponse> createCategoryForCurrentUser(
-            @RequestBody @Valid CategoryRequest categoryRequest) throws RecordAlreadyExistsException
-    {
+            @RequestBody @Valid CategoryRequest categoryRequest) {
         return ResponseEntity.ok(categoryService.createCategoryForCurrentUser(categoryRequest));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCurrentUserCategory(@PathVariable UUID id)
-            throws RecordDoesNotExistException, UserIsNotOwnerException, CategoryAssociatedWithTransactionException {
+    public ResponseEntity<Void> deleteCurrentUserCategory(@PathVariable UUID id) {
         categoryService.deleteCurrentUserCategory(id);
         return ResponseEntity.noContent().build();
     }

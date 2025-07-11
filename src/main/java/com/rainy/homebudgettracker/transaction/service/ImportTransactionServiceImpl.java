@@ -1,9 +1,6 @@
 package com.rainy.homebudgettracker.transaction.service;
 
 import com.rainy.homebudgettracker.handler.exception.FileProcessingException;
-import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
-import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
-import com.rainy.homebudgettracker.handler.exception.WrongFileFormatException;
 import com.rainy.homebudgettracker.transaction.TransactionRequest;
 import com.rainy.homebudgettracker.transaction.TransactionResponse;
 import com.rainy.homebudgettracker.transaction.enums.BankName;
@@ -40,8 +37,7 @@ public class ImportTransactionServiceImpl implements ImportTransactionService {
     }
 
     @Override
-    public boolean importTransactions(UUID accountId, List<TransactionRequest> transactions)
-            throws RecordDoesNotExistException, UserIsNotOwnerException {
+    public boolean importTransactions(UUID accountId, List<TransactionRequest> transactions) {
         for (TransactionRequest transaction : transactions) {
             transactionService.createTransactionForCurrentUser(accountId, transaction);
         }
