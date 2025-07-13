@@ -1,6 +1,7 @@
 package com.rainy.homebudgettracker.account;
 
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
+import com.rainy.homebudgettracker.transaction.AccountBalance;
 import com.rainy.homebudgettracker.transaction.TransactionRepository;
 import com.rainy.homebudgettracker.user.UserService;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
@@ -10,9 +11,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static com.rainy.homebudgettracker.transaction.BigDecimalNormalization.normalize;
 
@@ -33,40 +35,41 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public List<AccountResponse> findCurrentUserAccountsAsResponses() {
         String userSub = userService.getUserSub();
-        Iterable<Account> accounts = accountRepository.findAllByUserSub(userSub);
+        List<Account> accounts = (List<Account>) accountRepository.findAllByUserSub(userSub);
 
-        List<AccountResponse> accountResponses = new ArrayList<>();
-        accounts.forEach(account -> {
-            BigDecimal balance = normalize(transactionRepository.sumAmountByAccount(account), 2);
-            AccountResponse accountResponse = modelMapper.map(account, AccountResponse.class, balance);
-            accountResponses.add(accountResponse);
-        });
+        Map<UUID, BigDecimal> balances = transactionRepository.getBalancesForUserAccounts(userSub).stream()
+                .collect(Collectors.toMap(
+                        AccountBalance::accountId,
+                        AccountBalance::balance
+                ));
 
-        return accountResponses;
+        return accounts.stream()
+                .map(account -> {
+                    BigDecimal balance = balances.getOrDefault(account.getId(), BigDecimal.ZERO);
+                    return modelMapper.map(account, AccountResponse.class, normalize(balance, 2));
+                })
+                .collect(Collectors.toList());
     }
 
     @Override
     public AccountResponse findCurrentUserAccountAsResponse(UUID id) {
-            String userSub = userService.getUserSub();
-
-            Account account = accountRepository.findById(id).orElseThrow(
-                    () -> new RecordDoesNotExistException("Account with id " + id + " does not exist."));
-            if (!account.getUserSub().equals(userSub))
-                throw new UserIsNotOwnerException("User is not the owner of the Account with id " + id + ".");
-
-            BigDecimal balance = normalize(transactionRepository.sumAmountByAccount(account), 2);
-            return modelMapper.map(account, AccountResponse.class, balance);
+        Account account = findAndVerifyAccountOwner(id);
+        BigDecimal balance = normalize(transactionRepository.sumAmountByAccount(account), 2);
+        return modelMapper.map(account, AccountResponse.class, balance);
     }
 
     @Override
     public Account findCurrentUserAccount(UUID id) {
+        return findAndVerifyAccountOwner(id);
+    }
+
+    private Account findAndVerifyAccountOwner(UUID id) {
         String userSub = userService.getUserSub();
-
-        Account account = accountRepository.findById(id).orElseThrow(
-                () -> new RecordDoesNotExistException("Account with id " + id + " does not exist."));
-        if (!account.getUserSub().equals(userSub))
-            throw new UserIsNotOwnerException("User is not the owner of the Account with id " + id + ".");
-
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new RecordDoesNotExistException("Account with id " + id + " does not exist"));
+        if (!account.getUserSub().equals(userSub)) {
+            throw new UserIsNotOwnerException("User is not the owner of the Account with id " + id);
+        }
         return account;
     }
 
@@ -81,10 +84,10 @@ public class AccountServiceImpl implements AccountService {
     @Transactional
     @Override
     public AccountResponse updateCurrentUserAccountName(AccountUpdateNameRequest request) {
-        Account account = findCurrentUserAccount(request.getId());
-        accountRepository.updateAccountName(request.getId(), request.getName());
+        Account account = findAndVerifyAccountOwner(request.getId());
         account.setName(request.getName());
-        return modelMapper.map(account, AccountResponse.class);
+        Account updatedAccount = accountRepository.save(account);
+        return modelMapper.map(updatedAccount, AccountResponse.class);
     }
 
     @Override

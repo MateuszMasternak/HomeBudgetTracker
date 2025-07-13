@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -111,4 +112,15 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             "WHERE t.account = :account AND t.date <= :date")
     BigDecimal sumAmountByAccountToDate(
             Account account,LocalDate date);
+
+    @Query("""
+                SELECT new com.rainy.homebudgettracker.transaction.AccountBalance(
+                    t.account.id,
+                    SUM(t.amount)
+                )
+                FROM Transaction t
+                WHERE t.account.userSub = :userSub
+                GROUP BY t.account.id
+            """)
+    List<AccountBalance> getBalancesForUserAccounts(String userSub);
 }

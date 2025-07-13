@@ -108,7 +108,7 @@ class AccountServiceTest {
             throws RecordDoesNotExistException, UserIsNotOwnerException {
         var accountUpdateNameRequest = new AccountUpdateNameRequest(TestData.ACCOUNT_1.getId(), "Changed name");
 
-        doNothing().when(accountRepository).updateAccountName(accountUpdateNameRequest.getId(), accountUpdateNameRequest.getName());
+//        doNothing().when(accountRepository).updateAccountName(accountUpdateNameRequest.getId(), accountUpdateNameRequest.getName());
 
         when(accountRepository.findById(accountUpdateNameRequest.getId())).thenReturn(Optional.of(TestData.ACCOUNT_1));
 
