@@ -8,7 +8,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,19 +26,26 @@ public class CategoryController {
             @RequestParam(defaultValue = "10") int size
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("name"));
-        return ResponseEntity.ok(categoryService.findCurrentUserCategoriesAsResponses(pageable));
+        return ResponseEntity.ok(categoryService.findCurrentUserCategories(pageable));
     }
 
     @GetMapping("/without-pagination")
     public ResponseEntity<List<CategoryResponse>> getCurrentUserCategoriesWithoutPagination() {
-        return ResponseEntity.ok(categoryService.findCurrentUserCategoriesAsResponses());
+        return ResponseEntity.ok(categoryService.findAllCurrentUserCategories());
     }
 
 
     @PostMapping
     public ResponseEntity<CategoryResponse> createCategoryForCurrentUser(
-            @RequestBody @Valid CategoryRequest categoryRequest) {
-        return ResponseEntity.ok(categoryService.createCategoryForCurrentUser(categoryRequest));
+            @RequestBody @Valid CategoryRequest categoryRequest
+    ) {
+        CategoryResponse newCategory = categoryService.createCategoryForCurrentUser(categoryRequest);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(newCategory.getId())
+                .toUri();
+
+        return ResponseEntity.created(location).body(newCategory);
     }
 
     @DeleteMapping("/{id}")

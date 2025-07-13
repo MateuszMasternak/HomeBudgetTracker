@@ -4,7 +4,6 @@ import com.rainy.homebudgettracker.user.UserService;
 import com.rainy.homebudgettracker.handler.exception.CategoryAssociatedWithTransactionException;
 import com.rainy.homebudgettracker.handler.exception.RecordAlreadyExistsException;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
-import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
 import com.rainy.homebudgettracker.transaction.TransactionRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,9 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -27,35 +24,19 @@ public class CategoryServiceImpl implements CategoryService {
     private final ModelMapper modelMapper;
 
     @Override
-    public Page<CategoryResponse> findCurrentUserCategoriesAsResponses(Pageable pageable) {
+    public Page<CategoryResponse> findCurrentUserCategories(Pageable pageable) {
         String userSub = userService.getUserSub();
         return categoryRepository.findAllByUserSub(userSub, pageable)
                 .map(category -> modelMapper.map(category, CategoryResponse.class));
     }
 
     @Override
-    public List<CategoryResponse> findCurrentUserCategoriesAsResponses() {
+    public List<CategoryResponse> findAllCurrentUserCategories() {
         String userSub = userService.getUserSub();
-        Iterable<Category> categories = categoryRepository.findAllByUserSub(userSub);
-        return mapIterableCategoryToResponseCategoryList(categories);
-    }
-
-    @Override
-    public List<Category> findCurrentUserCategories() {
-        String userSub = userService.getUserSub();
-        Iterable<Category> categories = categoryRepository.findAllByUserSub(userSub);
-        return (List<Category>) categories;
-    }
-
-    @Override
-    public CategoryResponse findCurrentUserCategoryAsResponse(String name) {
-        return modelMapper.map(findCurrentUserCategory(name), CategoryResponse.class);
-    }
-
-    @Override
-    public Category findCurrentUserCategory(String name) {
-        return categoryRepository.findByUserSubAndName(userService.getUserSub(), name)
-                .orElseThrow(() -> new RecordDoesNotExistException("Category with name " + name + " does not exist."));
+        List<Category> categories = categoryRepository.findAllByUserSubOrderByNameAsc(userSub);
+        return categories.stream()
+                .map(category -> modelMapper.map(category, CategoryResponse.class))
+                .toList();
     }
 
     @Override
@@ -74,29 +55,15 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     @Override
     public void deleteCurrentUserCategory(UUID categoryId) {
-        Optional<Category> optionalCategory = categoryRepository.findById(categoryId);
+        String userSub = userService.getUserSub();
 
-        if (optionalCategory.isEmpty()) {
-            throw new RecordDoesNotExistException("Category with id " + categoryId + " does not exist.");
-        }
-
-        Category category = optionalCategory.get();
+        Category category = categoryRepository.findByIdAndUserSub(categoryId, userSub)
+                .orElseThrow(() -> new RecordDoesNotExistException("Category with id " + categoryId + " not found or does not belong to user."));
 
         if (transactionRepository.existsByCategory(category)) {
             throw new CategoryAssociatedWithTransactionException("Category with id " + categoryId + " is associated with transactions.");
         }
 
-        if (!category.getUserSub().equals(userService.getUserSub())) {
-            throw new UserIsNotOwnerException("Category with id " + categoryId + " does not belong to user.");
-        }
-
-        categoryRepository.deleteById(categoryId);
-    }
-
-    private List<CategoryResponse> mapIterableCategoryToResponseCategoryList(Iterable<Category> categories) {
-        List<CategoryResponse> responseCategoryList = new ArrayList<>();
-        categories.forEach(c -> responseCategoryList.add(modelMapper.map(c, CategoryResponse.class)));
-        responseCategoryList.sort((c1, c2) -> c1.getName().compareToIgnoreCase(c2.getName()));
-        return responseCategoryList;
+        categoryRepository.delete(category);
     }
 }

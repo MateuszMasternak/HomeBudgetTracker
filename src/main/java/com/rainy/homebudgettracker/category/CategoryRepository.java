@@ -3,22 +3,18 @@ package com.rainy.homebudgettracker.category;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface CategoryRepository extends JpaRepository<Category, Long> {
-    Optional<Category> findByUserSubAndName(String userSub, String name);
-
+public interface CategoryRepository extends JpaRepository<Category, UUID> {
     Page<Category> findAllByUserSub(String userSub, Pageable pageable);
-
-    Iterable<Category> findAllByUserSub(String userSub);
-
+    List<Category> findAllByUserSubOrderByNameAsc(String userSub);
+    Optional<Category> findByUserSubAndName(String userSub, String name);
+    Optional<Category> findByIdAndUserSub(UUID id, String userSub);
     boolean existsByUserSubAndName(String userSub, String name);
-
-    void deleteAllByUserSub(String sub);
-
-    Optional<Category> findById(UUID uuid);
-
-    void deleteById(UUID categoryId);
+    @Modifying
+    void deleteAllByUserSub(String userSub);
 }
