@@ -29,13 +29,13 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public List<Account> findCurrentUserAccounts() {
         String userSub = userService.getUserSub();
-        return (List<Account>) accountRepository.findAllByUserSub(userSub);
+        return accountRepository.findAllByUserSub(userSub);
     }
 
     @Override
     public List<AccountResponse> findCurrentUserAccountsAsResponses() {
         String userSub = userService.getUserSub();
-        List<Account> accounts = (List<Account>) accountRepository.findAllByUserSub(userSub);
+        List<Account> accounts = accountRepository.findAllByUserSub(userSub);
 
         Map<UUID, BigDecimal> balances = transactionRepository.getBalancesForUserAccounts(userSub).stream()
                 .collect(Collectors.toMap(
@@ -66,9 +66,9 @@ public class AccountServiceImpl implements AccountService {
     private Account findAndVerifyAccountOwner(UUID id) {
         String userSub = userService.getUserSub();
         Account account = accountRepository.findById(id)
-                .orElseThrow(() -> new RecordDoesNotExistException("Account with id " + id + " does not exist"));
+                .orElseThrow(() -> new RecordDoesNotExistException("Account with id " + id + " does not exist."));
         if (!account.getUserSub().equals(userSub)) {
-            throw new UserIsNotOwnerException("User is not the owner of the Account with id " + id);
+            throw new UserIsNotOwnerException("User is not the owner of the Account with id " + id + ".");
         }
         return account;
     }

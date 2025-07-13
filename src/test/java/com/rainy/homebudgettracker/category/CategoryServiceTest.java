@@ -1,22 +1,35 @@
 package com.rainy.homebudgettracker.category;
 
-import com.rainy.homebudgettracker.handler.exception.*;
+import com.rainy.homebudgettracker.handler.exception.CategoryAssociatedWithTransactionException;
+import com.rainy.homebudgettracker.handler.exception.RecordAlreadyExistsException;
+import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
 import com.rainy.homebudgettracker.transaction.TransactionRepository;
 import com.rainy.homebudgettracker.user.UserService;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
-
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class CategoryServiceTest {
+
     @InjectMocks
     private CategoryServiceImpl categoryService;
 
@@ -29,128 +42,131 @@ class CategoryServiceTest {
     @Mock
     private ModelMapper modelMapper;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
+    @Nested
+    @DisplayName("Tests for finding categories")
+    class FindingCategoriesTests {
 
-        when(userService.getUserSub()).thenReturn(TestData.USER_SUB);
+        @Test
+        @DisplayName("should return a paginated list of categories")
+        void findCurrentUserCategories_shouldReturnPageOfCategories() {
+            String userSub = TestData.USER_SUB;
+            Category category = TestData.CATEGORY_FOOD;
+            CategoryResponse categoryResponse = TestData.CATEGORY_RESPONSE_FOOD;
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<Category> categoryPage = new PageImpl<>(List.of(category), pageable, 1);
 
-        when(categoryRepository.findById(TestData.ASSOCIATED_CATEGORY_ID))
-                .thenReturn(Optional.of(TestData.CATEGORY_ASSOCIATED));
+            when(userService.getUserSub()).thenReturn(userSub);
+            when(categoryRepository.findAllByUserSub(userSub, pageable)).thenReturn(categoryPage);
+            when(modelMapper.map(any(Category.class), eq(CategoryResponse.class))).thenReturn(categoryResponse);
 
-        when(categoryRepository.findByUserSubAndName(TestData.USER_SUB, "Food"))
-                .thenReturn(Optional.of(TestData.CATEGORY_FOOD));
+            Page<CategoryResponse> result = categoryService.findCurrentUserCategories(pageable);
 
-        when(categoryRepository.findByUserSubAndName(TestData.USER_SUB, "Healthcare"))
-                .thenReturn(Optional.empty());
+            assertThat(result.getTotalElements()).isEqualTo(1);
+            assertThat(result.getContent().get(0)).isEqualTo(categoryResponse);
+        }
 
-        when(categoryRepository.findById(TestData.CATEGORY_ID_FOOD))
-                .thenReturn(Optional.of(TestData.CATEGORY_FOOD));
+        @Test
+        @DisplayName("should return a full sorted list of categories")
+        void findAllCurrentUserCategories_shouldReturnFullSortedList() {
+            String userSub = TestData.USER_SUB;
+            Category category = TestData.CATEGORY_FOOD;
+            CategoryResponse categoryResponse = TestData.CATEGORY_RESPONSE_FOOD;
 
-        when(categoryRepository.findById(TestData.OTHER_USER_CATEGORY_ID))
-                .thenReturn(Optional.of(TestData.CATEGORY_OTHER_USER));
+            when(userService.getUserSub()).thenReturn(userSub);
+            when(categoryRepository.findAllByUserSubOrderByNameAsc(userSub)).thenReturn(List.of(category));
+            when(modelMapper.map(category, CategoryResponse.class)).thenReturn(categoryResponse);
 
-        when(categoryRepository.findAllByUserSub(TestData.USER_SUB, TestData.PAGEABLE))
-                .thenReturn(new PageImpl<>(List.of(TestData.CATEGORY_FOOD)));
+            List<CategoryResponse> result = categoryService.findAllCurrentUserCategories();
 
-        when(transactionRepository.existsByCategory(TestData.CATEGORY_FOOD)).thenReturn(false);
-        when(transactionRepository.existsByCategory(TestData.CATEGORY_ASSOCIATED)).thenReturn(true);
-
-        when(categoryRepository.save(TestData.CATEGORY_TRANSPORT)).thenReturn(TestData.CATEGORY_TRANSPORT);
-        doNothing().when(categoryRepository).deleteById(TestData.CATEGORY_ID_FOOD);
-
-        when(categoryRepository.findAllByUserSub(TestData.USER_SUB))
-                .thenReturn(List.of(TestData.CATEGORY_FOOD));
-
-        when(categoryRepository.existsByUserSubAndName(TestData.USER_SUB, "Food")).thenReturn(true);
-        when(categoryRepository.existsByUserSubAndName(TestData.USER_SUB, "Healthcare")).thenReturn(true);
-        when(categoryRepository.existsByUserSubAndName(TestData.USER_SUB, "Transport")).thenReturn(false);
-
-        when(modelMapper.map(TestData.CATEGORY_FOOD, CategoryResponse.class))
-                .thenReturn(TestData.CATEGORY_RESPONSE_FOOD);
-        when(modelMapper.map(TestData.CATEGORY_REQUEST_TRANSPORT, Category.class, TestData.USER_SUB)).thenReturn(TestData.CATEGORY_TRANSPORT);
-        when(modelMapper.map(TestData.CATEGORY_TRANSPORT, CategoryResponse.class)).thenReturn(TestData.CATEGORY_RESPONSE_TRANSPORT);
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0)).isEqualTo(categoryResponse);
+            verify(categoryRepository).findAllByUserSubOrderByNameAsc(userSub);
+        }
     }
 
-    @Test
-    void shouldReturnPageWithCategoryResponse() {
-        var categoryPage = categoryService.findCurrentUserCategoriesAsResponses(TestData.PAGEABLE);
+    @Nested
+    @DisplayName("Tests for creating a category")
+    class CreatingCategoryTests {
 
-        assertEquals(1, categoryPage.getTotalElements());
-        assertEquals(TestData.CATEGORY_RESPONSE_FOOD, categoryPage.getContent().get(0));
+        @Test
+        @DisplayName("should create and return a new category")
+        void createCategoryForCurrentUser_shouldCreateAndReturnNewCategory() {
+            String userSub = TestData.USER_SUB;
+            CategoryRequest request = TestData.CATEGORY_REQUEST_TRANSPORT;
+            Category transientCategory = TestData.CATEGORY_TRANSPORT;
+            transientCategory.setId(null);
+            Category savedCategory = TestData.CATEGORY_TRANSPORT;
+            CategoryResponse expectedResponse = TestData.CATEGORY_RESPONSE_TRANSPORT;
+
+            when(userService.getUserSub()).thenReturn(userSub);
+            when(categoryRepository.existsByUserSubAndName(userSub, request.getName())).thenReturn(false);
+            when(modelMapper.map(request, Category.class, userSub)).thenReturn(transientCategory);
+            when(categoryRepository.save(transientCategory)).thenReturn(savedCategory);
+            when(modelMapper.map(savedCategory, CategoryResponse.class)).thenReturn(expectedResponse);
+
+            CategoryResponse result = categoryService.createCategoryForCurrentUser(request);
+
+            assertThat(result).isEqualTo(expectedResponse);
+            verify(categoryRepository).save(transientCategory);
+        }
+
+        @Test
+        @DisplayName("should throw exception when category with the same name already exists")
+        void createCategoryForCurrentUser_shouldThrowException_whenNameExists() {
+            String userSub = TestData.USER_SUB;
+            CategoryRequest request = TestData.CATEGORY_REQUEST_TRANSPORT;
+
+            when(userService.getUserSub()).thenReturn(userSub);
+            when(categoryRepository.existsByUserSubAndName(userSub, request.getName())).thenReturn(true);
+
+            assertThatThrownBy(() -> categoryService.createCategoryForCurrentUser(request))
+                    .isInstanceOf(RecordAlreadyExistsException.class);
+        }
     }
 
-    @Test
-    void shouldReturnListWithCategoryResponse() {
-        var categoryList = categoryService.findCurrentUserCategoriesAsResponses();
+    @Nested
+    @DisplayName("Tests for deleting a category")
+    class DeletingCategoryTests {
 
-        assertEquals(1, categoryList.size());
-        assertEquals(TestData.CATEGORY_RESPONSE_FOOD, categoryList.get(0));
-    }
+        @Test
+        @DisplayName("should delete category successfully")
+        void deleteCurrentUserCategory_shouldDeleteSuccessfully() {
+            String userSub = TestData.USER_SUB;
+            Category category = TestData.CATEGORY_FOOD;
 
-    @Test
-    void shouldReturnCategoryResponse() throws RecordDoesNotExistException {
-        var returnedCategoryResponse = categoryService.findCurrentUserCategoryAsResponse("Food");
+            when(userService.getUserSub()).thenReturn(userSub);
+            when(categoryRepository.findByIdAndUserSub(category.getId(), userSub)).thenReturn(Optional.of(category));
+            when(transactionRepository.existsByCategory(category)).thenReturn(false);
 
-        assertEquals(TestData.CATEGORY_RESPONSE_FOOD, returnedCategoryResponse);
-    }
+            categoryService.deleteCurrentUserCategory(category.getId());
 
-    @Test
-    void shouldThrowExceptionWhenCategoryResponseDoesNotExist() {
-        assertThrows(RecordDoesNotExistException.class,
-                () -> categoryService.findCurrentUserCategoryAsResponse("Healthcare"));
-    }
+            verify(categoryRepository, times(1)).delete(category);
+        }
 
-    @Test
-    void shouldReturnCategory() throws RecordDoesNotExistException {
-        var returnedCategory = categoryService.findCurrentUserCategory("Food");
+        @Test
+        @DisplayName("should throw exception when category to delete is not found or doesn't belong to user")
+        void deleteCurrentUserCategory_shouldThrowException_whenCategoryNotFound() {
+            UUID nonExistentId = UUID.randomUUID();
+            String userSub = TestData.USER_SUB;
+            when(userService.getUserSub()).thenReturn(userSub);
+            when(categoryRepository.findByIdAndUserSub(nonExistentId, userSub)).thenReturn(Optional.empty());
 
-        assertEquals(TestData.CATEGORY_FOOD, returnedCategory);
-    }
+            assertThatThrownBy(() -> categoryService.deleteCurrentUserCategory(nonExistentId))
+                    .isInstanceOf(RecordDoesNotExistException.class);
+        }
 
-    @Test
-    void shouldThrowExceptionWhenCategoryDoesNotExist() {
-        assertThrows(RecordDoesNotExistException.class,
-                () -> categoryService.findCurrentUserCategory("Healthcare"));
-    }
+        @Test
+        @DisplayName("should throw exception when category is associated with a transaction")
+        void deleteCurrentUserCategory_shouldThrowException_whenAssociatedWithTransaction() {
+            String userSub = TestData.USER_SUB;
+            Category category = TestData.CATEGORY_FOOD;
 
-    @Test
-    void shouldReturnCategoryResponseWhenCategoryIsCreated() throws RecordAlreadyExistsException {
-        var categoryRequest = new CategoryRequest("Transport");
+            when(userService.getUserSub()).thenReturn(userSub);
+            when(categoryRepository.findByIdAndUserSub(category.getId(), userSub)).thenReturn(Optional.of(category));
+            when(transactionRepository.existsByCategory(category)).thenReturn(true);
 
-        var returnedCategoryResponse = categoryService.createCategoryForCurrentUser(categoryRequest);
-
-        assertEquals(TestData.CATEGORY_RESPONSE_TRANSPORT, returnedCategoryResponse);
-    }
-
-    @Test
-    void shouldThrowExceptionWhenCategoryAlreadyExists() {
-        var categoryRequest = new CategoryRequest("Healthcare");
-
-        assertThrows(RecordAlreadyExistsException.class,
-                () -> categoryService.createCategoryForCurrentUser(categoryRequest));
-    }
-
-    @Test
-    void shouldDeleteCategory() {
-        assertDoesNotThrow(() -> categoryService.deleteCurrentUserCategory(TestData.CATEGORY_ID_FOOD));
-    }
-
-    @Test
-    void shouldThrowExceptionWhenCategoryIsAssociatedWithTransactionWhenDeleting() {
-        assertThrows(CategoryAssociatedWithTransactionException.class,
-                () -> categoryService.deleteCurrentUserCategory(TestData.ASSOCIATED_CATEGORY_ID));
-    }
-
-    @Test
-    void shouldThrowExceptionWhenUserIsNotOwnerWhenDeleting() {
-        assertThrows(UserIsNotOwnerException.class,
-                () -> categoryService.deleteCurrentUserCategory(TestData.OTHER_USER_CATEGORY_ID));
-    }
-
-    @Test
-    void shouldThrowExceptionWhenCategoryDoesNotExistWhenDeleting() {
-        assertThrows(RecordDoesNotExistException.class,
-                () -> categoryService.deleteCurrentUserCategory(TestData.NON_EXISTENT_CATEGORY_ID));
+            assertThatThrownBy(() -> categoryService.deleteCurrentUserCategory(category.getId()))
+                    .isInstanceOf(CategoryAssociatedWithTransactionException.class);
+        }
     }
 }
