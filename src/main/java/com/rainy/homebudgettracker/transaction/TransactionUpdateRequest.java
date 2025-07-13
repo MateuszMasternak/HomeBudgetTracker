@@ -1,6 +1,5 @@
 package com.rainy.homebudgettracker.transaction;
 
-import com.rainy.homebudgettracker.category.CategoryRequest;
 import com.rainy.homebudgettracker.transaction.enums.TransactionMethod;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -12,7 +11,7 @@ import lombok.Setter;
 @Builder
 @EqualsAndHashCode
 public class TransactionUpdateRequest {
-    private CategoryRequest categoryName;
+    private String categoryName;
     private TransactionMethod transactionMethod;
     private String details;
 }
