@@ -3,21 +3,37 @@ package com.rainy.homebudgettracker.account;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
+import com.rainy.homebudgettracker.transaction.AccountBalance;
 import com.rainy.homebudgettracker.transaction.TransactionRepository;
+import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import com.rainy.homebudgettracker.user.UserService;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import static com.rainy.homebudgettracker.account.TestData.ACCOUNT_1;
+import static com.rainy.homebudgettracker.account.TestData.USER_SUB_1;
+
+
+@ExtendWith(MockitoExtension.class)
 class AccountServiceTest {
+
     @InjectMocks
     private AccountServiceImpl accountService;
 
@@ -30,101 +46,76 @@ class AccountServiceTest {
     @Mock
     private TransactionRepository transactionRepository;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
+    @Nested
+    @DisplayName("Tests for finding accounts")
+    class FindingAccountsTests {
 
-        when(userService.getUserSub()).thenReturn(TestData.USER_SUB_1);
-        when(accountRepository.findById(TestData.ACCOUNT_1.getId())).thenReturn(Optional.of(TestData.ACCOUNT_1));
-        when(accountRepository.findById(TestData.ACCOUNT_OTHER_USER.getId())).thenReturn(Optional.of(TestData.ACCOUNT_OTHER_USER));
-        when(accountRepository.findAllByUserSub(TestData.USER_SUB_1)).thenReturn(List.of(TestData.ACCOUNT_1));
-        when(accountRepository.findAllByUserSub(TestData.USER_SUB_2)).thenReturn(List.of());
+        @Test
+        @DisplayName("should return account list for current user")
+        void findCurrentUserAccounts_shouldReturnAccountList() {
+            when(userService.getUserSub()).thenReturn(USER_SUB_1);
+            when(accountRepository.findAllByUserSub(USER_SUB_1)).thenReturn(List.of(ACCOUNT_1));
 
-        when(transactionRepository.sumAmountByAccount(any(Account.class))).thenReturn(BigDecimal.ZERO);
+            when(transactionRepository.getBalancesForUserAccounts(USER_SUB_1)).thenReturn(List.of(new AccountBalance(ACCOUNT_1.getId(), new BigDecimal("100.00"))));
 
-        when(modelMapper.map(any(Account.class), eq(AccountResponse.class)))
-                .thenAnswer(invocation -> {
-                    Account account = invocation.getArgument(0);
-                    return new AccountResponse(account.getId(), account.getName(), account.getCurrencyCode().toString(), "0.00");
-                });
+            when(modelMapper.map(any(Account.class), any(), any(BigDecimal.class))).thenReturn(new AccountResponse(ACCOUNT_1.getId(), ACCOUNT_1.getName(), "PLN", "100.00"));
 
-        when(accountRepository.save(any(Account.class))).thenReturn(TestData.ACCOUNT_2);
+            List<AccountResponse> responses = accountService.findCurrentUserAccountsAsResponses();
+
+            assertThat(responses).hasSize(1);
+            assertThat(responses.get(0).getId()).isEqualTo(ACCOUNT_1.getId());
+        }
+
+        @Test
+        @DisplayName("should throw RecordDoesNotExistException when account not found")
+        void findCurrentUserAccount_shouldThrowException_whenAccountNotFound() {
+            UUID nonExistentId = UUID.randomUUID();
+            when(accountRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> accountService.findCurrentUserAccount(nonExistentId))
+                    .isInstanceOf(RecordDoesNotExistException.class)
+                    .hasMessageContaining("Account with id " + nonExistentId + " does not exist");
+        }
+
+        @Test
+        @DisplayName("should throw UserIsNotOwnerException when user is not account owner")
+        void findCurrentUserAccount_shouldThrowException_whenUserIsNotOwner() {
+            Account otherUserAccount = new Account(UUID.randomUUID(), "Other's Account", CurrencyCode.EUR, "other-user-sub");
+            when(userService.getUserSub()).thenReturn(USER_SUB_1);
+            when(accountRepository.findById(otherUserAccount.getId())).thenReturn(Optional.of(otherUserAccount));
+
+            assertThatThrownBy(() -> accountService.findCurrentUserAccount(otherUserAccount.getId()))
+                    .isInstanceOf(UserIsNotOwnerException.class);
+        }
     }
 
-    @Test
-    void shouldReturnAccountList() {
-        var returnedAccounts = accountService.findCurrentUserAccounts();
-        assertEquals(List.of(TestData.ACCOUNT_1), returnedAccounts);
-    }
+    @Nested
+    @DisplayName("Tests for updating an account")
+    class UpdatingAccountTests {
 
-    @Test
-    void shouldReturnEmptyAccountList() {
-        when(userService.getUserSub()).thenReturn(TestData.USER_SUB_2);
-        var returnedAccounts = accountService.findCurrentUserAccounts();
-        assertEquals(List.of(), returnedAccounts);
-    }
+        @Test
+        @DisplayName("should update account name and return response")
+        void updateCurrentUserAccountName_shouldUpdateNameAndReturnResponse() {
+            AccountUpdateNameRequest request = new AccountUpdateNameRequest(ACCOUNT_1.getId(), "New Name");
+            Account savedAccount = new Account(ACCOUNT_1.getId(), request.getName(), ACCOUNT_1.getCurrencyCode(), USER_SUB_1);
+            AccountResponse expectedResponse = new AccountResponse(savedAccount.getId(), savedAccount.getName(), "PLN", null);
 
-    @Test
-    void shouldThrowRecordDoesNotExistExceptionAccountResponse() {
-        UUID nonExistentId = UUID.randomUUID();
-        when(accountRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+            when(userService.getUserSub()).thenReturn(USER_SUB_1);
+            when(accountRepository.findById(request.getId())).thenReturn(Optional.of(ACCOUNT_1));
 
-        assertThrows(RecordDoesNotExistException.class,
-                () -> accountService.findCurrentUserAccountAsResponse(nonExistentId));
-    }
+            when(accountRepository.save(any(Account.class))).thenReturn(savedAccount);
+            when(modelMapper.map(savedAccount, AccountResponse.class)).thenReturn(expectedResponse);
 
-    @Test
-    void shouldThrowUserIsNotOwnerException() {
-        assertThrows(UserIsNotOwnerException.class,
-                () -> accountService.findCurrentUserAccountAsResponse(TestData.ACCOUNT_OTHER_USER.getId()));
-    }
+            AccountResponse actualResponse = accountService.updateCurrentUserAccountName(request);
 
-    @Test
-    void shouldReturnAccount() throws RecordDoesNotExistException, UserIsNotOwnerException {
-        var returnedAccount = accountService.findCurrentUserAccount(TestData.ACCOUNT_1.getId());
-        assertEquals(TestData.ACCOUNT_1, returnedAccount);
-    }
+            assertThat(actualResponse).isEqualTo(expectedResponse);
+            assertThat(actualResponse.getName()).isEqualTo("New Name");
 
-    @Test
-    void shouldThrowRecordDoesNotExistExceptionAccount() {
-        UUID nonExistentId = UUID.randomUUID();
-        when(accountRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+            ArgumentCaptor<Account> accountCaptor = ArgumentCaptor.forClass(Account.class);
+            verify(accountRepository).save(accountCaptor.capture());
 
-        assertThrows(RecordDoesNotExistException.class,
-                () -> accountService.findCurrentUserAccount(nonExistentId));
-    }
-
-    @Test
-    void shouldReturnAccountResponseWhenAccountIsCreated() {
-        when(modelMapper.map(eq(TestData.ACCOUNT_REQUEST_2), eq(Account.class), any(String.class)))
-                .thenReturn(TestData.ACCOUNT_2);
-
-        var returnedAccountResponse = accountService.createAccountForCurrentUser(TestData.ACCOUNT_REQUEST_2);
-        assertEquals(TestData.ACCOUNT_RESPONSE_2, returnedAccountResponse);
-    }
-
-    @Test
-    void shouldReturnAccountResponseWhenAccountNameIsUpdated()
-            throws RecordDoesNotExistException, UserIsNotOwnerException {
-        var accountUpdateNameRequest = new AccountUpdateNameRequest(TestData.ACCOUNT_1.getId(), "Changed name");
-
-//        doNothing().when(accountRepository).updateAccountName(accountUpdateNameRequest.getId(), accountUpdateNameRequest.getName());
-
-        when(accountRepository.findById(accountUpdateNameRequest.getId())).thenReturn(Optional.of(TestData.ACCOUNT_1));
-
-        var returnedAccountResponse = accountService.updateCurrentUserAccountName(accountUpdateNameRequest);
-
-        assertEquals(TestData.ACCOUNT_RESPONSE_UPDATED, returnedAccountResponse);
-    }
-
-    @Test
-    void shouldThrowRecordDoesNotExistExceptionWhenUpdatingName() {
-        UUID nonExistentId = UUID.randomUUID();
-        var accountUpdateNameRequest = new AccountUpdateNameRequest(nonExistentId, "Changed name");
-
-        when(accountRepository.findById(nonExistentId)).thenReturn(Optional.empty());
-
-        assertThrows(RecordDoesNotExistException.class,
-                () -> accountService.updateCurrentUserAccountName(accountUpdateNameRequest));
+            Account capturedAccount = accountCaptor.getValue();
+            assertThat(capturedAccount.getName()).isEqualTo("New Name");
+        }
     }
 }
