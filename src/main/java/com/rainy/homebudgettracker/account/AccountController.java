@@ -1,13 +1,12 @@
 package com.rainy.homebudgettracker.account;
 
-import com.rainy.homebudgettracker.handler.exception.RecordAlreadyExistsException;
-import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
-import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.UUID;
 
 @RestController
@@ -30,8 +29,14 @@ public class AccountController {
 
     @PostMapping
     public ResponseEntity<AccountResponse> createAccountForCurrentUser(
-            @RequestBody @Valid AccountRequest request) throws RecordAlreadyExistsException {
-        return ResponseEntity.ok(accountService.createAccountForCurrentUser(request));
+            @RequestBody @Valid AccountRequest request) {
+        AccountResponse accountResponse = accountService.createAccountForCurrentUser(request);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(accountResponse.getId())
+                .toUri();
+
+        return ResponseEntity.created(location).body(accountResponse);
     }
 
     @PatchMapping
