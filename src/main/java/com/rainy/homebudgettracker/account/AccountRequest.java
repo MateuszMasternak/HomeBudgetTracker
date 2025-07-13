@@ -14,7 +14,6 @@ import lombok.Setter;
 @Builder
 @EqualsAndHashCode
 public class AccountRequest {
-    @NotEmpty(message = "Name is required")
     @NotBlank(message = "Name is required")
     private String name;
     @NotNull(message = "Currency code is required")
