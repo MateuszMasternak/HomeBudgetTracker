@@ -4,7 +4,7 @@ import com.rainy.homebudgettracker.handler.exception.CategoryAssociatedWithTrans
 import com.rainy.homebudgettracker.handler.exception.RecordAlreadyExistsException;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
-import com.rainy.homebudgettracker.transaction.TransactionRepository;
+import com.rainy.homebudgettracker.transaction.repository.TransactionRepository;
 import com.rainy.homebudgettracker.user.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

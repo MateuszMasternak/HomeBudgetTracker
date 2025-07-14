@@ -81,10 +81,13 @@ public class ModelMapper {
                     throw new UnsupportedOperationException(message);
             }
             case "SumResponse": {
-                if (source instanceof BigDecimal sum) {
+                if (source instanceof BigDecimal sum && args.length == 0) {
                     yield (T) mapBigDecimalToSumResponse(sum);
-                }
-                else
+                } else if (source instanceof BigDecimal sum
+                        && args.length == 1
+                        && args[0] instanceof Category category) {
+                    yield (T) mapBigDecimalToSumResponseWithCategory(sum, category);
+                } else
                     throw new UnsupportedOperationException(message);
             }
             case "DefaultCurrency": {
@@ -175,6 +178,13 @@ public class ModelMapper {
     private SumResponse mapBigDecimalToSumResponse(BigDecimal sum) {
         return SumResponse.builder()
                 .amount(String.valueOf(sum))
+                .build();
+    }
+
+    private SumResponse mapBigDecimalToSumResponseWithCategory(BigDecimal sum, Category category) {
+        return SumResponse.builder()
+                .amount(sum.toString())
+                .category(mapCategoryToResponse(category))
                 .build();
     }
 

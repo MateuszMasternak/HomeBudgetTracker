@@ -4,8 +4,6 @@ import com.rainy.homebudgettracker.account.Account;
 import com.rainy.homebudgettracker.account.AccountService;
 import com.rainy.homebudgettracker.category.Category;
 import com.rainy.homebudgettracker.category.CategoryRepository;
-import com.rainy.homebudgettracker.category.CategoryRequest;
-import com.rainy.homebudgettracker.category.CategoryService;
 import com.rainy.homebudgettracker.exchange.CurrencyConverter;
 import com.rainy.homebudgettracker.exchange.ExchangeResponse;
 import com.rainy.homebudgettracker.exchange.ExchangeService;
@@ -15,10 +13,14 @@ import com.rainy.homebudgettracker.images.S3Service;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
 import com.rainy.homebudgettracker.transaction.*;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
+import com.rainy.homebudgettracker.transaction.service.queryfilter.TransactionFilter;
+import com.rainy.homebudgettracker.transaction.service.queryfilter.TransactionSpecificationBuilder;
+import com.rainy.homebudgettracker.transaction.repository.TransactionRepository;
 import com.rainy.homebudgettracker.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,293 +35,228 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
 
-import static com.rainy.homebudgettracker.transaction.BigDecimalNormalization.normalize;
+import static com.rainy.homebudgettracker.transaction.service.helper.BigDecimalNormalization.normalize;
+import static com.rainy.homebudgettracker.transaction.service.queryfilter.TransactionSpecifications.byUserSub;
 
 @Service
 @RequiredArgsConstructor
 public class TransactionServiceImpl implements TransactionService {
     private final TransactionRepository transactionRepository;
-    private final CategoryRepository categoryService;
     private final AccountService accountService;
-    private final ExchangeService exchangeService;
     private final ModelMapper modelMapper;
     private final UserService userService;
     private final S3Service s3Service;
     private final ImageService imageService;
+    private final CategoryRepository categoryRepository;
+    private final ExchangeService exchangeService;
+    private final TransactionSpecificationBuilder transactionSpecificationBuilder;
 
-    private TransactionResponse mapToTransactionResponse(Transaction transaction) {
-        String imageUrl = imageService.getImageUrl(transaction);
-        return imageUrl == null
-                ? modelMapper.map(transaction, TransactionResponse.class)
-                : modelMapper.map(transaction, TransactionResponse.class, imageUrl);
+    @Override
+    @Transactional(readOnly = true)
+    public Page<TransactionResponse> findCurrentUserTransactions(TransactionFilter filter, Pageable pageable) {
+        String userSub = userService.getUserSub();
+        Specification<Transaction> spec = transactionSpecificationBuilder.build(filter, userSub);
+
+        return transactionRepository.findAll(spec, pageable).map(this::mapToTransactionResponse);
     }
 
     @Override
-    public Page<TransactionResponse> findCurrentUserTransactionsAsResponses(UUID accountId, Pageable pageable) {
-        Account account = accountService.findCurrentUserAccount(accountId);
-        Page<Transaction> transactions = transactionRepository.findAllByAccount(account, pageable);
-        return transactions.map(this::mapToTransactionResponse);
-    }
-
-    @Override
-    public Page<TransactionResponse> findCurrentUserTransactionsAsResponses(
-            UUID accountId, CategoryRequest categoryName, Pageable pageable)
-            throws RecordDoesNotExistException, UserIsNotOwnerException {
-
-        Category category = categoryService.findCurrentUserCategory(categoryName.getName());
+    @Transactional
+    public TransactionResponse createTransactionForCurrentUser(UUID accountId, TransactionRequest transactionRequest) {
         Account account = accountService.findCurrentUserAccount(accountId);
 
-        Page<Transaction> transactions = transactionRepository.findAllByAccountAndCategory(
-                account, category, pageable
-        );
-        return transactions.map(this::mapToTransactionResponse);
-    }
+        if (transactionRequest.getCurrencyCode() != null && transactionRequest.getCurrencyCode() != account.getCurrencyCode()) {
+            return createCurrencyConversionTransaction(account, transactionRequest);
+        }
 
-    @Override
-    public Page<TransactionResponse> findCurrentUserTransactionsAsResponses(
-            UUID accountId,
-            LocalDate startDate,
-            LocalDate endDate,
-            Pageable pageable)
-            throws RecordDoesNotExistException, UserIsNotOwnerException {
-
-        Account account = accountService.findCurrentUserAccount(accountId);
-        Page<Transaction> transactions = transactionRepository.findAllByAccountAndDateBetween(
-                account,
-                startDate,
-                endDate,
-                pageable
-        );
-        return transactions.map(this::mapToTransactionResponse);
-    }
-
-    @Override
-    public Page<TransactionResponse> findCurrentUserTransactionsAsResponses(
-            UUID accountId,
-            CategoryRequest categoryName,
-            LocalDate startDate,
-            LocalDate endDate,
-            Pageable pageable)
-            throws RecordDoesNotExistException, UserIsNotOwnerException {
-
-        Category category = categoryService.findCurrentUserCategory(categoryName.getName());
-        Account account = accountService.findCurrentUserAccount(accountId);
-
-        Page<Transaction> transactions = transactionRepository.findAllByAccountAndCategoryAndDateBetween(
-                account,
-                category,
-                startDate,
-                endDate,
-                pageable
-        );
-        return transactions.map(this::mapToTransactionResponse);
+        return createStandardTransaction(account, transactionRequest);
     }
 
     @Transactional
-    @Override
-    public TransactionResponse createTransactionForCurrentUser(UUID accountId, TransactionRequest transactionRequest)
-            throws RecordDoesNotExistException, UserIsNotOwnerException {
-        Account account = accountService.findCurrentUserAccount(accountId);
-        return saveTransactionForCurrentUser(account, transactionRequest);
-    }
-
-    @Transactional
-    @Override
     public TransactionResponse createTransactionForCurrentUser(
-            UUID accountId,
-            BigDecimal exchangeRate,
-            TransactionRequest transactionRequest)
-            throws RecordDoesNotExistException, UserIsNotOwnerException {
-
+            UUID accountId, BigDecimal exchangeRate, TransactionRequest transactionRequest) {
         Account account = accountService.findCurrentUserAccount(accountId);
-        CurrencyCode targetCurrency = account.getCurrencyCode();
-
-        if (exchangeRate == null) {
-            exchangeRate = getCurrencyRate(
-                    transactionRequest.getCurrencyCode(),
-                    targetCurrency);
-
-            addExchangeDetails(
-                    transactionRequest,
-                    targetCurrency.name(),
-                    exchangeRate.toString(),
-                    true);
-        } else {
-            addExchangeDetails(
-                    transactionRequest,
-                    targetCurrency.name(),
-                    exchangeRate.toString(),
-                    false);
-        }
-
-        BigDecimal convertedAmount = CurrencyConverter.convert(
-                transactionRequest.getAmount(),
-                normalize(exchangeRate, 2),
-                2);
-
-        transactionRequest.setAmount(convertedAmount);
-        transactionRequest.setCurrencyCode(targetCurrency);
-
-        return saveTransactionForCurrentUser(account, transactionRequest);
+        return createCurrencyConversionTransaction(account, transactionRequest, exchangeRate);
     }
 
-    private TransactionResponse saveTransactionForCurrentUser(Account account, TransactionRequest transactionRequest)
-            throws RecordDoesNotExistException {
-
-        Category category = categoryService.findCurrentUserCategory(
-                transactionRequest.getCategoryName().getName());
-        String userSub = userService.getUserSub();
-
-        Transaction transaction = modelMapper.map(transactionRequest, Transaction.class, userSub, category, account);
-        transaction = transactionRepository.save(transaction);
-        return modelMapper.map(transactionRepository.save(transaction), TransactionResponse.class);
-    }
-
-    private BigDecimal getCurrencyRate(CurrencyCode sourceCurrency, CurrencyCode targetCurrency) {
-        ExchangeResponse exchangeResponse = exchangeService.getExchangeRate(sourceCurrency, targetCurrency);
-        return new BigDecimal(exchangeResponse.getConversionRate()).setScale(2, RoundingMode.HALF_UP);
-    }
-
-    private void addExchangeDetails(
-            TransactionRequest transactionRequest, String targetCurrency, String apiExchangeRate, boolean date) {
-        if (transactionRequest.getDetails() == null) {
-            transactionRequest.setDetails(
-                    transactionRequest.getCurrencyCode() + "->" + targetCurrency + ": " + apiExchangeRate
-                            + (date ? " - " + LocalDate.now(ZoneId.of("Europe/Warsaw")) : ""));
-        } else {
-            transactionRequest.setDetails(
-                    transactionRequest.getCurrencyCode() + "->" + targetCurrency + ": " + apiExchangeRate
-                            + (date ? " - " + LocalDate.now(ZoneId.of("Europe/Warsaw")) : "")
-                            + " | " + transactionRequest.getDetails());
-        }
-    }
-
+    @Override
     @Transactional
-    @Override
-    public void deleteCurrentUserTransaction(UUID transactionId) throws
-            RecordDoesNotExistException,
-            UserIsNotOwnerException {
-
-        String userSub = userService.getUserSub();
-        Optional<Transaction> transaction = transactionRepository.findById(transactionId);
-        if (transaction.isEmpty()) {
-            throw new RecordDoesNotExistException("Transaction with id " + transactionId + " does not exist.");
-        } else if (!transaction.get().getUserSub().equals(userSub)) {
-            throw new UserIsNotOwnerException("Transaction with id " + transactionId + " does not belong to user.");
-        } else {
-            transactionRepository.deleteById(transactionId);
-        }
-    }
-
-    @Override
-    public List<TransactionResponse> findCurrentUserTransactionsAsResponses() {
-        String userSub = userService.getUserSub();
-        Iterable<Transaction> transactions = transactionRepository.findAllByUserSub(userSub);
-        List<TransactionResponse> transactionResponses = new ArrayList<>();
-        transactions.forEach(t -> transactionResponses.add(modelMapper.map(t, TransactionResponse.class)));
-        return transactionResponses;
-    }
-
-    @Override
-    public byte[] generateCSVWithCurrentUserTransactions() {
-        List<TransactionResponse> transactionResponses = findCurrentUserTransactionsAsResponses();
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-             OutputStreamWriter writer = new OutputStreamWriter(baos, StandardCharsets.UTF_8)) {
-
-            writer.append("sep=,\n"); // Microsoft Excel compatibility
-            writer.append("Account name,Currency code,Amount,Category,Date,Transaction method,Description\n");
-
-            for (TransactionResponse transactionResponse : transactionResponses) {
-                String details = transactionResponse.getDetails() == null ? "" : transactionResponse.getDetails();
-                writer.append(transactionResponse.getAccount().getName())
-                        .append(",")
-                        .append(transactionResponse.getAccount().getCurrencyCode())
-                        .append(",")
-                        .append(transactionResponse.getAmount())
-                        .append(",")
-                        .append(transactionResponse.getCategory().getName())
-                        .append(",")
-                        .append(transactionResponse.getDate())
-                        .append(",")
-                        .append(transactionResponse.getTransactionMethod())
-                        .append(",")
-                        .append(details)
-                        .append("\n");
-            }
-
-            writer.flush();
-            return baos.toByteArray();
-
-        } catch (IOException e) {
-            throw new FileProcessingException("Error generating CSV file content in memory", e);
-        }
-    }
-
-    @Override
-    public TransactionResponse addImageToCurrentUserTransaction(UUID transactionId, MultipartFile file) {
-        if (!userService.isPremiumUser()) {
-            throw new PremiumStatusRequiredException("This feature is only available for premium users.");
-        }
-
-        Transaction transaction = getTransactionByTransactionId(transactionId);
-
-        if (file.getContentType() == null || !file.getContentType().startsWith("image")) {
-            throw new WrongFileTypeException("Invalid file type. Only images are allowed.");
-        }
-
-        String key = s3Service.uploadFile(file, userService.getUserSub(), transactionId);
-
-        transaction.setImageFilePath(key);
-
-        transactionRepository.save(transaction);
-        String imageUrl = imageService.getImageUrl(transaction);
-        return modelMapper.map(transaction, TransactionResponse.class, imageUrl);
-    }
-
-    @Override
-    public TransactionResponse deleteImageFromCurrentUserTransaction(UUID transactionId) {
-        Transaction transaction = getTransactionByTransactionId(transactionId);
-
-        String key = transaction.getImageFilePath();
-        s3Service.deleteFile(key);
-
-        transaction.setImageFilePath(null);
-
-        transactionRepository.save(transaction);
-        return modelMapper.map(transaction, TransactionResponse.class);
-    }
-
-    @Override
     public TransactionResponse updateTransactionForCurrentUser(UUID transactionId, TransactionUpdateRequest request) {
-        Transaction transaction = getTransactionByTransactionId(transactionId);
+        Transaction transaction = findAndVerifyTransactionOwner(transactionId);
 
+        String userSub = userService.getUserSub();
         if (request.getCategoryName() != null) {
-            Category category = categoryService.findCurrentUserCategory(
-                    request.getCategoryName().getName());
-            transaction.setCategory(category);
+            Optional<Category> category = categoryRepository.findByUserSubAndName(userSub, request.getCategoryName());
+            transaction.setCategory(category.orElseThrow(() -> new RecordDoesNotExistException("Category with name "
+                    + request.getCategoryName() + " does not exist.")));
         }
-
         if (request.getTransactionMethod() != null) {
             transaction.setTransactionMethod(request.getTransactionMethod());
         }
-
         if (request.getDetails() != null) {
             transaction.setDetails(request.getDetails());
         }
 
-        return modelMapper.map(transactionRepository.save(transaction), TransactionResponse.class);
+        Transaction savedTransaction = transactionRepository.save(transaction);
+        return mapToTransactionResponse(savedTransaction);
     }
 
-    private Transaction getTransactionByTransactionId(UUID transactionId) {
-        String userSub = userService.getUserSub();
-        Optional<Transaction> transaction = transactionRepository.findById(transactionId);
+    @Override
+    @Transactional
+    public void deleteCurrentUserTransaction(UUID transactionId) {
+        Transaction transaction = findAndVerifyTransactionOwner(transactionId);
+        if (transaction.getImageFilePath() != null) {
+            s3Service.deleteFile(transaction.getImageFilePath());
+        }
+        transactionRepository.delete(transaction);
+    }
 
-        if (transaction.isEmpty()) {
-            throw new RecordDoesNotExistException("Transaction with id " + transactionId + " does not exist.");
-        } else if (!transaction.get().getUserSub().equals(userSub)) {
-            throw new UserIsNotOwnerException("Transaction with id " + transactionId + " does not belong to the user.");
+    @Override
+    public byte[] generateCSVWithCurrentUserTransactions() {
+        String userSub = userService.getUserSub();
+        List<Transaction> transactions = transactionRepository.findAll(byUserSub(userSub));
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             OutputStreamWriter writer = new OutputStreamWriter(baos, StandardCharsets.UTF_8)) {
+
+            writer.append("sep=,\n");
+            writer.append("Account name,Currency code,Amount,Category,Date,Transaction method,Description\n");
+
+            for (Transaction transaction : transactions) {
+                TransactionResponse dto = mapToTransactionResponse(transaction);
+                String details = dto.details() == null ? "" : dto.details();
+                writer.append(dto.account().getName())
+                        .append(",").append(dto.account().getCurrencyCode())
+                        .append(",").append(dto.amount())
+                        .append(",").append(dto.category().getName())
+                        .append(",").append(dto.date())
+                        .append(",").append(dto.transactionMethod())
+                        .append(",\"").append(details).append("\"\n");
+            }
+            writer.flush();
+            return baos.toByteArray();
+        } catch (IOException e) {
+            throw new FileProcessingException("Error generating CSV file content", e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public TransactionResponse addImageToCurrentUserTransaction(UUID transactionId, MultipartFile file) {
+        if (!userService.isPremiumUser()) {
+            throw new PremiumStatusRequiredException("This feature is only available for premium users.");
+        }
+        if (file.getContentType() == null || !file.getContentType().startsWith("image")) {
+            throw new WrongFileTypeException("Invalid file type. Only images are allowed.");
         }
 
-        return transaction.get();
+        Transaction transaction = findAndVerifyTransactionOwner(transactionId);
+        String key = s3Service.uploadFile(file, userService.getUserSub(), transactionId);
+        transaction.setImageFilePath(key);
+
+        Transaction savedTransaction = transactionRepository.save(transaction);
+        return mapToTransactionResponse(savedTransaction);
+    }
+
+    @Override
+    @Transactional
+    public TransactionResponse deleteImageFromCurrentUserTransaction(UUID transactionId) {
+        Transaction transaction = findAndVerifyTransactionOwner(transactionId);
+        if (transaction.getImageFilePath() != null) {
+            s3Service.deleteFile(transaction.getImageFilePath());
+            transaction.setImageFilePath(null);
+            Transaction savedTransaction = transactionRepository.save(transaction);
+            return mapToTransactionResponse(savedTransaction);
+        }
+        return mapToTransactionResponse(transaction);
+    }
+
+    private TransactionResponse createStandardTransaction(Account account, TransactionRequest request) {
+        String userSub = userService.getUserSub();
+        Category category = categoryRepository.findByUserSubAndName(userSub, request.getCategoryName().getName())
+                .orElseThrow(() -> new RecordDoesNotExistException("Category with name " + request.getCategoryName()
+                        + " does not exist."));
+
+        Transaction transaction = modelMapper.map(request, Transaction.class, userSub, category, account);
+        Transaction savedTransaction = transactionRepository.save(transaction);
+        return mapToTransactionResponse(savedTransaction);
+    }
+
+    private TransactionResponse createCurrencyConversionTransaction(
+            Account account, TransactionRequest originalRequest, BigDecimal... providedRate) {
+        BigDecimal exchangeRate;
+        String newDetails;
+        CurrencyCode targetCurrency = account.getCurrencyCode();
+
+        if (providedRate.length > 0 && providedRate[0] != null) {
+            exchangeRate = normalize(providedRate[0], 4);
+            newDetails = buildExchangeDetails(
+                    originalRequest.getCurrencyCode().name(),
+                    targetCurrency.name(),
+                    exchangeRate.toString(),
+                    false,
+                    originalRequest.getDetails()
+            );
+        } else {
+            exchangeRate = getCurrencyRate(originalRequest.getCurrencyCode(), targetCurrency);
+            newDetails = buildExchangeDetails(
+                    originalRequest.getCurrencyCode().name(),
+                    targetCurrency.name(),
+                    exchangeRate.toString(),
+                    true,
+                    originalRequest.getDetails()
+            );
+        }
+
+        BigDecimal convertedAmount = CurrencyConverter.convert(
+                originalRequest.getAmount(),
+                exchangeRate,
+                2);
+
+        TransactionRequest convertedRequest = TransactionRequest.builder()
+                .amount(convertedAmount)
+                .date(originalRequest.getDate())
+                .transactionMethod(originalRequest.getTransactionMethod())
+                .details(newDetails)
+                .categoryName(originalRequest.getCategoryName())
+                .currencyCode(targetCurrency)
+                .build();
+
+        return createStandardTransaction(account, convertedRequest);
+    }
+
+    private String buildExchangeDetails(String from, String to, String rate, boolean withDate, String originalDetails) {
+        String conversionInfo = from + "->" + to + ": " + rate + (withDate ? " - "
+                + LocalDate.now(ZoneId.of("Europe/Warsaw")) : "");
+        return (originalDetails == null || originalDetails.isEmpty())
+                ? conversionInfo
+                : conversionInfo + " | " + originalDetails;
+    }
+
+    private BigDecimal getCurrencyRate(CurrencyCode sourceCurrency, CurrencyCode targetCurrency) {
+        ExchangeResponse exchangeResponse = exchangeService.getExchangeRate(sourceCurrency, targetCurrency);
+        return new BigDecimal(exchangeResponse.getConversionRate()).setScale(4, RoundingMode.HALF_UP);
+    }
+
+    private Transaction findAndVerifyTransactionOwner(UUID transactionId) {
+        String userSub = userService.getUserSub();
+        return transactionRepository.findById(transactionId)
+                .map(transaction -> {
+                    if (!transaction.getUserSub().equals(userSub)) {
+                        throw new UserIsNotOwnerException("Transaction with id " + transactionId
+                                + " does not belong to the user.");
+                    }
+                    return transaction;
+                })
+                .orElseThrow(() -> new RecordDoesNotExistException("Transaction with id "
+                        + transactionId + " does not exist."));
+    }
+
+    private TransactionResponse mapToTransactionResponse(Transaction transaction) {
+        String imageUrl = imageService.getImageUrl(transaction);
+        if (imageUrl == null) {
+            return modelMapper.map(transaction, TransactionResponse.class);
+        }
+        return modelMapper.map(transaction, TransactionResponse.class, imageUrl);
     }
 }

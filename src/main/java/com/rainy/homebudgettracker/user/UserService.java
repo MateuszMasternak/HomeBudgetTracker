@@ -3,7 +3,7 @@ package com.rainy.homebudgettracker.user;
 import com.rainy.homebudgettracker.account.AccountRepository;
 import com.rainy.homebudgettracker.category.CategoryRepository;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
-import com.rainy.homebudgettracker.transaction.TransactionRepository;
+import com.rainy.homebudgettracker.transaction.repository.TransactionRepository;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;

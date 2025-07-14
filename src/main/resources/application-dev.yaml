@@ -43,7 +43,6 @@ spring:
     properties:
       hibernate:
         format_sql: true
-    open-in-view: false
   config:
     activate:
       on-profile: dev

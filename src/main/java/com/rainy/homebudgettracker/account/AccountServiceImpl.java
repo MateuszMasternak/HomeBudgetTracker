@@ -2,7 +2,7 @@ package com.rainy.homebudgettracker.account;
 
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.transaction.AccountBalance;
-import com.rainy.homebudgettracker.transaction.TransactionRepository;
+import com.rainy.homebudgettracker.transaction.repository.TransactionRepository;
 import com.rainy.homebudgettracker.user.UserService;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.rainy.homebudgettracker.transaction.BigDecimalNormalization.normalize;
+import static com.rainy.homebudgettracker.transaction.service.helper.BigDecimalNormalization.normalize;
 
 @Service
 @RequiredArgsConstructor
