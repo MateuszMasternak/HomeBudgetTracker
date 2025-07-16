@@ -64,19 +64,14 @@ public class TransactionServiceImpl implements TransactionService {
     @Transactional
     public TransactionResponse createTransactionForCurrentUser(UUID accountId, TransactionRequest transactionRequest) {
         Account account = accountService.findCurrentUserAccount(accountId);
+        boolean needsConversion = transactionRequest.getCurrencyCode() != null
+                && !transactionRequest.getCurrencyCode().equals(account.getCurrencyCode());
 
-        if (transactionRequest.getCurrencyCode() != null && transactionRequest.getCurrencyCode() != account.getCurrencyCode()) {
+        if (needsConversion) {
             return createCurrencyConversionTransaction(account, transactionRequest);
+        } else {
+            return createStandardTransaction(account, transactionRequest);
         }
-
-        return createStandardTransaction(account, transactionRequest);
-    }
-
-    @Transactional
-    public TransactionResponse createTransactionForCurrentUser(
-            UUID accountId, BigDecimal exchangeRate, TransactionRequest transactionRequest) {
-        Account account = accountService.findCurrentUserAccount(accountId);
-        return createCurrencyConversionTransaction(account, transactionRequest, exchangeRate);
     }
 
     @Override
@@ -183,13 +178,16 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     private TransactionResponse createCurrencyConversionTransaction(
-            Account account, TransactionRequest originalRequest, BigDecimal... providedRate) {
+            Account account, TransactionRequest originalRequest) {
         BigDecimal exchangeRate;
         String newDetails;
         CurrencyCode targetCurrency = account.getCurrencyCode();
 
-        if (providedRate.length > 0 && providedRate[0] != null) {
-            exchangeRate = normalize(providedRate[0], 4);
+        boolean isRateProvided = originalRequest.getExchangeRate() != null
+                && originalRequest.getExchangeRate().compareTo(BigDecimal.ZERO) > 0;
+
+        if (isRateProvided) {
+            exchangeRate = normalize(originalRequest.getExchangeRate(), 4);
             newDetails = buildExchangeDetails(
                     originalRequest.getCurrencyCode().name(),
                     targetCurrency.name(),

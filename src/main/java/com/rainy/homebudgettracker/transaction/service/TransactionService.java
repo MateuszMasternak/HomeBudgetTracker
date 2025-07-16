@@ -16,8 +16,6 @@ public interface TransactionService {
 
     TransactionResponse createTransactionForCurrentUser(UUID accountId, TransactionRequest transactionRequest);
 
-    TransactionResponse createTransactionForCurrentUser(UUID accountId, BigDecimal exchangeRate, TransactionRequest transactionRequest);
-
     TransactionResponse updateTransactionForCurrentUser(UUID transactionId, TransactionUpdateRequest request);
 
     void deleteCurrentUserTransaction(UUID transactionId);
