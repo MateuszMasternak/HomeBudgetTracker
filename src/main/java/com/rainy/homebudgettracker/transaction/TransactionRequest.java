@@ -13,6 +13,7 @@ import java.time.LocalDate;
 @Setter
 @Builder
 @EqualsAndHashCode
+@ToString
 public class TransactionRequest {
     @NotNull(message = "Amount is required")
     private BigDecimal amount;

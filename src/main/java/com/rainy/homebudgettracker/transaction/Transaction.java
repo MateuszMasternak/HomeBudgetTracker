@@ -17,6 +17,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @EqualsAndHashCode
 @Entity
+@ToString
 public class Transaction {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
