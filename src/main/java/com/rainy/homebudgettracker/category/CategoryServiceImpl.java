@@ -5,7 +5,7 @@ import com.rainy.homebudgettracker.handler.exception.CategoryAssociatedWithTrans
 import com.rainy.homebudgettracker.handler.exception.RecordAlreadyExistsException;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
-import com.rainy.homebudgettracker.transaction.TransactionRepository;
+import com.rainy.homebudgettracker.transaction.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -44,7 +44,8 @@ public class CategoryServiceImpl implements CategoryService {
         String userSub = userService.getUserSub();
 
         if (categoryRepository.existsByUserSubAndName(userSub, categoryRequest.getName())) {
-            throw new RecordAlreadyExistsException("Category with name " + categoryRequest.getName() + " already exists.");
+            throw new RecordAlreadyExistsException("Category with name " + categoryRequest.getName()
+                    + " already exists.");
         }
 
         Category category = modelMapper.map(categoryRequest, Category.class, userSub);
@@ -58,10 +59,12 @@ public class CategoryServiceImpl implements CategoryService {
         String userSub = userService.getUserSub();
 
         Category category = categoryRepository.findByIdAndUserSub(categoryId, userSub)
-                .orElseThrow(() -> new RecordDoesNotExistException("Category with id " + categoryId + " not found or does not belong to user."));
+                .orElseThrow(() -> new RecordDoesNotExistException("Category with id " + categoryId
+                        + " not found or does not belong to user."));
 
         if (transactionRepository.existsByCategory(category)) {
-            throw new CategoryAssociatedWithTransactionException("Category with id " + categoryId + " is associated with transactions.");
+            throw new CategoryAssociatedWithTransactionException("Category with id " + categoryId
+                    + " is associated with transactions.");
         }
 
         categoryRepository.delete(category);

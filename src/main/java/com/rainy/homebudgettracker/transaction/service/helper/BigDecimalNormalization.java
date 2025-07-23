@@ -1,9 +1,11 @@
-package com.rainy.homebudgettracker.transaction;
+package com.rainy.homebudgettracker.transaction.service.helper;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-public class BigDecimalNormalization {
+public final class BigDecimalNormalization {
+    private BigDecimalNormalization() {}
+
     public static BigDecimal changeToZeroIfNull(BigDecimal value) {
         return value == null ? BigDecimal.ZERO : value;
     }

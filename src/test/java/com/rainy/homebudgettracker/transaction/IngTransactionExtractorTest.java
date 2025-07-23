@@ -46,40 +46,40 @@ class IngTransactionExtractorTest {
         assertThat(transactions).hasSize(6);
 
         TransactionResponse debitCard = transactions.get(0);
-        assertThat(debitCard.getDate()).isEqualTo("2025-07-10");
-        assertThat(debitCard.getDetails()).isEqualTo("ZAKUP PRZY UZYCIU KARTY");
-        assertThat(debitCard.getTransactionMethod()).isEqualTo("DEBIT_CARD");
-        assertThat(debitCard.getAmount()).isEqualTo("-150.55");
+        assertThat(debitCard.date()).isEqualTo("2025-07-10");
+        assertThat(debitCard.details()).isEqualTo("ZAKUP PRZY UZYCIU KARTY");
+        assertThat(debitCard.transactionMethod()).isEqualTo("DEBIT_CARD");
+        assertThat(debitCard.amount()).isEqualTo("-150.55");
 
         TransactionResponse bankTransfer = transactions.get(1);
-        assertThat(bankTransfer.getDate()).isEqualTo("2025-07-09");
-        assertThat(bankTransfer.getDetails()).isEqualTo("PRZELEW PRZYCHODZACY");
-        assertThat(bankTransfer.getTransactionMethod()).isEqualTo("BANK_TRANSFER");
-        assertThat(bankTransfer.getAmount()).isEqualTo("1200.00");
+        assertThat(bankTransfer.date()).isEqualTo("2025-07-09");
+        assertThat(bankTransfer.details()).isEqualTo("PRZELEW PRZYCHODZACY");
+        assertThat(bankTransfer.transactionMethod()).isEqualTo("BANK_TRANSFER");
+        assertThat(bankTransfer.amount()).isEqualTo("1200.00");
 
         TransactionResponse blik = transactions.get(2);
-        assertThat(blik.getDate()).isEqualTo("2025-07-08");
-        assertThat(blik.getDetails()).isEqualTo("ZAKUP PRZY UZYCIU BLIKA");
-        assertThat(blik.getTransactionMethod()).isEqualTo("BLIK");
-        assertThat(blik.getAmount()).isEqualTo("-50.00");
+        assertThat(blik.date()).isEqualTo("2025-07-08");
+        assertThat(blik.details()).isEqualTo("ZAKUP PRZY UZYCIU BLIKA");
+        assertThat(blik.transactionMethod()).isEqualTo("BLIK");
+        assertThat(blik.amount()).isEqualTo("-50.00");
 
         TransactionResponse expressTransfer = transactions.get(3);
-        assertThat(expressTransfer.getDate()).isEqualTo("2025-07-07");
-        assertThat(expressTransfer.getDetails()).isEqualTo("PRZELEW WYCHODZACY EXPRESS");
-        assertThat(expressTransfer.getTransactionMethod()).isEqualTo("EXPRESS_TRANSFER");
-        assertThat(expressTransfer.getAmount()).isEqualTo("-200.00");
+        assertThat(expressTransfer.date()).isEqualTo("2025-07-07");
+        assertThat(expressTransfer.details()).isEqualTo("PRZELEW WYCHODZACY EXPRESS");
+        assertThat(expressTransfer.transactionMethod()).isEqualTo("EXPRESS_TRANSFER");
+        assertThat(expressTransfer.amount()).isEqualTo("-200.00");
 
         TransactionResponse blikTransfer = transactions.get(4);
-        assertThat(blikTransfer.getDate()).isEqualTo("2025-07-06");
-        assertThat(blikTransfer.getDetails()).isEqualTo("PRZELEW WYCHODZĄCY BLIK");
-        assertThat(blikTransfer.getTransactionMethod()).isEqualTo("BLIK_TRANSFER");
-        assertThat(blikTransfer.getAmount()).isEqualTo("-300.00");
+        assertThat(blikTransfer.date()).isEqualTo("2025-07-06");
+        assertThat(blikTransfer.details()).isEqualTo("PRZELEW WYCHODZĄCY BLIK");
+        assertThat(blikTransfer.transactionMethod()).isEqualTo("BLIK_TRANSFER");
+        assertThat(blikTransfer.amount()).isEqualTo("-300.00");
 
         TransactionResponse other = transactions.get(5);
-        assertThat(other.getDate()).isEqualTo("2025-07-05");
-        assertThat(other.getDetails()).isEqualTo("ZAKUP PRZY UZYCIU PAYPAL");
-        assertThat(other.getTransactionMethod()).isEqualTo("OTHER");
-        assertThat(other.getAmount()).isEqualTo("-100.00");
+        assertThat(other.date()).isEqualTo("2025-07-05");
+        assertThat(other.details()).isEqualTo("ZAKUP PRZY UZYCIU PAYPAL");
+        assertThat(other.transactionMethod()).isEqualTo("OTHER");
+        assertThat(other.amount()).isEqualTo("-100.00");
     }
 
     @Test

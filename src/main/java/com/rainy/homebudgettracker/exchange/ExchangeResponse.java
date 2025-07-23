@@ -10,17 +10,17 @@ import lombok.Setter;
 @Builder
 public class ExchangeResponse {
     @JsonProperty("result")
-    String result;
+    private String result;
 
     @JsonProperty("base_code")
-    String baseCode;
+    private String baseCode;
 
     @JsonProperty("target_code")
-    String targetCode;
+    private String targetCode;
 
     @JsonProperty("conversion_rate")
-    String conversionRate;
+    private String conversionRate;
 
     @JsonProperty("error-type")
-    String errorType;
+    private String errorType;
 }

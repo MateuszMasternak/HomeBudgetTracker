@@ -6,18 +6,14 @@ import lombok.*;
 
 import java.util.UUID;
 
-@Getter
-@Setter
 @Builder
-@EqualsAndHashCode
-@ToString
-public class TransactionResponse {
-    private UUID id;
-    private String amount;
-    private CategoryResponse category;
-    private String date;
-    private AccountResponse account;
-    private String transactionMethod;
-    private String imageUrl;
-    private String details;
-}
+public record TransactionResponse(
+    UUID id,
+    String amount,
+    CategoryResponse category,
+    String date,
+    AccountResponse account,
+    String transactionMethod,
+    String imageUrl,
+    String details
+) {}

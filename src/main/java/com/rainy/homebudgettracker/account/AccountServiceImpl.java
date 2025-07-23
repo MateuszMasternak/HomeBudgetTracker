@@ -2,7 +2,7 @@ package com.rainy.homebudgettracker.account;
 
 import com.rainy.homebudgettracker.handler.exception.UserIsNotOwnerException;
 import com.rainy.homebudgettracker.transaction.AccountBalance;
-import com.rainy.homebudgettracker.transaction.TransactionRepository;
+import com.rainy.homebudgettracker.transaction.repository.TransactionRepository;
 import com.rainy.homebudgettracker.user.UserService;
 import com.rainy.homebudgettracker.handler.exception.RecordDoesNotExistException;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.rainy.homebudgettracker.transaction.BigDecimalNormalization.normalize;
+import static com.rainy.homebudgettracker.transaction.service.helper.BigDecimalNormalization.normalize;
 
 @Service
 @RequiredArgsConstructor
@@ -53,9 +53,19 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public AccountResponse findCurrentUserAccountAsResponse(UUID id) {
-        Account account = findAndVerifyAccountOwner(id);
-        BigDecimal balance = normalize(transactionRepository.sumAmountByAccount(account), 2);
-        return modelMapper.map(account, AccountResponse.class, balance);
+        String userSub = userService.getUserSub();
+
+        AccountWithBalance result = accountRepository.findAccountWithBalanceById(id)
+                .orElseThrow(() -> new RecordDoesNotExistException("Account with id " + id + " does not exist."));
+
+        Account account = result.account();
+        BigDecimal balance = result.balance();
+
+        if (!account.getUserSub().equals(userSub)) {
+            throw new UserIsNotOwnerException("User is not the owner of the Account with id " + id);
+        }
+
+        return modelMapper.map(account, AccountResponse.class, normalize(balance, 2));
     }
 
     @Override
