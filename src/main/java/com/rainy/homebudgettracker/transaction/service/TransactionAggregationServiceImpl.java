@@ -58,7 +58,7 @@ public class TransactionAggregationServiceImpl implements TransactionAggregation
     public List<SumResponse> getTopFiveIncomes(AggregationFilter filter) {
         var newFilter = new AggregationFilter(
                 filter.accountId(), filter.categoryId(), filter.startDate(), filter.endDate(),
-                AmountType.POSITIVE, filter.convertToDefaultCurrency()
+                filter.amountType(), filter.convertToDefaultCurrency()
         );
         return getTopFive(newFilter, Map.Entry.comparingByValue(Comparator.reverseOrder()));
     }
@@ -68,7 +68,7 @@ public class TransactionAggregationServiceImpl implements TransactionAggregation
     public List<SumResponse> getTopFiveExpenses(AggregationFilter filter) {
         var newFilter = new AggregationFilter(
                 filter.accountId(), filter.categoryId(), filter.startDate(), filter.endDate(),
-                AmountType.NEGATIVE, filter.convertToDefaultCurrency()
+                filter.amountType(), filter.convertToDefaultCurrency()
         );
         return getTopFive(newFilter, Map.Entry.comparingByValue());
     }

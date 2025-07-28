@@ -29,7 +29,7 @@ public class TransactionAggregationController {
             @RequestParam(required = false) UUID categoryId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-            @RequestParam(required = false) AmountType amountType,
+            @RequestParam(required = false, defaultValue = "ALL") AmountType amountType,
             @RequestParam(defaultValue = "false") boolean convertToDefaultCurrency
     ) {
         AggregationFilter filter = new AggregationFilter(
@@ -50,12 +50,14 @@ public class TransactionAggregationController {
             @RequestParam(required = false) UUID accountId
     ) {
         AggregationFilter filter = new AggregationFilter(
-                accountId, null, startDate, endDate, null, convertToDefaultCurrency
+                accountId, null, startDate, endDate, categoryType, convertToDefaultCurrency
         );
 
-        List<SumResponse> topFive = (categoryType == AmountType.POSITIVE)
-                ? aggregationService.getTopFiveIncomes(filter)
-                : aggregationService.getTopFiveExpenses(filter);
+        List<SumResponse> topFive = switch (categoryType) {
+            case POSITIVE -> aggregationService.getTopFiveIncomes(filter);
+            case NEGATIVE -> aggregationService.getTopFiveExpenses(filter);
+            default -> throw new IllegalArgumentException("Unsupported category type: " + categoryType);
+        };
 
         return ResponseEntity.ok(topFive);
     }
