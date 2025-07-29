@@ -233,7 +233,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     private BigDecimal getCurrencyRate(CurrencyCode sourceCurrency, CurrencyCode targetCurrency) {
         ExchangeResponse exchangeResponse = exchangeService.getExchangeRate(sourceCurrency, targetCurrency);
-        return new BigDecimal(exchangeResponse.getConversionRate()).setScale(4, RoundingMode.HALF_UP);
+        return new BigDecimal(exchangeResponse.conversionRate()).setScale(4, RoundingMode.HALF_UP);
     }
 
     private Transaction findAndVerifyTransactionOwner(UUID transactionId) {

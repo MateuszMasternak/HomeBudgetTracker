@@ -5,6 +5,9 @@ application:
     rate:
       url: ${EXCHANGE_RATE_URL}
       api-key: ${EXCHANGE_RATE_API_KEY}
+  nbp:
+    api:
+      url: ${NBP_API_URL}
 
 aws:
   profile: ${AWS_PROFILE_DEV}
@@ -47,3 +50,13 @@ spring:
     activate:
       on-profile: dev
     import: optional:file:.env[.properties]
+  cache:
+    type: caffeine
+    caffeine:
+      spec: expireAfterAccess=24h
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: caches
