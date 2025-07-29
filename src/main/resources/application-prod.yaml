@@ -5,6 +5,9 @@ application:
     rate:
       url: ${EXCHANGE_RATE_URL}
       api-key: ${EXCHANGE_RATE_API_KEY}
+  nbp:
+    api:
+      url: ${NBP_API_URL}
 
 aws:
   profile: ${AWS_PROFILE}

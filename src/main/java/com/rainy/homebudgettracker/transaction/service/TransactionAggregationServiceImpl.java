@@ -1,11 +1,11 @@
 package com.rainy.homebudgettracker.transaction.service;
 
 import com.rainy.homebudgettracker.category.Category;
+import com.rainy.homebudgettracker.exchange.CurrencyConverter;
 import com.rainy.homebudgettracker.exchange.ExchangeResponse;
 import com.rainy.homebudgettracker.exchange.ExchangeService;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
 import com.rainy.homebudgettracker.transaction.*;
-import com.rainy.homebudgettracker.transaction.enums.AmountType;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import com.rainy.homebudgettracker.transaction.service.queryfilter.AggregationFilter;
 import com.rainy.homebudgettracker.transaction.service.queryfilter.TransactionSpecificationBuilder;
@@ -124,14 +124,14 @@ public class TransactionAggregationServiceImpl implements TransactionAggregation
                 RateQuery query = new RateQuery(t.getDate(), sourceCurrency, defaultCurrency);
                 BigDecimal rate = ratesCache.get(query);
                 if (rate != null) {
-                    amount = amount.multiply(rate);
+                    amount = CurrencyConverter.convert(amount, rate, 4);
                 } else {
                     log.warn("Could not find exchange rate for query: {}", query);
                 }
             }
             total = total.add(amount);
         }
-        return total;
+        return normalize(total, 2);
     }
 
     private Map<RateQuery, BigDecimal> prefetchExchangeRates(List<Transaction> transactions, CurrencyCode defaultCurrency) {
@@ -149,6 +149,6 @@ public class TransactionAggregationServiceImpl implements TransactionAggregation
         ExchangeResponse response = date.isBefore(LocalDate.now())
                 ? exchangeService.getHistoricalExchangeRate(from, to, date)
                 : exchangeService.getExchangeRate(from, to);
-        return new BigDecimal(response.getConversionRate());
+        return new BigDecimal(response.conversionRate());
     }
 }
