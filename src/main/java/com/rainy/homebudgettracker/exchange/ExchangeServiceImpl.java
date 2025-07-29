@@ -1,7 +1,5 @@
 package com.rainy.homebudgettracker.exchange;
 
-import com.rainy.homebudgettracker.handler.exception.ExchangeRateApiException;
-import com.rainy.homebudgettracker.handler.exception.QuotaReachedException;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,19 +15,12 @@ public class ExchangeServiceImpl implements ExchangeService {
 
     @Override
     public ExchangeResponse getExchangeRate(CurrencyCode baseCurrency, CurrencyCode targetCurrency) {
-        ExchangeResponse exchangeResponse = getExchangeResponse(baseCurrency, targetCurrency);
-
-        if (exchangeResponse == null) {
-            throw new ExchangeRateApiException("Failed to get exchange rate.");
-        } else if ("error".equals(exchangeResponse.getResult())) {
-            if ("quota-reached".equals(exchangeResponse.getErrorType())) {
-                throw new QuotaReachedException("Quota reached. Provide a custom rate.");
-            } else {
-                throw new ExchangeRateApiException("Failed to get exchange rate.");
-            }
+        if (baseCurrency == null || targetCurrency == null) {
+            throw new IllegalArgumentException("Base and target currencies cannot be null");
         }
-
-        return exchangeResponse;
+        // Exceptions are handled by the RestClient
+        // 4xxx and 5xx responses will throw an exception which is handled by the global exception handler
+        return getExchangeResponse(baseCurrency, targetCurrency);
     }
 
     @Override

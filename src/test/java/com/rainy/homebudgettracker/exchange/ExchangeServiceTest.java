@@ -1,90 +1,116 @@
 package com.rainy.homebudgettracker.exchange;
 
-import com.rainy.homebudgettracker.handler.exception.ExchangeRateApiException;
-import com.rainy.homebudgettracker.handler.exception.QuotaReachedException;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Answers;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import java.util.stream.Stream;
 
-class ExchangeServiceTest {
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+class ExchangeServiceImplTest {
+
     @InjectMocks
-    ExchangeServiceImpl exchangeService;
-    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
-    RestClient restClient;
+    private ExchangeServiceImpl exchangeService;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
+    @Mock
+    private RestClient.RequestHeadersUriSpec requestHeadersUriSpec;
 
-        ResponseEntity<ExchangeResponse> exchangeResponse = ResponseEntity.ok(ExchangeResponse.builder()
+    @Mock
+    private RestClient.ResponseSpec responseSpec;
+
+    @Mock
+    private RestClient restClient;
+
+
+    @Test
+    void shouldReturnExchangeRateOnSuccess() {
+        when(restClient.get()).thenReturn(requestHeadersUriSpec);
+        when(requestHeadersUriSpec.uri(anyString())).thenReturn(requestHeadersUriSpec);
+        when(requestHeadersUriSpec.retrieve()).thenReturn(responseSpec);
+
+        ExchangeResponse successResponse = ExchangeResponse.builder()
                 .result("success")
                 .baseCode("EUR")
                 .targetCode("GBP")
                 .conversionRate("0.8412")
-                .build());
+                .build();
+        ResponseEntity<ExchangeResponse> responseEntity = ResponseEntity.ok(successResponse);
 
-        ResponseEntity<ExchangeResponse> exchangeResponseQuotaReached = ResponseEntity.ok(ExchangeResponse.builder()
-                .result("error")
-                .errorType("quota-reached")
-                .build());
+        when(responseSpec.toEntity(ExchangeResponse.class)).thenReturn(responseEntity);
 
-        ResponseEntity<ExchangeResponse> exchangeResponseError = ResponseEntity.ok(ExchangeResponse.builder()
-                .result("error")
-                .errorType("other")
-                .build());
+        ExchangeResponse result = exchangeService.getExchangeRate(CurrencyCode.EUR, CurrencyCode.GBP);
 
-        ResponseEntity<ExchangeResponse> exchangeResponseNull = ResponseEntity.ok(null);
-
-        when(restClient.get().uri("/pair/EUR/GBP").retrieve().toEntity(ExchangeResponse.class))
-                .thenReturn(exchangeResponse);
-        when(restClient.get().uri("/pair/EUR/USD").retrieve().toEntity(ExchangeResponse.class))
-                .thenReturn(exchangeResponseError);
-        when(restClient.get().uri("/pair/EUR/JPY").retrieve().toEntity(ExchangeResponse.class))
-                .thenReturn(exchangeResponseQuotaReached);
-        when(restClient.get().uri("/pair/USD/JPY").retrieve().toEntity(ExchangeResponse.class))
-                .thenReturn(exchangeResponseNull);
-    }
-
-    @AfterEach
-    void tearDown() {
-        exchangeService = null;
+        assertAll(
+                () -> assertNotNull(result),
+                () -> assertEquals("success", result.getResult()),
+                () -> assertEquals("EUR", result.getBaseCode()),
+                () -> assertEquals("GBP", result.getTargetCode()),
+                () -> assertEquals("0.8412", result.getConversionRate())
+        );
     }
 
     @Test
-    void shouldReturnExchangeRate() {
-        ExchangeResponse exchangeResponse = exchangeService.getExchangeRate(CurrencyCode.EUR, CurrencyCode.GBP);
-        assertEquals("success", exchangeResponse.getResult());
-        assertEquals("EUR", exchangeResponse.getBaseCode());
-        assertEquals("GBP", exchangeResponse.getTargetCode());
-        assertEquals("0.8412", exchangeResponse.getConversionRate());
+    void shouldPropagateExceptionWhenApiReturns429() {
+        when(restClient.get()).thenReturn(requestHeadersUriSpec);
+        when(requestHeadersUriSpec.uri(anyString())).thenReturn(requestHeadersUriSpec);
+        when(requestHeadersUriSpec.retrieve()).thenReturn(responseSpec);
+
+        HttpClientErrorException exception = HttpClientErrorException.create(
+                HttpStatus.TOO_MANY_REQUESTS, "Too Many Requests", null, null, null
+        );
+        when(responseSpec.toEntity(ExchangeResponse.class)).thenThrow(exception);
+
+        assertThrows(HttpClientErrorException.TooManyRequests.class, () -> {
+            exchangeService.getExchangeRate(CurrencyCode.EUR, CurrencyCode.JPY);
+        });
     }
 
     @Test
-    void shouldThrowExceptionWhenQuotaReached() {
-        assertThrows(QuotaReachedException.class,
-                () -> exchangeService.getExchangeRate(CurrencyCode.EUR, CurrencyCode.JPY));
+    void shouldPropagateExceptionWhenApiReturns404() {
+        when(restClient.get()).thenReturn(requestHeadersUriSpec);
+        when(requestHeadersUriSpec.uri(anyString())).thenReturn(requestHeadersUriSpec);
+        when(requestHeadersUriSpec.retrieve()).thenReturn(responseSpec);
+
+        HttpClientErrorException exception = HttpClientErrorException.create(
+                HttpStatus.NOT_FOUND, "Not Found", null, null, null
+        );
+        when(responseSpec.toEntity(ExchangeResponse.class)).thenThrow(exception);
+
+        assertThrows(HttpClientErrorException.NotFound.class, () -> {
+            exchangeService.getExchangeRate(CurrencyCode.EUR, CurrencyCode.USD);
+        });
     }
 
-    @Test
-    void shouldThrowExceptionWhenErrorOtherThanQuotaReached() {
-        assertThrows(ExchangeRateApiException.class,
-                () -> exchangeService.getExchangeRate(CurrencyCode.EUR, CurrencyCode.USD));
+    @ParameterizedTest
+    @MethodSource("provideNullCurrencyArguments")
+    void shouldThrowIllegalArgumentExceptionWhenAnyCurrencyIsNull(CurrencyCode baseCurrency, CurrencyCode targetCurrency) {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            exchangeService.getExchangeRate(baseCurrency, targetCurrency);
+        });
+
+        assertEquals("Base and target currencies cannot be null", exception.getMessage());
     }
 
-    @Test
-    void shouldThrowExceptionWhenResponseIsNull() {
-        assertThrows(ExchangeRateApiException.class,
-                () -> exchangeService.getExchangeRate(CurrencyCode.USD, CurrencyCode.JPY));
+    private static Stream<Arguments> provideNullCurrencyArguments() {
+        return Stream.of(
+                Arguments.of(null, CurrencyCode.USD),
+                Arguments.of(CurrencyCode.EUR, null),
+                Arguments.of(null, null)
+        );
     }
 }
