@@ -10,6 +10,8 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.HashSet;
@@ -137,8 +139,9 @@ public class GlobalExceptionHandler {
     }
 
     @ResponseStatus(HttpStatus.FAILED_DEPENDENCY)
-    @ExceptionHandler(QuotaReachedException.class)
-    public ResponseEntity<ExceptionResponse> handleException(QuotaReachedException e) {
+    @ExceptionHandler(HttpClientErrorException.TooManyRequests.class)
+    public ResponseEntity<ExceptionResponse> handleException(HttpClientErrorException.TooManyRequests e)
+    {
         return ResponseEntity
                 .status(EXCHANGE_RATE_API_QUOTA_REACHED.getCode())
                 .body(
@@ -150,14 +153,29 @@ public class GlobalExceptionHandler {
     }
 
     @ResponseStatus(HttpStatus.FAILED_DEPENDENCY)
-    @ExceptionHandler(ExchangeRateApiException.class)
-    public ResponseEntity<ExceptionResponse> handleException(ExchangeRateApiException e) {
+    @ExceptionHandler(HttpClientErrorException.class)
+    public ResponseEntity<ExceptionResponse> handleException(HttpClientErrorException e) {
         return ResponseEntity
                 .status(EXCHANGE_RATE_API_ERROR.getCode())
                 .body(
                         ExceptionResponse.builder()
                                 .businessErrorCode(EXCHANGE_RATE_API_ERROR.getCode())
                                 .businessErrorDescription(EXCHANGE_RATE_API_ERROR.getDescription())
+                                .error(e.getMessage())
+                                .build()
+                );
+    }
+
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(HttpServerErrorException.class)
+    public ResponseEntity<ExceptionResponse> handleException(HttpServerErrorException e) {
+        return ResponseEntity
+                .status(EXCHANGE_RATE_API_ERROR.getCode())
+                .body(
+                        ExceptionResponse.builder()
+                                .businessErrorCode(EXCHANGE_RATE_API_ERROR.getCode())
+                                .businessErrorDescription(EXCHANGE_RATE_API_ERROR.getDescription())
+                                .error(e.getMessage())
                                 .build()
                 );
     }
