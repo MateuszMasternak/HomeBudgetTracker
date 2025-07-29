@@ -2,6 +2,7 @@ package com.rainy.homebudgettracker.exchange;
 
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -13,6 +14,10 @@ import java.time.LocalDate;
 public class ExchangeServiceImpl implements ExchangeService {
     private final RestClient restClient;
 
+    @Cacheable(
+            value = "exchangeRates",
+            key = "#baseCurrency.name() + '-' + #targetCurrency.name() + '-' + {T(java.time.LocalDate).now().toString()}"
+    )
     @Override
     public ExchangeResponse getExchangeRate(CurrencyCode baseCurrency, CurrencyCode targetCurrency) {
         if (baseCurrency == null || targetCurrency == null) {

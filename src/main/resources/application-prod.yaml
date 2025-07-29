@@ -40,6 +40,11 @@ spring:
     activate:
       on-profile: prod
     import: optional:file:.env[.properties]
+  cache:
+    type: caffeine
+    caffeine:
+      spec: expireAfterAccess=24h
+
 springdoc:
   api-docs:
     enabled: false
