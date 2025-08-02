@@ -50,13 +50,9 @@ spring:
     activate:
       on-profile: dev
     import: optional:file:.env[.properties]
-  cache:
-    type: caffeine
-    caffeine:
-      spec: expireAfterAccess=24h
 
 management:
   endpoints:
     web:
       exposure:
-        include: caches
+        include: caches, health, info
