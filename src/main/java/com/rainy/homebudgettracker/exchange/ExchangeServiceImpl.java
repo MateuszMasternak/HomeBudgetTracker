@@ -2,7 +2,7 @@ package com.rainy.homebudgettracker.exchange;
 
 import com.rainy.homebudgettracker.exchange.nbp.NbpExchangeService;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
@@ -16,6 +16,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 
 @Service
+@Slf4j
 public class ExchangeServiceImpl implements ExchangeService {
     private final RestClient exchangeRateApiRestClient;
     private final NbpExchangeService nbpExchangeService;
@@ -48,7 +49,8 @@ public class ExchangeServiceImpl implements ExchangeService {
             return getFromExchangeRateApi(baseCurrency, targetCurrency);
         } catch (HttpClientErrorException ex) {
             if (ex.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS) {
-                System.out.println("Quota reached on primary API, falling back to NBP.");
+                log.info("Quota reached on primary API, falling back to NBP for exchange rate from {} to {}",
+                        baseCurrency, targetCurrency);
                 return getFromNbpApi(baseCurrency, targetCurrency);
             }
 
