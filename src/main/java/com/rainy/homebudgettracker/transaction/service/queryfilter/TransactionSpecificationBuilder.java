@@ -56,10 +56,18 @@ public class TransactionSpecificationBuilder {
         if (startDate != null && endDate != null) {
             spec = spec.and(betweenDates(startDate, endDate));
         }
+        if (startDate == null && endDate != null) {
+            spec = spec.and(dateBeforeOrEqual(endDate));
+        }
         if (amountType != null) {
             spec = spec.and(byAmountType(amountType));
         }
 
         return spec;
+    }
+
+    private static Specification<Transaction> dateBeforeOrEqual(LocalDate endDate) {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.lessThanOrEqualTo(root.get("date"), endDate);
     }
 }

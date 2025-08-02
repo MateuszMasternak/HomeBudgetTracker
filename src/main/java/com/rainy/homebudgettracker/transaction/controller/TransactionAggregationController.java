@@ -1,9 +1,12 @@
 package com.rainy.homebudgettracker.transaction.controller;
 
+import com.rainy.homebudgettracker.transaction.BalanceHistoryResponse;
+import com.rainy.homebudgettracker.transaction.enums.PeriodType;
 import com.rainy.homebudgettracker.transaction.service.queryfilter.AggregationFilter;
 import com.rainy.homebudgettracker.transaction.SumResponse;
 import com.rainy.homebudgettracker.transaction.enums.AmountType;
 import com.rainy.homebudgettracker.transaction.service.TransactionAggregationService;
+import com.rainy.homebudgettracker.transaction.service.queryfilter.PeriodicAggregationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -60,5 +63,16 @@ public class TransactionAggregationController {
         };
 
         return ResponseEntity.ok(topFive);
+    }
+
+    @GetMapping("/balance-history")
+    public ResponseEntity<BalanceHistoryResponse> getBalanceHistory(
+            @RequestParam UUID accountId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam PeriodType periodType
+    ) {
+        PeriodicAggregationFilter filter = new PeriodicAggregationFilter(accountId, date, periodType);
+        BalanceHistoryResponse response = aggregationService.getBalanceHistory(filter);
+        return ResponseEntity.ok(response);
     }
 }

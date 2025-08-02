@@ -7,7 +7,9 @@ import com.rainy.homebudgettracker.exchange.ExchangeService;
 import com.rainy.homebudgettracker.mapper.ModelMapper;
 import com.rainy.homebudgettracker.transaction.*;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
+import com.rainy.homebudgettracker.transaction.enums.PeriodType;
 import com.rainy.homebudgettracker.transaction.service.queryfilter.AggregationFilter;
+import com.rainy.homebudgettracker.transaction.service.queryfilter.PeriodicAggregationFilter;
 import com.rainy.homebudgettracker.transaction.service.queryfilter.TransactionSpecificationBuilder;
 import com.rainy.homebudgettracker.transaction.repository.TransactionRepository;
 import com.rainy.homebudgettracker.user.UserService;
@@ -20,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.rainy.homebudgettracker.transaction.service.helper.BigDecimalNormalization.normalize;
@@ -150,5 +153,52 @@ public class TransactionAggregationServiceImpl implements TransactionAggregation
                 ? exchangeService.getHistoricalExchangeRate(from, to, date)
                 : exchangeService.getExchangeRate(from, to);
         return new BigDecimal(response.conversionRate());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public BalanceHistoryResponse getBalanceHistory(PeriodicAggregationFilter filter) {
+        String userSub = userService.getUserSub();
+
+        LocalDate initialBalanceEndDate = filter.periodType() == PeriodType.YEAR
+                ? filter.date().withDayOfYear(1).minusDays(1)
+                : filter.date().withDayOfMonth(1).minusDays(1);
+
+        AggregationFilter initialBalanceFilter = new AggregationFilter(filter.accountId(), null, null, initialBalanceEndDate, null, false);
+        Specification<Transaction> initialSpec = transactionSpecificationBuilder.build(initialBalanceFilter, userSub);
+        BigDecimal initialBalance = sumWithoutConversion(transactionRepository.findAll(initialSpec));
+
+        LocalDate periodStartDate = filter.periodType() == PeriodType.YEAR
+                ? filter.date().withDayOfYear(1)
+                : filter.date().withDayOfMonth(1);
+        LocalDate periodEndDate = filter.periodType() == PeriodType.YEAR
+                ? filter.date().withDayOfYear(filter.date().lengthOfYear())
+                : filter.date().withDayOfMonth(filter.date().lengthOfMonth());
+
+        AggregationFilter periodFilter = new AggregationFilter(filter.accountId(), null, periodStartDate, periodEndDate, null, false);
+        Specification<Transaction> periodSpec = transactionSpecificationBuilder.build(periodFilter, userSub);
+        List<Transaction> transactionsInPeriod = transactionRepository.findAll(periodSpec);
+
+        Map<Integer, BigDecimal> deltas = groupAndSumTransactions(transactionsInPeriod, filter.periodType());
+
+        int numberOfPeriods = filter.periodType() == PeriodType.YEAR ? 12 : periodEndDate.getDayOfMonth();
+        List<BigDecimal> periodicDeltas = new ArrayList<>();
+        for (int i = 1; i <= numberOfPeriods; i++) {
+            periodicDeltas.add(deltas.getOrDefault(i, BigDecimal.ZERO));
+        }
+
+        return new BalanceHistoryResponse(normalize(initialBalance, 2), periodicDeltas);
+    }
+
+    private Map<Integer, BigDecimal> groupAndSumTransactions(List<Transaction> transactions, PeriodType periodType) {
+        Function<Transaction, Integer> grouper = periodType == PeriodType.YEAR
+                ? t -> t.getDate().getMonthValue()
+                : t -> t.getDate().getDayOfMonth();
+
+        return transactions.stream()
+                .collect(Collectors.groupingBy(
+                        grouper,
+                        Collectors.reducing(BigDecimal.ZERO, Transaction::getAmount, BigDecimal::add)
+                ));
     }
 }
