@@ -11,5 +11,6 @@ public record AggregationFilter(
         LocalDate startDate,
         LocalDate endDate,
         AmountType amountType,
-        boolean convertToDefaultCurrency
+        boolean convertToDefaultCurrency,
+        boolean historicalConversion
 ) {}

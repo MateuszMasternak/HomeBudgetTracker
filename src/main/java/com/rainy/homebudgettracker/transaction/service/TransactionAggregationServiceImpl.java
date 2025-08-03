@@ -44,14 +44,19 @@ public class TransactionAggregationServiceImpl implements TransactionAggregation
     @Transactional(readOnly = true)
     public SumResponse getSum(AggregationFilter filter) {
         String userSub = userService.getUserSub();
-
         Specification<Transaction> spec = transactionSpecificationBuilder.build(filter, userSub);
         List<Transaction> transactions = transactionRepository.findAll(spec);
 
-        BigDecimal totalSum = filter.convertToDefaultCurrency()
-                ? sumWithCurrencyConversion(transactions, CurrencyCode.valueOf(
-                        userService.getDefaultCurrency().getCurrencyCode()))
-                : sumWithoutConversion(transactions);
+        BigDecimal totalSum;
+        if (filter.convertToDefaultCurrency()) {
+            CurrencyCode defaultCurrency = CurrencyCode.valueOf(userService.getDefaultCurrency().getCurrencyCode());
+            // ZMIANA: Wybieramy metodę konwersji na podstawie flagi `historical`
+            totalSum = filter.historicalConversion()
+                    ? sumWithHistoricalConversion(transactions, defaultCurrency)
+                    : sumWithCurrentRateConversion(transactions, defaultCurrency);
+        } else {
+            totalSum = sumWithoutConversion(transactions);
+        }
 
         return modelMapper.map(normalize(totalSum, 2), SumResponse.class);
     }
@@ -59,21 +64,13 @@ public class TransactionAggregationServiceImpl implements TransactionAggregation
     @Override
     @Transactional(readOnly = true)
     public List<SumResponse> getTopFiveIncomes(AggregationFilter filter) {
-        var newFilter = new AggregationFilter(
-                filter.accountId(), filter.categoryId(), filter.startDate(), filter.endDate(),
-                filter.amountType(), filter.convertToDefaultCurrency()
-        );
-        return getTopFive(newFilter, Map.Entry.comparingByValue(Comparator.reverseOrder()));
+        return getTopFive(filter, Map.Entry.comparingByValue(Comparator.reverseOrder()));
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<SumResponse> getTopFiveExpenses(AggregationFilter filter) {
-        var newFilter = new AggregationFilter(
-                filter.accountId(), filter.categoryId(), filter.startDate(), filter.endDate(),
-                filter.amountType(), filter.convertToDefaultCurrency()
-        );
-        return getTopFive(newFilter, Map.Entry.comparingByValue());
+        return getTopFive(filter, Map.Entry.comparingByValue());
     }
 
     private List<SumResponse> getTopFive(AggregationFilter filter, Comparator<Map.Entry<Category, BigDecimal>> comparator) {
@@ -90,9 +87,15 @@ public class TransactionAggregationServiceImpl implements TransactionAggregation
         Map<Category, BigDecimal> categorySums = groupedByCategory.entrySet().stream()
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
-                        entry -> filter.convertToDefaultCurrency()
-                                ? sumWithCurrencyConversion(entry.getValue(), defaultCurrency)
-                                : sumWithoutConversion(entry.getValue())
+                        entry -> {
+                            if (filter.convertToDefaultCurrency()) {
+                                return filter.historicalConversion()
+                                        ? sumWithHistoricalConversion(entry.getValue(), defaultCurrency)
+                                        : sumWithCurrentRateConversion(entry.getValue(), defaultCurrency);
+                            } else {
+                                return sumWithoutConversion(entry.getValue());
+                            }
+                        }
                 ));
 
         return categorySums.entrySet().stream()
@@ -111,18 +114,44 @@ public class TransactionAggregationServiceImpl implements TransactionAggregation
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    private BigDecimal sumWithCurrencyConversion(List<Transaction> transactions, CurrencyCode defaultCurrency) {
+    private BigDecimal sumWithCurrentRateConversion(List<Transaction> transactions, CurrencyCode defaultCurrency) {
+        if (transactions == null || transactions.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+
+        Map<CurrencyCode, BigDecimal> sumsByCurrency = transactions.stream()
+                .collect(Collectors.groupingBy(
+                        t -> t.getAccount().getCurrencyCode(),
+                        Collectors.mapping(Transaction::getAmount, Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))
+                ));
+
+        BigDecimal total = BigDecimal.ZERO;
+
+        for (Map.Entry<CurrencyCode, BigDecimal> entry : sumsByCurrency.entrySet()) {
+            CurrencyCode sourceCurrency = entry.getKey();
+            BigDecimal amountInSourceCurrency = entry.getValue();
+
+            if (sourceCurrency == defaultCurrency) {
+                total = total.add(amountInSourceCurrency);
+            } else {
+                BigDecimal currentRate = getCurrencyRate(sourceCurrency, defaultCurrency, LocalDate.now());
+                BigDecimal convertedAmount = CurrencyConverter.convert(amountInSourceCurrency, currentRate, 4);
+                total = total.add(convertedAmount);
+            }
+        }
+        return normalize(total, 2);
+    }
+
+    private BigDecimal sumWithHistoricalConversion(List<Transaction> transactions, CurrencyCode defaultCurrency) {
         if (transactions == null || transactions.isEmpty()) {
             return BigDecimal.ZERO;
         }
 
         Map<RateQuery, BigDecimal> ratesCache = prefetchExchangeRates(transactions, defaultCurrency);
-
         BigDecimal total = BigDecimal.ZERO;
         for (Transaction t : transactions) {
             BigDecimal amount = t.getAmount();
             CurrencyCode sourceCurrency = t.getAccount().getCurrencyCode();
-
             if (sourceCurrency != defaultCurrency) {
                 RateQuery query = new RateQuery(t.getDate(), sourceCurrency, defaultCurrency);
                 BigDecimal rate = ratesCache.get(query);
@@ -164,7 +193,9 @@ public class TransactionAggregationServiceImpl implements TransactionAggregation
                 ? filter.date().withDayOfYear(1).minusDays(1)
                 : filter.date().withDayOfMonth(1).minusDays(1);
 
-        AggregationFilter initialBalanceFilter = new AggregationFilter(filter.accountId(), null, null, initialBalanceEndDate, null, false);
+        AggregationFilter initialBalanceFilter = new AggregationFilter(
+                filter.accountId(), null, null, initialBalanceEndDate, null,
+                false, false);
         Specification<Transaction> initialSpec = transactionSpecificationBuilder.build(initialBalanceFilter, userSub);
         BigDecimal initialBalance = sumWithoutConversion(transactionRepository.findAll(initialSpec));
 
@@ -175,7 +206,9 @@ public class TransactionAggregationServiceImpl implements TransactionAggregation
                 ? filter.date().withDayOfYear(filter.date().lengthOfYear())
                 : filter.date().withDayOfMonth(filter.date().lengthOfMonth());
 
-        AggregationFilter periodFilter = new AggregationFilter(filter.accountId(), null, periodStartDate, periodEndDate, null, false);
+        AggregationFilter periodFilter = new AggregationFilter(
+                filter.accountId(), null, periodStartDate, periodEndDate, null,
+                false, false);
         Specification<Transaction> periodSpec = transactionSpecificationBuilder.build(periodFilter, userSub);
         List<Transaction> transactionsInPeriod = transactionRepository.findAll(periodSpec);
 

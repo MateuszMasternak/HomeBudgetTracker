@@ -55,7 +55,7 @@ class TransactionAggregationServiceTest {
             // Arrange
             String userSub = TestData.USER_SUB;
             AggregationFilter filter = new AggregationFilter(
-                    TestData.ACCOUNT.getId(), null, null, null, null, false
+                    TestData.ACCOUNT.getId(), null, null, null, null, false, false
             );
             List<Transaction> transactions = List.of(
                     TestData.TRANSACTION,
@@ -82,7 +82,7 @@ class TransactionAggregationServiceTest {
             String userSub = TestData.USER_SUB;
             CurrencyCode defaultCurrency = CurrencyCode.PLN;
             AggregationFilter filter = new AggregationFilter(
-                    null, null, null, null, null, true
+                    null, null, null, null, null, true, true
             );
 
             Transaction usdTransaction = TestData.TRANSACTION;
@@ -118,7 +118,7 @@ class TransactionAggregationServiceTest {
         void getSum_shouldReturnZero_whenNoTransactionsFound() {
             String userSub = TestData.USER_SUB;
             AggregationFilter filter = new AggregationFilter(
-                    TestData.ACCOUNT.getId(), null, null, null, null, false
+                    TestData.ACCOUNT.getId(), null, null, null, null, false, false
             );
 
             when(userService.getUserSub()).thenReturn(userSub);

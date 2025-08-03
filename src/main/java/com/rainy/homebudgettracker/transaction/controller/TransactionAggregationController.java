@@ -33,10 +33,12 @@ public class TransactionAggregationController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false, defaultValue = "ALL") AmountType amountType,
-            @RequestParam(defaultValue = "false") boolean convertToDefaultCurrency
+            @RequestParam(defaultValue = "false") boolean convertToDefaultCurrency,
+            @RequestParam(required = false, defaultValue = "false") boolean historicalConversion
     ) {
         AggregationFilter filter = new AggregationFilter(
-                accountId, categoryId, startDate, endDate, amountType, convertToDefaultCurrency
+                accountId, categoryId, startDate, endDate, amountType, convertToDefaultCurrency,
+                historicalConversion
         );
 
         SumResponse sum = aggregationService.getSum(filter);
@@ -50,10 +52,12 @@ public class TransactionAggregationController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam() AmountType categoryType,
             @RequestParam(defaultValue = "true") boolean convertToDefaultCurrency,
-            @RequestParam(required = false) UUID accountId
+            @RequestParam(required = false) UUID accountId,
+            @RequestParam(required = false, defaultValue = "false") boolean historicalConversion
     ) {
         AggregationFilter filter = new AggregationFilter(
-                accountId, null, startDate, endDate, categoryType, convertToDefaultCurrency
+                accountId, null, startDate, endDate, categoryType, convertToDefaultCurrency,
+                historicalConversion
         );
 
         List<SumResponse> topFive = switch (categoryType) {
