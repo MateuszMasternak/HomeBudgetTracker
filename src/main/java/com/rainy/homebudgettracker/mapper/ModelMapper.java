@@ -131,7 +131,7 @@ public class ModelMapper {
                 .date(String.valueOf(transaction.getDate()))
                 .account(mapAccountToResponse(transaction.getAccount()))
                 .transactionMethod(transaction.getTransactionMethod().name())
-                .imageUrl(imageUrl)
+                .hasImage(imageUrl != null)
                 .details(transaction.getDetails())
                 .build();
     }

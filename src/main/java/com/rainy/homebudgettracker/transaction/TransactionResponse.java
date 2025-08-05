@@ -8,12 +8,12 @@ import java.util.UUID;
 
 @Builder
 public record TransactionResponse(
-    UUID id,
-    String amount,
-    CategoryResponse category,
-    String date,
-    AccountResponse account,
-    String transactionMethod,
-    String imageUrl,
-    String details
+        UUID id,
+        String amount,
+        CategoryResponse category,
+        String date,
+        AccountResponse account,
+        String transactionMethod,
+        boolean hasImage,
+        String details
 ) {}

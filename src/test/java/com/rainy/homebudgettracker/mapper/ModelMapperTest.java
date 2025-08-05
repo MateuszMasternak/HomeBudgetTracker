@@ -171,7 +171,7 @@ class ModelMapperTest {
                         .build())
                 .transactionMethod(transaction.getTransactionMethod().name())
                 .details(TestData.DETAILS)
-                .imageUrl(TestData.IMAGE_URL)
+                .hasImage(true)
                 .build();
 
         assertEquals(transactionResponse, returnedTransactionResponse);

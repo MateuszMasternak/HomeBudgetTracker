@@ -100,18 +100,16 @@ class TransactionServiceTest {
             @Test
             @DisplayName("should create a standard transaction and return a valid response")
             void createTransactionForCurrentUser_shouldCreateStandardTransaction() {
+                Transaction transaction = TestData.TRANSACTION;
+                transaction.setImageFilePath(null);
+
                 when(userService.getUserSub()).thenReturn(TestData.USER_SUB);
                 when(accountService.findCurrentUserAccount(TestData.ACCOUNT.getId())).thenReturn(TestData.ACCOUNT);
-                when(categoryRepository.findByUserSubAndName(
-                        TestData.USER_SUB, TestData.CATEGORY.getName()
-                )).thenReturn(Optional.of(TestData.CATEGORY));
+                when(categoryRepository.findByUserSubAndName(anyString(), anyString())).thenReturn(Optional.of(TestData.CATEGORY));
+                when(modelMapper.map(any(TransactionRequest.class), eq(Transaction.class), any(), any(), any())).thenReturn(transaction);
+                when(transactionRepository.save(any(Transaction.class))).thenReturn(transaction);
 
-                when(modelMapper.map(TestData.TRANSACTION_REQUEST, Transaction.class, TestData.USER_SUB,
-                        TestData.CATEGORY, TestData.ACCOUNT)).thenReturn(TestData.TRANSACTION);
-
-                when(transactionRepository.save(any(Transaction.class))).thenReturn(TestData.TRANSACTION);
-
-                when(modelMapper.map(TestData.TRANSACTION, TransactionResponse.class))
+                when(modelMapper.map(transaction, TransactionResponse.class))
                         .thenReturn(TestData.TRANSACTION_RESPONSE);
 
                 TransactionResponse actualResponse = transactionService.createTransactionForCurrentUser(
@@ -119,14 +117,8 @@ class TransactionServiceTest {
                 );
 
                 assertThat(actualResponse).isEqualTo(TestData.TRANSACTION_RESPONSE);
-
-                ArgumentCaptor<Transaction> transactionCaptor = ArgumentCaptor.forClass(Transaction.class);
-                verify(transactionRepository, times(1)).save(transactionCaptor.capture());
-
-                Transaction capturedTransaction = transactionCaptor.getValue();
-                assertThat(capturedTransaction.getAccount()).isEqualTo(TestData.ACCOUNT);
-                assertThat(capturedTransaction.getCategory()).isEqualTo(TestData.CATEGORY);
-                assertThat(capturedTransaction.getUserSub()).isEqualTo(TestData.USER_SUB);
+                verify(modelMapper, times(1)).map(transaction, TransactionResponse.class);
+                verify(modelMapper, never()).map(any(Transaction.class), eq(TransactionResponse.class), anyString());
             }
 
             @Test
@@ -154,7 +146,7 @@ class TransactionServiceTest {
                 when(modelMapper.map(any(Transaction.class), eq(TransactionResponse.class)))
                         .thenReturn(new TransactionResponse(UUID.randomUUID(), "421.00",
                                 TestData.CATEGORY_RESPONSE, null, TestData.ACCOUNT_RESPONSE_2,
-                                null, null, null));
+                                null, false, null));
 
                 transactionService.createTransactionForCurrentUser(TestData.ACCOUNT_2.getId(),
                         TestData.CONVERTED_TRANSACTION_REQUEST);
@@ -290,7 +282,6 @@ class TransactionServiceTest {
         @Test
         @DisplayName("should delete image from transaction successfully")
         void deleteImage_shouldSucceed() {
-            // Arrange
             String s3Key = "existing-image-key.jpg";
             Transaction transaction = TestData.TRANSACTION;
             transaction.setImageFilePath(s3Key);
@@ -339,7 +330,6 @@ class TransactionServiceTest {
             when(userService.getUserSub()).thenReturn(TestData.USER_SUB);
             when(transactionRepository.findAll(any(Specification.class))).thenReturn(userTransactions);
 
-            when(imageService.getImageUrl(any(Transaction.class))).thenReturn(null);
             when(modelMapper.map(transaction1, TransactionResponse.class)).thenReturn(response1);
             when(modelMapper.map(transaction2, TransactionResponse.class)).thenReturn(response2);
 

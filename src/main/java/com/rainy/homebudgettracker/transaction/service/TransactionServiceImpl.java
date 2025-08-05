@@ -46,7 +46,6 @@ public class TransactionServiceImpl implements TransactionService {
     private final ModelMapper modelMapper;
     private final UserService userService;
     private final S3Service s3Service;
-    private final ImageService imageService;
     private final CategoryRepository categoryRepository;
     private final ExchangeService exchangeService;
     private final TransactionSpecificationBuilder transactionSpecificationBuilder;
@@ -251,10 +250,9 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     private TransactionResponse mapToTransactionResponse(Transaction transaction) {
-        String imageUrl = imageService.getImageUrl(transaction);
-        if (imageUrl == null) {
+        if (transaction.getImageFilePath() == null) {
             return modelMapper.map(transaction, TransactionResponse.class);
         }
-        return modelMapper.map(transaction, TransactionResponse.class, imageUrl);
+        return modelMapper.map(transaction, TransactionResponse.class, transaction.getImageFilePath());
     }
 }

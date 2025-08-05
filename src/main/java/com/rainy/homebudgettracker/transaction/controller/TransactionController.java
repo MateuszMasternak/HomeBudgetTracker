@@ -1,5 +1,6 @@
 package com.rainy.homebudgettracker.transaction.controller;
 
+import com.rainy.homebudgettracker.images.ImageService;
 import com.rainy.homebudgettracker.transaction.TransactionResponse;
 import com.rainy.homebudgettracker.transaction.TransactionUpdateRequest;
 import com.rainy.homebudgettracker.transaction.service.TransactionService;
@@ -9,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -16,6 +18,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TransactionController {
     private final TransactionService transactionService;
+    private final ImageService imageService;
 
     @PatchMapping("/{id}")
     public ResponseEntity<TransactionResponse> updateTransactionData(
@@ -40,5 +43,11 @@ public class TransactionController {
     @DeleteMapping("/{id}/image")
     public ResponseEntity<TransactionResponse> deleteImageForCurrentUserTransaction(@PathVariable("id") UUID transactionId) {
         return ResponseEntity.ok(transactionService.deleteImageFromCurrentUserTransaction(transactionId));
+    }
+
+    @GetMapping("/{id}/image-url")
+    public ResponseEntity<Map<String, String>> getImageUrl(@PathVariable("id") UUID transactionId) {
+        String url = imageService.getImageUrl(transactionId);
+        return ResponseEntity.ok(Map.of("imageUrl", url));
     }
 }
