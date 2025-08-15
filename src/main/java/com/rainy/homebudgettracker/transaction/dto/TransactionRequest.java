@@ -1,4 +1,4 @@
-package com.rainy.homebudgettracker.transaction;
+package com.rainy.homebudgettracker.transaction.dto;
 
 import com.rainy.homebudgettracker.category.CategoryRequest;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;

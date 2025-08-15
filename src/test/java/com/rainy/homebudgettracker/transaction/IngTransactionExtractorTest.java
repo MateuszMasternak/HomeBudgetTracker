@@ -1,6 +1,7 @@
 package com.rainy.homebudgettracker.transaction;
 
 import com.rainy.homebudgettracker.handler.exception.WrongFileFormatException;
+import com.rainy.homebudgettracker.transaction.dto.TransactionResponse;
 import com.rainy.homebudgettracker.transaction.service.extractor.IngTransactionExtractor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -47,37 +48,37 @@ class IngTransactionExtractorTest {
 
         TransactionResponse debitCard = transactions.get(0);
         assertThat(debitCard.date()).isEqualTo("2025-07-10");
-        assertThat(debitCard.details()).isEqualTo("ZAKUP PRZY UZYCIU KARTY");
+        assertThat(debitCard.details()).isEqualTo("SKLEP ABC ZAKUP PRZY UZYCIU KARTY");
         assertThat(debitCard.transactionMethod()).isEqualTo("DEBIT_CARD");
         assertThat(debitCard.amount()).isEqualTo("-150.55");
 
         TransactionResponse bankTransfer = transactions.get(1);
         assertThat(bankTransfer.date()).isEqualTo("2025-07-09");
-        assertThat(bankTransfer.details()).isEqualTo("PRZELEW PRZYCHODZACY");
+        assertThat(bankTransfer.details()).isEqualTo("JAN KOWALSKI PRZELEW PRZYCHODZACY");
         assertThat(bankTransfer.transactionMethod()).isEqualTo("BANK_TRANSFER");
         assertThat(bankTransfer.amount()).isEqualTo("1200.00");
 
         TransactionResponse blik = transactions.get(2);
         assertThat(blik.date()).isEqualTo("2025-07-08");
-        assertThat(blik.details()).isEqualTo("ZAKUP PRZY UZYCIU BLIKA");
+        assertThat(blik.details()).isEqualTo("SKLEP XYZ ZAKUP PRZY UZYCIU BLIKA");
         assertThat(blik.transactionMethod()).isEqualTo("BLIK");
         assertThat(blik.amount()).isEqualTo("-50.00");
 
         TransactionResponse expressTransfer = transactions.get(3);
         assertThat(expressTransfer.date()).isEqualTo("2025-07-07");
-        assertThat(expressTransfer.details()).isEqualTo("PRZELEW WYCHODZACY EXPRESS");
+        assertThat(expressTransfer.details()).isEqualTo("JAN KOWALSKI PRZELEW WYCHODZACY EXPRESS");
         assertThat(expressTransfer.transactionMethod()).isEqualTo("EXPRESS_TRANSFER");
         assertThat(expressTransfer.amount()).isEqualTo("-200.00");
 
         TransactionResponse blikTransfer = transactions.get(4);
         assertThat(blikTransfer.date()).isEqualTo("2025-07-06");
-        assertThat(blikTransfer.details()).isEqualTo("PRZELEW WYCHODZĄCY BLIK");
+        assertThat(blikTransfer.details()).isEqualTo("JAN KOWALSKI PRZELEW WYCHODZĄCY BLIK");
         assertThat(blikTransfer.transactionMethod()).isEqualTo("BLIK_TRANSFER");
         assertThat(blikTransfer.amount()).isEqualTo("-300.00");
 
         TransactionResponse other = transactions.get(5);
         assertThat(other.date()).isEqualTo("2025-07-05");
-        assertThat(other.details()).isEqualTo("ZAKUP PRZY UZYCIU PAYPAL");
+        assertThat(other.details()).isEqualTo("SKLEP XYZ ZAKUP PRZY UZYCIU PAYPAL");
         assertThat(other.transactionMethod()).isEqualTo("OTHER");
         assertThat(other.amount()).isEqualTo("-100.00");
     }

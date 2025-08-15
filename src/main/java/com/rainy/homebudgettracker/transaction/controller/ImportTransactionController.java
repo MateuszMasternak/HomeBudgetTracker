@@ -2,8 +2,8 @@ package com.rainy.homebudgettracker.transaction.controller;
 
 import com.rainy.homebudgettracker.transaction.enums.BankName;
 import com.rainy.homebudgettracker.transaction.service.ImportTransactionServiceImpl;
-import com.rainy.homebudgettracker.transaction.TransactionRequest;
-import com.rainy.homebudgettracker.transaction.TransactionResponse;
+import com.rainy.homebudgettracker.transaction.dto.TransactionRequest;
+import com.rainy.homebudgettracker.transaction.dto.TransactionResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +23,7 @@ public class ImportTransactionController {
             @RequestParam("file") MultipartFile file,
             @RequestParam("bank-name")BankName bankName
             ) {
+        System.out.println(importTransactionService.extractTransactions(file, bankName));
         return ResponseEntity.ok(importTransactionService.extractTransactions(file, bankName));
     }
 
