@@ -16,13 +16,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 @Log4j2
 public class IngTransactionExtractor implements TransactionExtractor {
     private static final String EXPECTED_HEADER = "\"Data transakcji\";\"Data księgowania\";\"Dane kontrahenta\";\"Tytuł\";\"Nr rachunku\";\"Nazwa banku\";\"Szczegóły\";\"Nr transakcji\";\"Kwota transakcji (waluta rachunku)\";\"Waluta\";\"Kwota blokady/zwolnienie blokady\";\"Waluta\";\"Kwota płatności w walucie\";\"Waluta\";\"Konto\";\"Saldo po transakcji\";\"Waluta\";;;;";
+    private static final String EXPECTED_HEADER_WITHOUT_BALANCE = "\"Data transakcji\";\"Data księgowania\";\"Dane kontrahenta\";\"Tytuł\";\"Nr rachunku\";\"Nazwa banku\";\"Szczegóły\";\"Nr transakcji\";\"Kwota transakcji (waluta rachunku)\";\"Waluta\";\"Kwota blokady/zwolnienie blokady\";\"Waluta\";\"Kwota płatności w walucie\";\"Waluta\";\"Konto\";;;;;;";
     private static final int HEADER_ROW_NUMBER = 22;
     private static final int COL_DATE = 0;
+    private static final int COL_CONTRACTOR = 2;
     private static final int COL_DETAILS = 3;
     private static final int COL_TRANSACTION_METHOD = 6;
     private static final int COL_AMOUNT = 8;
@@ -35,8 +39,7 @@ public class IngTransactionExtractor implements TransactionExtractor {
     @Override
     public List<TransactionResponse> extract(InputStream inputStream) {
         try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(inputStream, Charset.forName("Windows-1250"))))
-        {
+                new InputStreamReader(inputStream, Charset.forName("Windows-1250")))) {
             validateHeaderAndSkip(reader);
 
             List<TransactionResponse> transactions = new ArrayList<>();
@@ -44,10 +47,17 @@ public class IngTransactionExtractor implements TransactionExtractor {
             while ((line = reader.readLine()) != null) {
                 String[] values = line.split(";", -1);
                 if (checkIfProperRow(values)) {
+                    String participant = cleanDetails(values[COL_CONTRACTOR]);
+                    String title = cleanDetails(values[COL_TRANSACTION_METHOD]);
+
+                    String combinedDetails = Stream.of(participant, title)
+                            .filter(s -> s != null && !s.isBlank())
+                            .collect(Collectors.joining(" "));
+
                     TransactionResponse transaction = TransactionResponse.builder()
                             .id(UUID.randomUUID())
                             .date(values[COL_DATE])
-                            .details(cleanDetails(values[COL_DETAILS]))
+                            .details(combinedDetails)
                             .transactionMethod(mapToTransactionMethod(values[COL_TRANSACTION_METHOD]))
                             .amount(values[COL_AMOUNT].replace(",", "."))
                             .build();
@@ -94,10 +104,18 @@ public class IngTransactionExtractor implements TransactionExtractor {
             }
         }
 
+        String message = "Incorrect file format. The header in line "
+                + HEADER_ROW_NUMBER
+                + " does not match the expected export format from ING";
         String headerLine = reader.readLine();
-        if (headerLine == null || !headerLine.trim().equals(EXPECTED_HEADER)) {
-            throw new WrongFileFormatException("Incorrect file format. The header in line " + HEADER_ROW_NUMBER
-                    + " does not match the expected export format from ING");
+        if (headerLine == null) {
+            throw new WrongFileFormatException(message);
+        } else if (headerLine.equals(EXPECTED_HEADER)) {
+            return;
+        } else if (headerLine.equals(EXPECTED_HEADER_WITHOUT_BALANCE)) {
+            return;
         }
+
+        throw new WrongFileFormatException(message);
     }
 }
