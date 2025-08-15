@@ -1,7 +1,7 @@
 package com.rainy.homebudgettracker.transaction.service;
 
-import com.rainy.homebudgettracker.transaction.TransactionRequest;
-import com.rainy.homebudgettracker.transaction.TransactionResponse;
+import com.rainy.homebudgettracker.transaction.dto.TransactionRequest;
+import com.rainy.homebudgettracker.transaction.dto.TransactionResponse;
 import com.rainy.homebudgettracker.transaction.enums.BankName;
 import org.springframework.web.multipart.MultipartFile;
 

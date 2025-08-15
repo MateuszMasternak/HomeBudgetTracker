@@ -1,8 +1,8 @@
 package com.rainy.homebudgettracker.transaction.controller;
 
 import com.rainy.homebudgettracker.images.ImageService;
-import com.rainy.homebudgettracker.transaction.TransactionResponse;
-import com.rainy.homebudgettracker.transaction.TransactionUpdateRequest;
+import com.rainy.homebudgettracker.transaction.dto.TransactionResponse;
+import com.rainy.homebudgettracker.transaction.dto.TransactionUpdateRequest;
 import com.rainy.homebudgettracker.transaction.service.TransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

@@ -1,14 +1,13 @@
 package com.rainy.homebudgettracker.transaction.service;
 
 import com.rainy.homebudgettracker.transaction.service.queryfilter.TransactionFilter;
-import com.rainy.homebudgettracker.transaction.TransactionRequest;
-import com.rainy.homebudgettracker.transaction.TransactionResponse;
-import com.rainy.homebudgettracker.transaction.TransactionUpdateRequest;
+import com.rainy.homebudgettracker.transaction.dto.TransactionRequest;
+import com.rainy.homebudgettracker.transaction.dto.TransactionResponse;
+import com.rainy.homebudgettracker.transaction.dto.TransactionUpdateRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.math.BigDecimal;
 import java.util.UUID;
 
 public interface TransactionService {

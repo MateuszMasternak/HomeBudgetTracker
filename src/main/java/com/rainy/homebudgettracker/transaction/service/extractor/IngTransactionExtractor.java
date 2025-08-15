@@ -2,7 +2,7 @@ package com.rainy.homebudgettracker.transaction.service.extractor;
 
 import com.rainy.homebudgettracker.handler.exception.FileProcessingException;
 import com.rainy.homebudgettracker.handler.exception.WrongFileFormatException;
-import com.rainy.homebudgettracker.transaction.TransactionResponse;
+import com.rainy.homebudgettracker.transaction.dto.TransactionResponse;
 import com.rainy.homebudgettracker.transaction.enums.BankName;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;

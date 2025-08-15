@@ -1,6 +1,6 @@
 package com.rainy.homebudgettracker.transaction.service.extractor;
 
-import com.rainy.homebudgettracker.transaction.TransactionResponse;
+import com.rainy.homebudgettracker.transaction.dto.TransactionResponse;
 import com.rainy.homebudgettracker.transaction.enums.BankName;
 
 import java.io.InputStream;

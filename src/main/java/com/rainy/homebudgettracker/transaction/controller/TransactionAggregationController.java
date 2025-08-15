@@ -1,9 +1,9 @@
 package com.rainy.homebudgettracker.transaction.controller;
 
-import com.rainy.homebudgettracker.transaction.BalanceHistoryResponse;
+import com.rainy.homebudgettracker.transaction.dto.BalanceHistoryResponse;
 import com.rainy.homebudgettracker.transaction.enums.PeriodType;
 import com.rainy.homebudgettracker.transaction.service.queryfilter.AggregationFilter;
-import com.rainy.homebudgettracker.transaction.SumResponse;
+import com.rainy.homebudgettracker.transaction.dto.SumResponse;
 import com.rainy.homebudgettracker.transaction.enums.AmountType;
 import com.rainy.homebudgettracker.transaction.service.TransactionAggregationService;
 import com.rainy.homebudgettracker.transaction.service.queryfilter.PeriodicAggregationFilter;
