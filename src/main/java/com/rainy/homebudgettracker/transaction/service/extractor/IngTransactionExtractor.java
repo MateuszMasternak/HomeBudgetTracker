@@ -48,7 +48,7 @@ public class IngTransactionExtractor implements TransactionExtractor {
                 String[] values = line.split(";", -1);
                 if (checkIfProperRow(values)) {
                     String participant = cleanDetails(values[COL_CONTRACTOR]);
-                    String title = cleanDetails(values[COL_TRANSACTION_METHOD]);
+                    String title = cleanDetails(values[COL_DETAILS]);
 
                     String combinedDetails = Stream.of(participant, title)
                             .filter(s -> s != null && !s.isBlank())
