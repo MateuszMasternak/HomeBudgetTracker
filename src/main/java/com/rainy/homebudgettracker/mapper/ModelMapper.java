@@ -3,13 +3,12 @@ package com.rainy.homebudgettracker.mapper;
 import com.rainy.homebudgettracker.account.Account;
 import com.rainy.homebudgettracker.account.AccountRequest;
 import com.rainy.homebudgettracker.account.AccountResponse;
-import com.rainy.homebudgettracker.transaction.dto.SumResponse;
+import com.rainy.homebudgettracker.transaction.CategorizationRule;
+import com.rainy.homebudgettracker.transaction.dto.*;
 import com.rainy.homebudgettracker.category.Category;
 import com.rainy.homebudgettracker.category.CategoryRequest;
 import com.rainy.homebudgettracker.category.CategoryResponse;
 import com.rainy.homebudgettracker.transaction.Transaction;
-import com.rainy.homebudgettracker.transaction.dto.TransactionRequest;
-import com.rainy.homebudgettracker.transaction.dto.TransactionResponse;
 import com.rainy.homebudgettracker.transaction.enums.CurrencyCode;
 import com.rainy.homebudgettracker.user.DefaultCurrency;
 import com.rainy.homebudgettracker.user.DefaultCurrencyResponseRequest;
@@ -105,6 +104,17 @@ public class ModelMapper {
                 else
                     throw new UnsupportedOperationException(message);
             }
+            case "RuleResponse": {
+                if (source instanceof CategorizationRule rule)
+                    yield (T) mapRuleToResponse(rule);
+            }
+            case "CategorizationRule": {
+                if (source instanceof RuleRequest ruleRequest
+                        && args.length == 2
+                        && args[0] instanceof String userSub
+                        && args[1] instanceof Category category)
+                    yield (T) mapRuleRequestToCategorizationRule(ruleRequest, userSub, category);
+            }
             default:
                 throw new UnsupportedOperationException(message);
         };
@@ -199,6 +209,26 @@ public class ModelMapper {
     private DefaultCurrencyResponseRequest mapDefaultCurrencyToResponse(DefaultCurrency defaultCurrency) {
         return DefaultCurrencyResponseRequest.builder()
                 .currencyCode(defaultCurrency.getCurrencyCode().name())
+                .build();
+    }
+
+    private RuleResponse mapRuleToResponse(CategorizationRule rule) {
+        CategoryResponse categoryResponse = mapCategoryToResponse(rule.getCategory());
+        return RuleResponse.builder()
+                .id(rule.getId())
+                .keyword(rule.getKeyword())
+                .category(categoryResponse)
+                .build();
+    }
+
+    private CategorizationRule mapRuleRequestToCategorizationRule(
+            RuleRequest ruleRequest,
+            String userSub,
+            Category category) {
+        return CategorizationRule.builder()
+                .keyword(ruleRequest.keyword())
+                .category(category)
+                .userSub(userSub)
                 .build();
     }
 }

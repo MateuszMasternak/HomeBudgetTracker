@@ -23,6 +23,7 @@ public class ImportTransactionController {
             @RequestParam("file") MultipartFile file,
             @RequestParam("bank-name")BankName bankName
             ) {
+        System.out.println(importTransactionService.extractTransactions(file, bankName));
         return ResponseEntity.ok(importTransactionService.extractTransactions(file, bankName));
     }
 
