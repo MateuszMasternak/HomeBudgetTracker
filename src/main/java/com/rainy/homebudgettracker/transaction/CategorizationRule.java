@@ -18,7 +18,7 @@ public class CategorizationRule {
     private UUID id;
     @Column(nullable = false)
     private String keyword;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne()
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
     @Column(name = "user_sub", nullable = false)
